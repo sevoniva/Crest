@@ -128,6 +128,12 @@ const init = () => {
     state.customColor = state.basicStyleForm.colors[0]
     state.colorIndex = 0
   }
+  if (
+    props.chart.type.includes('-stack') &&
+    state.basicStyleForm.radiusColumnBar === 'topRoundAngle'
+  ) {
+    state.basicStyleForm.radiusColumnBar = 'roundAngle'
+  }
 }
 const configCompat = (basicStyle: ChartBasicStyle) => {
   // 悬浮改为图例和缩放按钮
@@ -224,9 +230,17 @@ onMounted(() => {
               :effect="themes"
               v-model="state.basicStyleForm.radiusColumnBar"
               @change="changeBasicStyle('radiusColumnBar')"
+              class="radius-class"
             >
               <el-radio label="rightAngle" :effect="themes">{{ t('chart.rightAngle') }}</el-radio>
               <el-radio label="roundAngle" :effect="themes">{{ t('chart.roundAngle') }}</el-radio>
+              <el-radio
+                v-if="!props.chart.type.includes('-stack')"
+                label="topRoundAngle"
+                :effect="themes"
+              >
+                {{ t('chart.topRoundAngle') }}</el-radio
+              >
             </el-radio-group>
           </el-form-item>
           <div class="alpha-setting" v-if="showProperty('columnWidthRatio')">
@@ -550,6 +564,14 @@ onMounted(() => {
 
   :deep(.ed-tabs__header) {
     border-top: none !important;
+  }
+}
+.radius-class {
+  :deep(.ed-radio) {
+    margin-right: 30px !important;
+  }
+  .ed-radio:last-child {
+    margin-right: 0px !important;
   }
 }
 </style>

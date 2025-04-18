@@ -1,6 +1,10 @@
 export default {
   common: {
     empty: ' ',
+    cross_source: 'Cross-source',
+    single_source: 'Single-source',
+    source_tips:
+      'The data set is cross-source. Please check the syntax of other SQL nodes to confirm whether the type should be changed to single-source?',
     associated_chart: 'Associated chart',
     associated_chart_first: 'First level associated chart',
     changing_the_display:
@@ -1939,6 +1943,7 @@ export default {
     radiusColumnBar: 'Column',
     rightAngle: 'Right angle',
     roundAngle: 'Rounded angle',
+    topRoundAngle: 'Top rounded angle',
     table_layout_mode: 'Display form',
     table_layout_grid: 'Tile display',
     table_layout_tree: 'Tree display',
@@ -2461,7 +2466,9 @@ export default {
     support: 'Get technical support',
     update_success: 'Update successful',
     serial_no: 'Serial number',
-    remark: 'Remark'
+    remark: 'Remark',
+    back_community: 'Revert to Community Edition',
+    confirm_tips: 'Are you sure you want to restore to the community edition? '
   },
   cron: {
     second: 'Seconds',
@@ -2895,6 +2902,7 @@ export default {
     column_name: 'Field name'
   },
   visualization: {
+    support_query: 'Only query components can be added',
     publish_update_tips: 'Update available',
     filter_freeze_tips:
       'A pinned query component already exists. Confirm switching to this component?',
@@ -3074,7 +3082,7 @@ export default {
     query: 'Query',
     carousel: 'Carousel',
     carousel_time: 'Carousel Time(s)',
-    carousel_tips: 'Carousel will only take effect after exiting edit mode',
+    carousel_tips: 'Carousel takes effect after exiting edit mode',
     carousel_tips2: 'Carousel will be disabled after enabling conditional styling',
     background: 'Background',
     tab_title: 'Tab Title',
@@ -3086,7 +3094,7 @@ export default {
     board_radius: 'Border Radius',
     enable_event_binding: 'Enable Event Binding',
     event_binding_tips:
-      'Event bindings will take effect after exiting edit mode. When rich text or metric cards have event binding enabled, their internal click events will be disabled.',
+      'Event bindings will take effect after exiting edit mode. When rich text have event binding enabled, their internal click events will be disabled.',
     input_url_tips: 'Please enter the redirect URL',
     edit_title: 'Edit Title',
     custom_sort: 'Custom Sort',

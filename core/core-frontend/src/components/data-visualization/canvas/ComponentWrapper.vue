@@ -16,7 +16,9 @@ import { isDashboard, isMainCanvas } from '@/utils/canvasUtils'
 import { XpackComponent } from '@/components/plugin'
 import { useAppStoreWithOut } from '@/store/modules/app'
 import DePreviewPopDialog from '@/components/visualization/DePreviewPopDialog.vue'
+import Icon from '../../icon-custom/src/Icon.vue'
 const appStore = useAppStoreWithOut()
+import replaceOutlined from '@/assets/svg/icon_replace_outlined.svg'
 
 const componentWrapperInnerRef = ref(null)
 const componentEditBarRef = ref(null)
@@ -168,25 +170,19 @@ const handleInnerMouseDown = e => {
   // do setCurComponent
   if (showPosition.value.includes('multiplexing')) {
     componentEditBarRef.value.multiplexingCheckOut()
-    e.stopPropagation()
-    e.preventDefault()
+    e?.stopPropagation()
+    e?.preventDefault()
   }
   if (['popEdit', 'preview'].includes(showPosition.value) || dvMainStore.mobileInPc) {
     onClick(e)
     if (e.target?.className?.includes('ed-input__inner')) return
-    e.stopPropagation()
-    e.preventDefault()
+    e?.stopPropagation()
+    e?.preventDefault()
   }
 }
 
 onMounted(() => {
   currentInstance = getCurrentInstance()
-  const methodName = 'componentImageDownload-' + config.value.id
-  if (!useEmitt().emitter.all.get(methodName)?.length) {
-    useEmitt().emitter.on(methodName, () => {
-      htmlToImage()
-    })
-  }
 })
 
 const onClick = e => {
@@ -314,11 +310,20 @@ const eventEnable = computed(
       ['indicator', 'rich-text'].includes(config.value.innerType)) &&
     config.value.events &&
     config.value.events.checked &&
-    (isDashboard() || (!isDashboard() && !isMobile()))
+    (isDashboard() || (!isDashboard() && !isMobile())) &&
+    showPosition.value !== 'canvas-multiplexing'
 )
 
+const onWrapperClickCur = e => {
+  // 指标卡为内部触发
+  if (['indicator'].includes(config.value.innerType)) {
+    return
+  }
+  onWrapperClick(e)
+}
+
 const onWrapperClick = e => {
-  if (eventEnable.value && showPosition.value !== 'canvas-multiplexing') {
+  if (eventEnable.value) {
     if (config.value.events.type === 'showHidden') {
       // 打开弹框区域
       nextTick(() => {
@@ -349,8 +354,8 @@ const onWrapperClick = e => {
     } else if (config.value.events.type === 'download') {
       useEmitt().emitter.emit('canvasDownload')
     }
-    e.preventDefault()
-    e.stopPropagation()
+    e?.preventDefault()
+    e?.stopPropagation()
   }
 }
 
@@ -374,6 +379,28 @@ const freezeFlag = computed(() => {
     scrollMain.value - config.value.style?.top > 0
   )
 })
+
+const commonParams = computed(() => {
+  return {
+    eventEnable: eventEnable.value,
+    eventType: config.value.events.type
+  }
+})
+
+const showCheck = computed(() => {
+  return dvMainStore.mobileInPc && showPosition.value === 'edit'
+})
+
+const updateFromMobile = (e, type) => {
+  if (type === 'syncPcDesign') {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+  useEmitt().emitter.emit('onMobileStatusChange', {
+    type: type,
+    value: config.value.id
+  })
+}
 </script>
 
 <template>
@@ -392,6 +419,16 @@ const freezeFlag = computed(() => {
     element-loading-text="导出中..."
     element-loading-background="rgba(255, 255, 255, 1)"
   >
+    <div
+      :title="$t('visualization.sync_pc_design')"
+      v-if="showCheck"
+      class="refresh-from-pc"
+      @click="updateFromMobile($event, 'syncPcDesign')"
+    >
+      <el-icon>
+        <Icon name="icon_replace_outlined"><replaceOutlined class="svg-icon" /></Icon>
+      </el-icon>
+    </div>
     <component-edit-bar
       v-if="!showPosition.includes('canvas') && !props.isSelector"
       class="wrapper-edit-bar"
@@ -401,6 +438,7 @@ const freezeFlag = computed(() => {
       :element="config"
       :show-position="showPosition"
       :class="{ 'wrapper-edit-bar-active': active }"
+      @componentImageDownload="htmlToImage"
       @userViewEnlargeOpen="opt => emits('userViewEnlargeOpen', opt)"
       @datasetParamsInit="() => emits('datasetParamsInit')"
     ></component-edit-bar>
@@ -422,7 +460,7 @@ const freezeFlag = computed(() => {
         class="wrapper-inner-adaptor"
         :style="slotStyle"
         :class="{ 'pop-wrapper-inner': showActive, 'event-active': eventEnable }"
-        @mousedown="onWrapperClick"
+        @mousedown="onWrapperClickCur"
       >
         <component
           :is="findComponent(config['component'])"
@@ -447,7 +485,9 @@ const freezeFlag = computed(() => {
           :suffix-id="suffixId"
           :font-family="fontFamily"
           :active="active"
+          :common-params="commonParams"
           @onPointClick="onPointClick"
+          @onComponentEvent="onWrapperClick"
         />
       </div>
       <!--边框背景-->
@@ -472,6 +512,15 @@ const freezeFlag = computed(() => {
 }
 .wrapper-outer {
   position: absolute;
+  .refresh-from-pc {
+    position: absolute;
+    right: 38px;
+    top: 12px;
+    z-index: 2;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--ed-color-primary);
+  }
 }
 .wrapper-inner {
   width: 100%;

@@ -10,6 +10,7 @@ import io.dataease.dataset.manage.DatasetGroupManage;
 import io.dataease.dataset.manage.DatasetSQLManage;
 import io.dataease.dataset.manage.DatasetTableFieldManage;
 import io.dataease.dataset.manage.PermissionManage;
+import io.dataease.dataset.utils.DatasetUtils;
 import io.dataease.engine.sql.SQLProvider;
 import io.dataease.engine.trans.*;
 import io.dataease.engine.utils.SQLUtils;
@@ -44,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -135,6 +135,7 @@ public class ChartDataManage {
         //计数字段
         dataeaseNames.add("*");
         AxisFormatResult formatResult = chartHandler.formatAxis(view);
+        formatResult.getContext().put("dataset", table);
         formatResult.getContext().put("desensitizationList", desensitizationList);
         var xAxis = formatResult.getAxisMap().get(ChartAxis.xAxis);
         var yAxis = formatResult.getAxisMap().get(ChartAxis.yAxis);
@@ -372,7 +373,7 @@ public class ChartDataManage {
         Map<String, Object> sqlMap = datasetSQLManage.getUnionSQLForEdit(table, chartExtRequest);
         String sql = (String) sqlMap.get("sql");
         Map<Long, DatasourceSchemaDTO> dsMap = (Map<Long, DatasourceSchemaDTO>) sqlMap.get("dsMap");
-        boolean crossDs = Utils.isCrossDs(dsMap);
+        boolean crossDs = table.getIsCross();
         if (!crossDs) {
             sql = Utils.replaceSchemaAlias(sql, dsMap);
         }
@@ -717,7 +718,7 @@ public class ChartDataManage {
             dsList.add(next.getValue().getType());
         }
         boolean needOrder = Utils.isNeedOrder(dsList);
-        boolean crossDs = Utils.isCrossDs(dsMap);
+        boolean crossDs = table.getIsCross();
         if (!crossDs) {
             sql = Utils.replaceSchemaAlias(sql, dsMap);
         }
@@ -725,6 +726,7 @@ public class ChartDataManage {
         // 调用数据源的calcite获得data
         DatasourceRequest datasourceRequest = new DatasourceRequest();
         datasourceRequest.setDsList(dsMap);
+        datasourceRequest.setIsCross(crossDs);
 
         Provider provider;
         if (crossDs) {
@@ -838,5 +840,14 @@ public class ChartDataManage {
         List<String[]> sqlData = sqlData(view, view.getChartExtRequest(), fieldId);
         List<String[]> result = customSort(Optional.ofNullable(targetField.getCustomSort()).orElse(new ArrayList<>()), sqlData, 0);
         return result.stream().map(i -> i[0]).distinct().collect(Collectors.toList());
+    }
+
+    public void encodeData(ChartViewDTO chartViewDTO) {
+        if (chartViewDTO.getType().startsWith("chart-mix")) {
+            DatasetUtils.listEncode((List<ChartViewFieldDTO>) ((Map<String, Object>) chartViewDTO.getData().get("left")).get("sourceFields"));
+            DatasetUtils.listEncode((List<ChartViewFieldDTO>) ((Map<String, Object>) chartViewDTO.getData().get("right")).get("sourceFields"));
+        } else {
+            DatasetUtils.listEncode((List<ChartViewFieldDTO>) chartViewDTO.getData().get("sourceFields"));
+        }
     }
 }

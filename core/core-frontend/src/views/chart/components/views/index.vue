@@ -68,7 +68,7 @@ const appearanceStore = useAppearanceStoreWithOut()
 const isDataEaseBi = computed(() => appStore.getIsDataEaseBi)
 const isIframe = computed(() => appStore.getIsIframe)
 
-const emit = defineEmits(['onPointClick'])
+const emit = defineEmits(['onPointClick', 'onComponentEvent'])
 
 const {
   nowPanelJumpInfo,
@@ -78,11 +78,15 @@ const {
   canvasStyleData,
   mobileInPc,
   inMobile,
-  editMode,
-  hiddenListStatus
+  editMode
 } = storeToRefs(dvMainStore)
 
 const props = defineProps({
+  // 公共参数集
+  commonParams: {
+    type: Object,
+    required: false
+  },
   active: {
     type: Boolean,
     default: false
@@ -466,9 +470,13 @@ const jumpClick = param => {
     const jumpInfoParam = `&jumpInfoParam=${encodeURIComponent(
       Base64.encode(JSON.stringify(param))
     )}`
+
     // 内部仪表板跳转
     if (jumpInfo.linkType === 'inner') {
       if (jumpInfo.targetDvId) {
+        const editPreviewParams = ['canvas', 'edit-preview'].includes(showPosition.value)
+          ? '&editPreview=true'
+          : ''
         const filterOuterParams = {}
         const curFilter = dvMainStore.getLastViewRequestInfo(param.viewId)
         const targetViewInfoList = jumpInfo.targetViewInfoList
@@ -503,9 +511,9 @@ const jumpClick = param => {
           if (jumpInfo.publicJumpId) {
             let url = `${embeddedBaseUrl}#/de-link/${jumpInfo.publicJumpId}?fromLink=true&dvType=${jumpInfo.targetDvType}`
             if (attachParamsInfo) {
-              url = url + attachParamsInfo + jumpInfoParam
+              url = url + attachParamsInfo + jumpInfoParam + editPreviewParams
             } else {
-              url = url + '&ignoreParams=true' + attachParamsInfo + jumpInfoParam
+              url = url + '&ignoreParams=true' + jumpInfoParam + editPreviewParams
             }
             const currentUrl = window.location.href
             localStorage.setItem('beforeJumpUrl', currentUrl)
@@ -516,9 +524,9 @@ const jumpClick = param => {
         } else {
           let url = `${embeddedBaseUrl}#/preview?dvId=${jumpInfo.targetDvId}&fromLink=true&dvType=${jumpInfo.targetDvType}`
           if (attachParamsInfo) {
-            url = url + attachParamsInfo + jumpInfoParam
+            url = url + attachParamsInfo + jumpInfoParam + editPreviewParams
           } else {
-            url = url + '&ignoreParams=true' + attachParamsInfo + jumpInfoParam
+            url = url + '&ignoreParams=true' + jumpInfoParam + editPreviewParams
           }
           const currentUrl = window.location.href
           localStorage.setItem('beforeJumpUrl', currentUrl)
@@ -1189,11 +1197,13 @@ const clearG2Tooltip = () => {
         :show-position="showPosition"
         :suffixId="suffixId"
         :font-family="fontFamily"
+        :common-params="commonParams"
         @touchstart="clearG2Tooltip"
         @onChartClick="chartClick"
         @onPointClick="onPointClick"
         @onDrillFilters="onDrillFilters"
         @onJumpClick="jumpClick"
+        @onComponentEvent="() => emit('onComponentEvent')"
       />
       <chart-component-g2-plot
         :scale="scale"

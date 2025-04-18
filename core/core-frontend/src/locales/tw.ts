@@ -1,6 +1,9 @@
 export default {
   common: {
     empty: '',
+    cross_source: '跨源',
+    single_source: '單源',
+    source_tips: '資料集存在跨源情況，請檢查其他 SQL 節點的語法，是否確認將類型改為單源?',
     other_levels: '除層級一外,其他層級無須進行查詢條件配置',
     tree_structure: '下拉樹的結構不能為空',
     associated_chart: '關聯圖表',
@@ -1889,6 +1892,7 @@ export default {
     radiusColumnBar: '柱形',
     rightAngle: '直角',
     roundAngle: '圓角',
+    topRoundAngle: '頂部圓角',
     table_layout_mode: '展示形式',
     table_layout_grid: '平鋪展示',
     table_layout_tree: '樹形展示',
@@ -2392,7 +2396,9 @@ export default {
     support: '取得技術支援',
     update_success: '更新成功',
     serial_no: '序號',
-    remark: '備註'
+    remark: '備註',
+    back_community: '還原至社區版',
+    confirm_tips: '确定還原至社區版？'
   },
   cron: {
     second: '秒',
@@ -2815,6 +2821,7 @@ export default {
     column_name: '欄位名稱'
   },
   visualization: {
+    support_query: '僅可新增查詢元件',
     publish_update_tips: '有更新',
     filter_freeze_tips: '已存在置頂查詢組件，確定切換該組件？',
     query_position: '查詢組件位置',
@@ -2990,7 +2997,7 @@ export default {
     query: '查詢',
     carousel: '輪播',
     carousel_time: '輪播時間（秒）',
-    carousel_tips: '輪播退出編輯模式才開生效',
+    carousel_tips: '輪播退出編輯模式開始生效',
     carousel_tips2: '啟用條件樣式後，輪播失效',
     background: '背景',
     tab_title: 'Tab標籤',

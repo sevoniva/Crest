@@ -33,7 +33,7 @@ import { PositionType } from '@antv/l7-core'
 import { centroid } from '@turf/centroid'
 import type { Plot } from '@antv/g2plot'
 import type { PickOptions } from '@antv/g2plot/lib/core/plot'
-import { defaults, find } from 'lodash-es'
+import { defaults, find, groupBy, map, uniq } from 'lodash-es'
 import { useI18n } from '@/hooks/web/useI18n'
 import { isMobile } from '@/utils/utils'
 import { GaodeMap, TMap, TencentMap } from '@antv/l7-maps'
@@ -489,7 +489,8 @@ export function getXAxis(chart: Chart) {
               style: {
                 fill: a.axisLabel.color,
                 fontSize: a.axisLabel.fontSize,
-                textAlign: textAlign
+                textAlign: textAlign,
+                fontFamily: chart.fontFamily
               },
               formatter: value => {
                 return chart.type === 'bidirectional-bar' && value.length > a.axisLabel.lengthLimit
@@ -594,7 +595,8 @@ export function getYAxis(chart: Chart) {
           fill: yAxis.axisLabel.color,
           fontSize: yAxis.axisLabel.fontSize,
           textBaseline,
-          textAlign
+          textAlign,
+          fontFamily: chart.fontFamily
         },
         formatter: value => {
           return value.length > yAxis.axisLabel.lengthLimit
@@ -695,7 +697,8 @@ export function getYAxisExt(chart: Chart) {
           fill: yAxis.axisLabel.color,
           fontSize: yAxis.axisLabel.fontSize,
           textBaseline,
-          textAlign
+          textAlign,
+          fontFamily: chart.fontFamily
         }
       }
     : null
@@ -1788,6 +1791,8 @@ export function configPlotTooltipEvent<O extends PickOptions, P extends Plot<O>>
     if (!tooltipCtl) {
       return
     }
+    // 处理 tooltip 与下拉菜单的显示冲突问题
+    const viewTrackBarElement = document.getElementById('view-track-bar-' + chart.id)
     const event = plot.chart.interactions.tooltip?.context?.event
     // 是否时轮播模式
     const isCarousel =
@@ -1801,6 +1806,10 @@ export function configPlotTooltipEvent<O extends PickOptions, P extends Plot<O>>
     if (tooltipCtl.tooltip) {
       // 处理视图放大后再关闭 tooltip 的 dom 被清除
       const container = tooltipCtl.tooltip.cfg.container
+      // 当下拉菜单不显示时，移除tooltip的hidden-tooltip样式
+      if (viewTrackBarElement?.getAttribute('aria-expanded') === 'false') {
+        container.classList.toggle('hidden-tooltip', false)
+      }
       container.style.display = 'block'
       const dom = document.getElementById(container.id)
       if (!dom) {
@@ -2098,10 +2107,12 @@ export function configYaxisTitleLengthLimit(chart, plot) {
           ? wrappedTitle.slice(0, wrappedTitle.length - 2) + '...'
           : wrappedTitle + '...'
     }
-
     // 更新Y轴标题的原始文本和截断后的文本
-    ev.view.options.axes.yAxisExt.title.originalText = yAxis.name
-    ev.view.options.axes.yAxisExt.title.text = wrappedTitle
+    const { title } = ev.view.options.axes.yAxisExt
+    if (title) {
+      title.originalText = yAxis.name
+      title.text = wrappedTitle
+    }
   })
 }
 
@@ -2197,7 +2208,7 @@ const getColorByConditions = (quotaList: [], values: number | number[], chart) =
  * @param chart
  * @param options
  */
-export function handleConditionsStyle(chart: Chart, options: O) {
+export function handleConditionsStyle(chart: Chart, options) {
   const { threshold } = parseJson(chart.senior)
   if (!threshold.enable) return options
   const { basicStyle } = parseJson(chart.customAttr)
@@ -2209,8 +2220,6 @@ export function handleConditionsStyle(chart: Chart, options: O) {
   // 辅助函数：配置柱条样式颜色，条形图为barStyle,柱形图为columnStyle
   const columnStyle = data => {
     return {
-      ...options.columnStyle,
-      ...options.barStyle,
       ...(data[colorField]?.[0] ? { fill: data[colorField][0] } : {})
     }
   }
@@ -2224,8 +2233,8 @@ export function handleConditionsStyle(chart: Chart, options: O) {
   const tmpOption = {
     ...options,
     rawFields,
-    columnStyle: columnStyle,
-    barStyle: columnStyle,
+    ...configRoundAngle(chart, 'columnStyle', columnStyle),
+    ...configRoundAngle(chart, 'barStyle', columnStyle),
     tooltip: {
       ...options.tooltip,
       ...(options.tooltip['customItems']
@@ -2385,4 +2394,137 @@ export const numberToChineseUnderHundred = (num: number): string => {
 
   // 处理其他两位数
   return tens === 1 ? '十' + digits[ones] : digits[tens] + '十' + digits[ones]
+}
+
+/**
+ * 配置柱条图的圆角
+ * @param styleName
+ * @param callBack 自定义其他属性函数
+ */
+export const configRoundAngle = (chart: Chart, styleName: string, callBack?: (datum) => {}) => {
+  const { basicStyle } = parseJson(chart.customAttr)
+  if (['roundAngle', 'topRoundAngle'].includes(basicStyle.radiusColumnBar)) {
+    const radius = Array(2).fill(basicStyle.columnBarRightAngleRadius)
+    const topRadius = [0, 0, ...radius]
+    const bottomRadius = [...radius, 0, 0]
+    const finalRadius = [...radius, ...radius]
+    if (chart.type.includes('-stack')) {
+      return {
+        [styleName]: datum => {
+          if (!datum.value) return { radius: [], ...(callBack ? callBack(datum) : {}) }
+          return { radius: finalRadius, ...(callBack ? callBack(datum) : {}) }
+        }
+      }
+    }
+    const isTopRound = basicStyle.radiusColumnBar === 'topRoundAngle'
+    // 对称条形图
+    if (chart.type === 'bidirectional-bar') {
+      const valueField = basicStyle.layout === 'vertical' ? 'valueExt' : 'value'
+      return {
+        [styleName]: datum => ({
+          radius: datum[valueField] && isTopRound ? topRadius : isTopRound ? radius : finalRadius,
+          ...(callBack ? callBack(datum) : {})
+        })
+      }
+    }
+    // 进度条
+    if (chart.type === 'progress-bar') {
+      return {
+        [styleName]: datum => {
+          return {
+            radius: isTopRound ? bottomRadius : finalRadius,
+            ...(callBack ? callBack(datum) : {})
+          }
+        }
+      }
+    }
+    // 区间条形图
+    if (chart.type === 'bar-range') {
+      return {
+        [styleName]: datum => {
+          return {
+            radius:
+              datum?.values[0] < datum?.values[1]
+                ? isTopRound
+                  ? bottomRadius
+                  : finalRadius
+                : isTopRound
+                ? topRadius
+                : finalRadius,
+            ...(callBack ? callBack(datum) : {})
+          }
+        }
+      }
+    }
+    // 堆叠条形图、百分比条形图第一个和最后一个反转
+    const isStackHorizontalBar = [
+      'bar-stack-horizontal',
+      'percentage-bar-stack-horizontal'
+    ].includes(chart.type)
+    // 配置柱条样式
+    const style = datum => {
+      if (isTopRound && datum.isFirst && datum.isLast) {
+        return { radius, ...(callBack ? callBack(datum) : {}) }
+      }
+      if (!isTopRound && datum.isFirst && datum.isLast) {
+        return { radius: finalRadius, ...(callBack ? callBack(datum) : {}) }
+      }
+      if (isStackHorizontalBar) {
+        if (datum.isLast || (!isTopRound && datum.isFirst)) {
+          return {
+            radius: datum.isFirst ? topRadius : radius,
+            ...(callBack ? callBack(datum) : {})
+          }
+        }
+      } else if (datum.isFirst || (!isTopRound && datum.isLast)) {
+        return {
+          radius: datum.isLast ? topRadius : radius,
+          ...(callBack ? callBack(datum) : {})
+        }
+      }
+    }
+    return {
+      [styleName]: style
+    }
+  }
+  return {
+    [styleName]: datum => {
+      return { ...(callBack ? callBack(datum) : {}) }
+    }
+  }
+}
+
+/**
+ * 为圆角组装options.data，
+ * 添加 isFirst 和 isLast 属性
+ * @param data
+ * @param isGroup
+ * @param isStack
+ */
+export const assembleOptionsDataForRoundAngle = (
+  data: Record<string, any>[],
+  isGroup: boolean,
+  isStack?: boolean
+) => {
+  // column数据分组
+  const groupedByField = data.reduce((acc, item) => {
+    let groupField = item.field
+    if (isGroup || isStack) {
+      groupField = `${item.field}-${isStack ? item.group : item.category}`
+    }
+    if (!acc[groupField]) {
+      acc[groupField] = []
+    }
+    acc[groupField].push(item)
+    return acc
+  }, {})
+  // 遍历每个分组，添加 isFirst 和 isLast 属性
+  Object.values(groupedByField).forEach(group => {
+    const firstItem = group[0]
+    const lastItem = group[group.length - 1]
+    firstItem.isFirst = true
+    lastItem.isLast = true
+  })
+  // 将分组后的数据重新展开为一个数组
+  return Object.values(groupedByField).flat()
 }

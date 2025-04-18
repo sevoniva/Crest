@@ -2,7 +2,9 @@ package io.dataease.visualization.server;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.dataease.api.dataset.union.DatasetGroupInfoDTO;
+import io.dataease.api.dataset.union.UnionDTO;
 import io.dataease.api.template.dto.TemplateManageFileDTO;
 import io.dataease.api.template.dto.VisualizationTemplateExtendDataDTO;
 import io.dataease.api.visualization.DataVisualizationApi;
@@ -14,6 +16,7 @@ import io.dataease.api.visualization.vo.*;
 import io.dataease.auth.DeLinkPermit;
 import io.dataease.chart.dao.auto.entity.CoreChartView;
 import io.dataease.chart.dao.auto.mapper.CoreChartViewMapper;
+import io.dataease.chart.dao.ext.mapper.ExtChartViewMapper;
 import io.dataease.chart.manage.ChartDataManage;
 import io.dataease.chart.manage.ChartViewManege;
 import io.dataease.commons.constants.DataVisualizationConstants;
@@ -28,6 +31,8 @@ import io.dataease.dataset.dao.auto.mapper.CoreDatasetTableFieldMapper;
 import io.dataease.dataset.dao.auto.mapper.CoreDatasetTableMapper;
 import io.dataease.dataset.manage.DatasetDataManage;
 import io.dataease.dataset.manage.DatasetGroupManage;
+import io.dataease.dataset.manage.DatasetSQLManage;
+import io.dataease.dataset.utils.DatasetUtils;
 import io.dataease.datasource.dao.auto.entity.CoreDatasource;
 import io.dataease.datasource.dao.auto.mapper.CoreDatasourceMapper;
 import io.dataease.datasource.provider.ExcelUtils;
@@ -54,6 +59,7 @@ import io.dataease.visualization.dao.auto.entity.DataVisualizationInfo;
 import io.dataease.visualization.dao.auto.entity.SnapshotDataVisualizationInfo;
 import io.dataease.visualization.dao.auto.entity.VisualizationWatermark;
 import io.dataease.visualization.dao.auto.mapper.DataVisualizationInfoMapper;
+import io.dataease.visualization.dao.auto.mapper.SnapshotCoreChartViewMapper;
 import io.dataease.visualization.dao.auto.mapper.SnapshotDataVisualizationInfoMapper;
 import io.dataease.visualization.dao.auto.mapper.VisualizationWatermarkMapper;
 import io.dataease.visualization.dao.ext.mapper.ExtDataVisualizationMapper;
@@ -133,7 +139,8 @@ public class DataVisualizationServer implements DataVisualizationApi {
 
     @Resource
     private CoreDatasetTableFieldMapper coreDatasetTableFieldMapper;
-    @Autowired
+
+    @Resource
     private CoreDatasourceMapper coreDatasourceMapper;
 
     @Resource
@@ -149,6 +156,10 @@ public class DataVisualizationServer implements DataVisualizationApi {
 
     @Resource
     private SnapshotDataVisualizationInfoMapper snapshotMapper;
+    @Resource
+    private ExtChartViewMapper extChartViewMapper;
+    @Resource
+    private DatasetSQLManage datasetSQLManage;
 
     @Override
     public DataVisualizationVO findCopyResource(Long dvId, String busiFlag) {
@@ -169,7 +180,7 @@ public class DataVisualizationServer implements DataVisualizationApi {
         String busiFlag = request.getBusiFlag();
         String resourceTable = request.getResourceTable();
         // 如果是编辑查询 则进行镜像检查
-        if (CommonConstants.RESOURCE_TABLE.SNAPSHOT.equals(resourceTable)) {
+        if (DataVisualizationConstants.QUERY_SOURCE.MAIN_EDIT.equals(request.getSource())) {
             QueryWrapper<SnapshotDataVisualizationInfo> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("id", dvId);
             queryWrapper.in("status", Arrays.asList(CommonConstants.DV_STATUS.UNPUBLISHED, CommonConstants.DV_STATUS.SAVED_UNPUBLISHED)); // 状态为0 未发布 和 2 已保存未发布的 不需要重置镜像
@@ -375,6 +386,13 @@ public class DataVisualizationServer implements DataVisualizationApi {
                         dsGroup.setName(dsGroup.getName() + "-" + UUID.randomUUID().toString());
                     }
                     dsGroupNameSave.add(dsGroup.getName());
+                    if(dsGroup.getIsCross() == null){
+                        if(dsGroup.getUnion() == null){
+                            dsGroup.setUnion(JsonUtil.parseList(dsGroup.getInfo(), new TypeReference<>() {
+                            }));
+                        }
+                        datasetSQLManage.mergeDatasetCrossDefault(dsGroup);
+                    }
                     datasetGroupManage.innerSave(dsGroup);
                 });
 
@@ -470,6 +488,7 @@ public class DataVisualizationServer implements DataVisualizationApi {
         QueryWrapper<CoreDatasetGroup> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("name", datasetFolderName);
         queryWrapper.eq("pid", datasetFolderPid);
+        queryWrapper.eq("node_type", DataVisualizationConstants.NODE_TYPE.FOLDER);
         if (coreDatasetGroupMapper.exists(queryWrapper)) {
             return "repeat";
         } else {
@@ -497,6 +516,9 @@ public class DataVisualizationServer implements DataVisualizationApi {
     @Override
     @Transactional
     public DataVisualizationVO updateCanvas(DataVisualizationBaseRequest request) {
+        for (Map.Entry<Long, ChartViewDTO> ele : request.getCanvasViewInfo().entrySet()) {
+            DatasetUtils.viewDecode(ele.getValue());
+        }
         Long dvId = request.getId();
         if (dvId == null) {
             DEException.throwException("ID can not be null");
@@ -851,10 +873,10 @@ public class DataVisualizationServer implements DataVisualizationApi {
     @Override
     public List<VisualizationViewTableDTO> detailList(Long dvId) {
         List<VisualizationViewTableDTO> result = extDataVisualizationMapper.getVisualizationViewDetails(dvId);
-        DataVisualizationInfo dvInfo = visualizationInfoMapper.selectById(dvId);
+        SnapshotDataVisualizationInfo dvInfo = snapshotMapper.selectById(dvId);
         if (dvInfo != null && !CollectionUtils.isEmpty(result)) {
             String componentData = dvInfo.getComponentData();
-            return result.stream().filter(item -> componentData.indexOf(String.valueOf(item.getId())) > 0).toList();
+            return result.stream().filter(item -> componentData.indexOf("\"id\":\"" + item.getId()) > 0).toList();
         } else {
             return result;
         }
@@ -966,4 +988,16 @@ public class DataVisualizationServer implements DataVisualizationApi {
         }
     }
 
+    public List<Long> getEnabledViewIds(Long dvId, String resourceTable) {
+        List<Long> result = new ArrayList<>();
+        DataVisualizationVO dvInfo = extDataVisualizationMapper.findDvInfo(dvId, null, resourceTable);
+        List<CoreChartView> views = extChartViewMapper.selectListCustom(dvId, resourceTable);
+        if (CollectionUtils.isNotEmpty(views) && dvInfo != null) {
+            String componentData = dvInfo.getComponentData();
+            result = views.stream().filter(item -> componentData.indexOf("\"id\":\"" + item.getId()) > 0).map(CoreChartView::getId)
+                    .collect(Collectors.toList());
+
+        }
+        return result;
+    }
 }

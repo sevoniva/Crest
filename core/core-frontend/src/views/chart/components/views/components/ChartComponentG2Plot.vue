@@ -439,11 +439,8 @@ const actionDefault = param => {
   if (param.from === 'word-cloud') {
     emitter.emit('word-cloud-default-data-range', param)
   }
-  if (param.from === 'gauge') {
-    emitter.emit('gauge-default-data', param)
-  }
-  if (param.from === 'liquid') {
-    emitter.emit('liquid-default-data', param)
+  if (param.from === 'gauge' || param.from === 'liquid') {
+    emitter.emit('gauge-liquid-y-value', param)
   }
 }
 
@@ -494,7 +491,7 @@ const action = param => {
       state.trackBarStyle.top = trackBarY + 'px'
     }
 
-    viewTrack.value.trackButtonClick()
+    viewTrack.value.trackButtonClick(view.value.id)
   }
 }
 

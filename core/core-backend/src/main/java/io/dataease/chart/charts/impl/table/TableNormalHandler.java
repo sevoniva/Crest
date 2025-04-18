@@ -1,6 +1,7 @@
 package io.dataease.chart.charts.impl.table;
 
 import io.dataease.api.chart.dto.PageInfo;
+import io.dataease.api.dataset.union.DatasetGroupInfoDTO;
 import io.dataease.chart.charts.impl.DefaultChartHandler;
 import io.dataease.engine.sql.SQLProvider;
 import io.dataease.engine.trans.Dimension2SQLObj;
@@ -20,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -71,8 +73,9 @@ public class TableNormalHandler extends DefaultChartHandler {
         for (Map.Entry<Long, DatasourceSchemaDTO> next : dsMap.entrySet()) {
             dsList.add(next.getValue().getType());
         }
-        boolean crossDs = Utils.isCrossDs(dsMap);
+        boolean crossDs = ((DatasetGroupInfoDTO) formatResult.getContext().get("dataset")).getIsCross();
         DatasourceRequest datasourceRequest = new DatasourceRequest();
+        datasourceRequest.setIsCross(crossDs);
         datasourceRequest.setDsList(dsMap);
         var xAxis = formatResult.getAxisMap().get(ChartAxis.xAxis);
         var yAxis = formatResult.getAxisMap().get(ChartAxis.yAxis);
@@ -114,6 +117,7 @@ public class TableNormalHandler extends DefaultChartHandler {
         List<String[]> data = (List<String[]>) provider.fetchResultField(datasourceRequest).get("data");
         //自定义排序
         data = ChartDataUtil.resultCustomSort(xAxis, yAxis, view.getSortPriority(), data);
+        quickCalc(xAxis, yAxis, Collections.emptyList(), Collections.emptyList(), view.getType(), data);
         //数据重组逻辑可重载
         var result = this.buildResult(view, formatResult, filterResult, data);
         T calcResult = (T) new ChartCalcDataResult();
@@ -126,11 +130,12 @@ public class TableNormalHandler extends DefaultChartHandler {
             var assistFields = getAssistFields(dynamicAssistFields, yAxis, xAxis);
             if (CollectionUtils.isNotEmpty(assistFields)) {
                 var req = new DatasourceRequest();
+                req.setIsCross(crossDs);
                 req.setDsList(dsMap);
 
                 List<ChartSeniorAssistDTO> assists = dynamicAssistFields.stream().filter(ele -> !StringUtils.equalsIgnoreCase(ele.getSummary(), "last_item")).toList();
                 if (ObjectUtils.isNotEmpty(assists)) {
-                    var assistSql = assistSQL(originSql, assistFields, dsMap);
+                    var assistSql = assistSQL(originSql, assistFields, dsMap, crossDs);
                     var tmpSql = provider.rebuildSQL(assistSql, sqlMeta, crossDs, dsMap);
                     req.setQuery(tmpSql);
                     logger.debug("calcite assistSql sql: " + tmpSql);
@@ -141,7 +146,7 @@ public class TableNormalHandler extends DefaultChartHandler {
 
                 List<ChartSeniorAssistDTO> assistsOriginList = dynamicAssistFields.stream().filter(ele -> StringUtils.equalsIgnoreCase(ele.getSummary(), "last_item")).toList();
                 if (ObjectUtils.isNotEmpty(assistsOriginList)) {
-                    var assistSqlOriginList = assistSQLOriginList(originSql, assistFields, dsMap);
+                    var assistSqlOriginList = assistSQLOriginList(originSql, assistFields, dsMap, crossDs);
                     var tmpSql = provider.rebuildSQL(assistSqlOriginList, sqlMeta, crossDs, dsMap);
                     req.setQuery(tmpSql);
                     logger.debug("calcite assistSql sql origin list: " + tmpSql);

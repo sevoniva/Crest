@@ -1,6 +1,11 @@
 <template>
   <div>
-    <el-dropdown :teleported="false" trigger="click" @visible-change="visibleChange">
+    <el-dropdown
+      :id="'view-track-bar-' + chartId"
+      :teleported="false"
+      trigger="click"
+      @visible-change="visibleChange"
+    >
       <input id="input" ref="trackButton" type="button" hidden />
       <template #dropdown>
         <div :class="{ 'data-mobile': isDataVMobile }">
@@ -12,6 +17,7 @@
             <el-dropdown-item
               v-for="(item, key) in trackMenu"
               :key="key"
+              @mousedown.stop
               @click="trackMenuClick(item)"
               ><span class="menu-item">{{ state.i18n_map[item] }}</span></el-dropdown-item
             >
@@ -52,25 +58,27 @@ const state = reactive({
     linkage: t('visualization.linkage'),
     linkageAndDrill: t('visualization.linkage_and_drill'),
     jump: t('visualization.jump'),
-    enlarge: t('visualization.enlarge')
+    enlarge: t('visualization.enlarge'),
+    event_jump: t('visualization.jump'),
+    event_download: t('visualization.download'),
+    event_share: t('visualization.share'),
+    event_fullScreen: t('visualization.fullscreen'),
+    event_showHidden: t('visualization.pop_area'),
+    event_refreshDataV: t('visualization.refresh'),
+    event_refreshView: t('visualization.refresh_view')
   }
 })
-const visibleChange = isVisible => {
-  const tooltips = document.querySelectorAll('.g2-tooltip')
-  if (tooltips) {
-    tooltips.forEach(tooltip => {
-      if (isVisible) {
-        // 当下拉菜单显示时，添加隐藏样式
-        tooltip.classList.add('hidden-tooltip')
-      } else {
-        // 当下拉菜单隐藏时，移除隐藏样式
-        tooltip.classList.remove('hidden-tooltip')
-      }
-    })
-  }
+const visibleChange = _isVisible => {
+  document.querySelectorAll('.g2-tooltip')?.forEach(tooltip => {
+    if (tooltip.id?.includes(chartId.value)) {
+      tooltip.classList.toggle('hidden-tooltip', true)
+    }
+  })
 }
-
-const trackButtonClick = () => {
+// 添加图表标识，用于区分不同图表的 tooltip
+const chartId = ref(null)
+const trackButtonClick = (id?: string) => {
+  chartId.value = id
   setTimeout(() => {
     trackButton.value.click()
   }, 50)

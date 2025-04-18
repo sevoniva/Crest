@@ -13,6 +13,7 @@ import io.dataease.constant.CommonConstants;
 import io.dataease.dataset.manage.PermissionManage;
 import io.dataease.dataset.server.DatasetFieldServer;
 import io.dataease.constant.DeTypeConstants;
+import io.dataease.dataset.utils.DatasetUtils;
 import io.dataease.exception.DEException;
 import io.dataease.exportCenter.manage.ExportCenterManage;
 import io.dataease.exportCenter.util.ExportCenterUtils;
@@ -84,7 +85,11 @@ public class ChartDataServer implements ChartDataApi {
             if (CommonConstants.VIEW_DATA_FROM.TEMPLATE.equalsIgnoreCase(chartViewDTO.getDataFrom())) {
                 return extendDataManage.getChartDataInfo(chartViewDTO.getId(), chartViewDTO);
             } else {
-                return chartDataManage.calcData(chartViewDTO);
+                DatasetUtils.viewDecode(chartViewDTO);
+                ChartViewDTO dto = chartDataManage.calcData(chartViewDTO);
+                DatasetUtils.viewEncode(dto);
+                chartDataManage.encodeData(dto);
+                return dto;
             }
         } catch (Exception e) {
             DEException.throwException(ResultCode.DATA_IS_WRONG.code(), e.getMessage() + "\n\n" + ExceptionUtils.getStackTrace(e));
@@ -122,7 +127,11 @@ public class ChartDataServer implements ChartDataApi {
             } else {
                 viewDTO.setResultCount(viewLimit);
             }
-            chartViewInfo = getData(viewDTO);
+            if (CommonConstants.VIEW_DATA_FROM.TEMPLATE.equalsIgnoreCase(viewDTO.getDataFrom())) {
+                chartViewInfo = extendDataManage.getChartDataInfo(viewDTO.getId(), viewDTO);
+            } else {
+                chartViewInfo = chartDataManage.calcData(viewDTO);
+            }
             List<Object[]> tableRow = (List) chartViewInfo.getData().get("sourceData");
             if ("dataset".equals(request.getDownloadType())) {
                 request.setHeader(dsHeader);

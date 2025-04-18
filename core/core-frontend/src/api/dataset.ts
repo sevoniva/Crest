@@ -1,5 +1,9 @@
 import request from '@/config/axios'
-import { Base64 } from 'js-base64'
+import {
+  originNameHandle,
+  originNameHandleBack,
+  originNameHandleBackWithArr
+} from '@/utils/CalculateFields'
 import { type Field } from '@/api/chart'
 import { cloneDeep } from 'lodash-es'
 import type { BusiTreeRequest } from '@/models/tree/TreeNode'
@@ -7,6 +11,7 @@ import { nameTrim } from '@/utils/utils'
 export interface DatasetOrFolder {
   name: string
   action?: string
+  isCross?: boolean
   id?: number | string
   pid?: number | string
   nodeType: 'folder' | 'dataset'
@@ -59,6 +64,7 @@ export interface Dataset {
   id: string
   pid: string
   name: string
+  isCross?: boolean
   union?: Array<{}>
   allFields?: Array<{}>
 }
@@ -69,22 +75,6 @@ export interface Table {
   tableName: string
   type: string
   unableCheck?: boolean
-}
-
-const originNameHandle = (arr = []) => {
-  arr.forEach(ele => {
-    if (ele.extField === 2) {
-      ele.originName = Base64.encodeURI(ele.originName)
-    }
-  })
-}
-
-const originNameHandleBack = (arr = []) => {
-  arr.forEach(ele => {
-    if (ele.extField === 2) {
-      ele.originName = Base64.decode(ele.originName)
-    }
-  })
 }
 // 获取权限路
 // edit
@@ -256,6 +246,9 @@ export const getDsDetails = async (data): Promise<DatasetDetail[]> => {
 }
 export const getDsDetailsWithPerm = async (data): Promise<DatasetDetail[]> => {
   return request.post({ url: '/datasetTree/detailWithPerm', data }).then(res => {
+    ;(res?.data || []).forEach(ele => {
+      originNameHandleBackWithArr(ele, ['dimensionList', 'quotaList'])
+    })
     return res?.data
   })
 }
@@ -273,15 +266,22 @@ export const columnPermissionList = (page: number, limit: number, datasetId: num
 export const rowPermissionTargetObjList = (datasetId: number, type: string) =>
   request.get({ url: '/dataset/rowPermissions/authObjs/' + datasetId + '/' + type })
 
-export const listFieldByDatasetGroup = (datasetId: number) =>
-  request.post({ url: '/datasetField/listByDatasetGroup/' + datasetId })
+export const listFieldByDatasetGroup = (datasetId: number) => {
+  return request.post({ url: '/datasetField/listByDatasetGroup/' + datasetId }).then(res => {
+    originNameHandleBack(res?.data)
+    return res
+  })
+}
 
 export const multFieldValuesForPermissions = (data = {}) => {
   return request.post({ url: '/datasetField/multFieldValuesForPermissions', data })
 }
 
 export const listFieldsWithPermissions = (datasetId: number) => {
-  return request.get({ url: '/datasetField/listWithPermissions/' + datasetId })
+  return request.get({ url: '/datasetField/listWithPermissions/' + datasetId }).then(res => {
+    originNameHandleBack(res?.data)
+    return res
+  })
 }
 
 export const copilotFields = (datasetId: number) => {
@@ -338,11 +338,11 @@ export const getFunction = async (): Promise<DatasetDetail[]> => {
   })
 }
 
-export const exportTasks = async (type): Promise<IResponse> => {
-  return request.post({ url: '/exportCenter/exportTasks/' + type, data: {} }).then(res => {
-    return res
-  })
-}
+export const exportTasksRecords = () =>
+  request.post({ url: `/exportCenter/exportTasks/records`, data: {} })
+
+export const exportTasks = (page: number, limit: number, status: string) =>
+  request.post({ url: `/exportCenter/exportTasks/${status}/${page}/${limit}`, data: {} })
 
 export const exportRetry = async (id): Promise<IResponse> => {
   return request.post({ url: '/exportCenter/retry/' + id, data: {} }).then(res => {

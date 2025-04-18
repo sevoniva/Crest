@@ -7,7 +7,6 @@ import {
 import {
   flow,
   hexColorToRGBA,
-  hexToRgba,
   parseJson,
   setUpGroupSeriesColor,
   setUpStackSeriesColor
@@ -20,7 +19,9 @@ import {
   BAR_EDITOR_PROPERTY_INNER
 } from '@/views/chart/components/js/panel/charts/bar/common'
 import {
+  assembleOptionsDataForRoundAngle,
   configPlotTooltipEvent,
+  configRoundAngle,
   getLabel,
   getPadding,
   getTooltipContainer,
@@ -58,7 +59,8 @@ export class Bar extends G2PlotChartView<ColumnOptions, Column> {
     yField: 'value',
     seriesField: 'category',
     isGroup: true,
-    data: []
+    data: [],
+    rawFields: ['isFirst', 'isLast']
   }
 
   axis: AxisType[] = [...BAR_AXIS_TYPE]
@@ -81,11 +83,14 @@ export class Bar extends G2PlotChartView<ColumnOptions, Column> {
       clearExtremum(chart)
       return
     }
+    const isGroup = 'bar-group' === this.name && chart.xAxisExt?.length > 0
+    const isStack =
+      ['bar-stack', 'bar-group-stack'].includes(this.name) && chart.extStack?.length > 0
     const data = cloneDeep(drawOptions.chart.data?.data)
     const initOptions: ColumnOptions = {
       ...this.baseOptions,
       appendPadding: getPadding(chart),
-      data
+      data: assembleOptionsDataForRoundAngle(data, isGroup, isStack)
     }
     const options: ColumnOptions = this.setupOptions(chart, initOptions)
     let newChart = null
@@ -181,19 +186,9 @@ export class Bar extends G2PlotChartView<ColumnOptions, Column> {
         color
       }
     }
-    if (basicStyle.radiusColumnBar === 'roundAngle') {
-      const columnStyle = {
-        radius: [
-          basicStyle.columnBarRightAngleRadius,
-          basicStyle.columnBarRightAngleRadius,
-          basicStyle.columnBarRightAngleRadius,
-          basicStyle.columnBarRightAngleRadius
-        ]
-      }
-      options = {
-        ...options,
-        columnStyle
-      }
+    options = {
+      ...options,
+      ...configRoundAngle(chart, 'columnStyle')
     }
     let columnWidthRatio
     const _v = basicStyle.columnWidthRatio ?? DEFAULT_BASIC_STYLE.columnWidthRatio
@@ -286,7 +281,14 @@ export class StackBar extends Bar {
       'totalFormatter',
       'showStackQuota'
     ],
-    'tooltip-selector': ['fontSize', 'color', 'backgroundColor', 'tooltipFormatter', 'show']
+    'tooltip-selector': [
+      'fontSize',
+      'color',
+      'backgroundColor',
+      'tooltipFormatter',
+      'show',
+      'carousel'
+    ]
   }
   protected configLabel(chart: Chart, options: ColumnOptions): ColumnOptions {
     let label = getLabel(chart)
@@ -685,7 +687,7 @@ export class PercentageStackBar extends GroupStackBar {
   propertyInner = {
     ...this['propertyInner'],
     'label-selector': ['color', 'fontSize', 'vPosition', 'reserveDecimalCount'],
-    'tooltip-selector': ['color', 'fontSize', 'backgroundColor', 'show']
+    'tooltip-selector': ['color', 'fontSize', 'backgroundColor', 'show', 'carousel']
   }
   protected configLabel(chart: Chart, options: ColumnOptions): ColumnOptions {
     const baseOptions = super.configLabel(chart, options)

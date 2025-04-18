@@ -303,24 +303,28 @@ const doUseCache = flag => {
 const initLocalCanvasData = async callback => {
   const { opt, sourcePid, resourceId } = state
   const busiFlag = opt === 'copy' ? 'dataV-copy' : 'dataV'
-  await initCanvasData(resourceId, { busiFlag, resourceTable: 'snapshot' }, function () {
-    state.canvasInitStatus = true
-    // afterInit
-    nextTick(() => {
-      dvMainStore.setDataPrepareState(true)
-      snapshotStore.recordSnapshotCache('renderChart')
-      if (dvInfo.value && opt === 'copy') {
-        dvInfo.value.dataState = 'prepare'
-        dvInfo.value.optType = 'copy'
-        dvInfo.value.pid = sourcePid
-        setTimeout(() => {
-          snapshotStore.recordSnapshotCache('renderChart')
-        }, 1500)
-      }
-      onInitReady({ resourceId: resourceId })
-      callback && callback()
-    })
-  })
+  await initCanvasData(
+    resourceId,
+    { busiFlag, resourceTable: 'snapshot', source: 'main-edit' },
+    function () {
+      state.canvasInitStatus = true
+      // afterInit
+      nextTick(() => {
+        dvMainStore.setDataPrepareState(true)
+        snapshotStore.recordSnapshotCache('renderChart')
+        if (dvInfo.value && opt === 'copy') {
+          dvInfo.value.dataState = 'prepare'
+          dvInfo.value.optType = 'copy'
+          dvInfo.value.pid = sourcePid
+          setTimeout(() => {
+            snapshotStore.recordSnapshotCache('renderChart')
+          }, 1500)
+        }
+        onInitReady({ resourceId: resourceId })
+        callback && callback()
+      })
+    }
+  )
 }
 
 const previewScaleChange = () => {
@@ -366,6 +370,12 @@ const winMsgHandle = event => {
 const winMsgWebParamsHandle = msgInfo => {
   const params = msgInfo.params
   dvMainStore.addWebParamsFilter(params)
+}
+
+const afterSave = () => {
+  state.resourceId = dvInfo.value.id
+  state.sourcePid = dvInfo.value.id
+  state.opt = null
 }
 
 const loadFinish = ref(false)
@@ -506,6 +516,9 @@ const popComponentData = computed(() =>
 
 const doRecoverToPublished = () => {
   recoverToPublished({ id: dvInfo.value.id, type: 'dataV', name: dvInfo.value.name }).then(() => {
+    state.resourceId = dvInfo.value.id
+    state.sourcePid = dvInfo.value.pid
+    state.opt = null
     initLocalCanvasData(() => {
       dvMainStore.updateDvInfoCall(1)
     })
@@ -670,6 +683,7 @@ eventBus.on('tabSort', tabSort)
     v-if="fullscreenFlag"
     style="z-index: 10"
     ref="dvPreviewRef"
+    show-position="edit-preview"
     :canvas-data-preview="componentData"
     :canvas-style-preview="canvasStyleData"
     :canvas-view-info-preview="canvasViewInfo"

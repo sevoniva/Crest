@@ -339,7 +339,7 @@ export function initCanvasDataPrepare(dvId, params, callBack) {
   const copyFlag = busiFlag != null && busiFlag.includes('-copy')
   const busiFlagCustom = copyFlag ? busiFlag.split('-')[0] : busiFlag
   const method = copyFlag ? findCopyResource : findById
-  let attachInfo = { source: 'main' }
+  let attachInfo = { source: params.source ? params.source : 'main' }
   if (dvMainStore.canvasAttachInfo && !!dvMainStore.canvasAttachInfo.taskId) {
     attachInfo = { source: 'report', taskId: dvMainStore.canvasAttachInfo.taskId }
     const showWatermarkExist =
@@ -356,7 +356,9 @@ export function initCanvasDataPrepare(dvId, params, callBack) {
     const canvasInfo = res.data
     const watermarkInfo = {
       ...canvasInfo.watermarkInfo,
-      settingContent: JSON.parse(canvasInfo.watermarkInfo.settingContent)
+      settingContent: canvasInfo.watermarkInfo?.settingContent
+        ? JSON.parse(canvasInfo.watermarkInfo.settingContent)
+        : {}
     }
 
     const dvInfo = {
@@ -568,6 +570,10 @@ export function checkCanvasChangePre(callBack) {
 }
 
 export async function canvasSave(callBack) {
+  await canvasSaveWithParams(null, callBack)
+}
+
+export async function canvasSaveWithParams(params, callBack) {
   dvMainStore.removeGroupArea()
   const componentDataToSave = cloneDeep(componentData.value)
   componentDataToSave.forEach(item => {
@@ -624,8 +630,9 @@ export async function canvasSave(callBack) {
   }
   method(canvasInfo).then(res => {
     if (method === updateCanvas) {
-      // saveCanvas 为初次保存 状态为0 updateCanvas为二次保存状态为2
-      dvMainStore.updateDvInfoCall(res.data?.status, null, newContentId)
+      // saveCanvas 为初次保存 状态为0 updateCanvas为二次保存状态为2 当存在传入状态时，则修改对应的传入状态
+      const status = params?.status ? params?.status : res.data?.status
+      dvMainStore.updateDvInfoCall(status, null, newContentId)
     } else {
       dvMainStore.updateDvInfoCall(0, res.data, newContentId)
     }

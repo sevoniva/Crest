@@ -1,6 +1,9 @@
 export default {
   common: {
     empty: '',
+    cross_source: '跨源',
+    single_source: '单源',
+    source_tips: '数据集存在跨源情况，请检查其他 SQL 节点的语法，是否确认将类型改为单源?',
     other_levels: '除层级一外,其他层级无需进行查询条件配置',
     tree_structure: '下拉树的结构不能为空',
     associated_chart: '关联图表',
@@ -1894,6 +1897,7 @@ export default {
     radiusColumnBar: '柱形',
     rightAngle: '直角',
     roundAngle: '圆角',
+    topRoundAngle: '顶部圆角',
     table_layout_mode: '展示形式',
     table_layout_grid: '平铺展示',
     table_layout_tree: '树形展示',
@@ -2398,7 +2402,9 @@ export default {
     support: '获取技术支持',
     update_success: '更新成功',
     serial_no: '序列号',
-    remark: '备注'
+    remark: '备注',
+    back_community: '还原至社区版',
+    confirm_tips: '确定还原至社区版？'
   },
   cron: {
     second: '秒',
@@ -2821,6 +2827,7 @@ export default {
     column_name: '字段名称'
   },
   visualization: {
+    support_query: '仅支持添加查询组件',
     publish_update_tips: '有更新',
     filter_freeze_tips: '已存在置顶查询组件,确定切换该组件？',
     query_position: '查询组件位置',
@@ -2997,7 +3004,7 @@ export default {
     query: '查询',
     carousel: '轮播',
     carousel_time: '轮播时间（秒）',
-    carousel_tips: '轮播退出编辑模式才开生效',
+    carousel_tips: '轮播退出编辑模式开始生效',
     carousel_tips2: '启用条件样式后，轮播失效',
     background: '背景',
     tab_title: 'Tab标签',
@@ -3008,7 +3015,7 @@ export default {
     board_width: '线宽',
     board_radius: '圆角',
     enable_event_binding: '开启事件绑定',
-    event_binding_tips: '事件绑定需退出编辑模式后生效,富文本、指标卡开启绑定事件则内部点击事件失效',
+    event_binding_tips: '事件绑定需退出编辑模式后生效,富文本开启绑定事件则内部点击事件失效',
     input_url_tips: '请输入跳转地址',
     edit_title: '编辑标题',
     custom_sort: '自定义排序',

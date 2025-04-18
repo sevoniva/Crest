@@ -267,6 +267,9 @@ const cancelPreRequest = () => {
 
 const nodeClick = (data: BusiTreeNode, node) => {
   dvMainStore.setCurComponent({ component: null, index: null })
+  if (showPosition.value !== 'multiplexing') {
+    dvMainStore.setEditMode('preview')
+  }
   if (node.disabled) {
     nextTick(() => {
       // 找到当前高亮的节点，移除高亮样式
@@ -686,7 +689,7 @@ defineExpose({
             </el-icon>
           </el-tooltip>
 
-          <el-tooltip :content="newResourceLabel" placement="top">
+          <el-tooltip :content="newResourceLabel" placement="top" effect="dark">
             <el-dropdown popper-class="menu-outer-dv_popper" trigger="hover">
               <el-icon class="custom-icon btn" @click="addOperation('newLeaf', null, 'leaf', true)">
                 <Icon name="icon_file-add_outlined"

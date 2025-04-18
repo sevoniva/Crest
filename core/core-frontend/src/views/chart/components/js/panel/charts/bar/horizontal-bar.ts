@@ -4,8 +4,10 @@ import {
 } from '@/views/chart/components/js/panel/types/impl/g2plot'
 import type { Bar, BarOptions } from '@antv/g2plot/esm/plots/bar'
 import {
+  assembleOptionsDataForRoundAngle,
   configAxisLabelLengthLimit,
   configPlotTooltipEvent,
+  configRoundAngle,
   getPadding,
   getTooltipContainer,
   setGradientColor,
@@ -76,7 +78,8 @@ export class HorizontalBar extends G2PlotChartView<BarOptions, Bar> {
     xField: 'value',
     yField: 'field',
     seriesField: 'category',
-    isGroup: true
+    isGroup: true,
+    rawFields: ['isFirst', 'isLast']
   }
 
   async drawChart(drawOptions: G2PlotDrawOptions<Bar>): Promise<Bar> {
@@ -91,7 +94,7 @@ export class HorizontalBar extends G2PlotChartView<BarOptions, Bar> {
     const initOptions: BarOptions = {
       ...this.baseOptions,
       appendPadding: getPadding(chart),
-      data
+      data: assembleOptionsDataForRoundAngle(data, false)
     }
 
     const options = this.setupOptions(chart, initOptions)
@@ -171,19 +174,9 @@ export class HorizontalBar extends G2PlotChartView<BarOptions, Bar> {
         color
       }
     }
-    if (basicStyle.radiusColumnBar === 'roundAngle') {
-      const barStyle = {
-        radius: [
-          basicStyle.columnBarRightAngleRadius,
-          basicStyle.columnBarRightAngleRadius,
-          basicStyle.columnBarRightAngleRadius,
-          basicStyle.columnBarRightAngleRadius
-        ]
-      }
-      options = {
-        ...options,
-        barStyle
-      }
+    options = {
+      ...options,
+      ...configRoundAngle(chart, 'barStyle')
     }
 
     let barWidthRatio

@@ -4,6 +4,8 @@ import {
 } from '@/views/chart/components/js/panel/types/impl/g2plot'
 import type { DualAxes, DualAxesOptions } from '@antv/g2plot/esm/plots/dual-axes'
 import {
+  assembleOptionsDataForRoundAngle,
+  configRoundAngle,
   configPlotTooltipEvent,
   getAnalyse,
   getLabel,
@@ -120,10 +122,9 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
         valueExt: d.value
       }
     })
-
     // options
     const initOptions: DualAxesOptions = {
-      data: [data1, data2],
+      data: [assembleOptionsDataForRoundAngle(data1, isGroup), data2],
       xField: 'field',
       yField: ['value', 'valueExt'], //这里不能设置成一样的
       appendPadding: getPadding(chart),
@@ -134,7 +135,8 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
           color: [],
           isGroup: isGroup,
           isStack: isStack,
-          seriesField: seriesField
+          seriesField: seriesField,
+          rawFields: ['isFirst', 'isLast']
         },
         {
           geometry: data2Type,
@@ -297,18 +299,9 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
       tempOption.geometryOptions[1].smooth = smooth
       tempOption.geometryOptions[1].point = point
       tempOption.geometryOptions[1].lineStyle = lineStyle
-
-      if (s.radiusColumnBar === 'roundAngle') {
-        const columnStyle = {
-          radius: [
-            s.columnBarRightAngleRadius,
-            s.columnBarRightAngleRadius,
-            s.columnBarRightAngleRadius,
-            s.columnBarRightAngleRadius
-          ]
-        }
-        tempOption.geometryOptions[0].columnStyle = columnStyle
-        tempOption.geometryOptions[1].columnStyle = columnStyle
+      tempOption.geometryOptions[0] = {
+        ...tempOption.geometryOptions[0],
+        ...configRoundAngle(chart, 'columnStyle')
       }
     }
 

@@ -6,6 +6,7 @@ import type { Bar, BarOptions } from '@antv/g2plot/esm/plots/bar'
 import {
   configAxisLabelLengthLimit,
   configPlotTooltipEvent,
+  configRoundAngle,
   getPadding,
   getTooltipContainer,
   setGradientColor,
@@ -321,19 +322,10 @@ export class RangeBar extends G2PlotChartView<BarOptions, Bar> {
         }
       }
     }
-    if (basicStyle.radiusColumnBar === 'roundAngle') {
-      const barStyle = {
-        radius: [
-          basicStyle.columnBarRightAngleRadius,
-          basicStyle.columnBarRightAngleRadius,
-          basicStyle.columnBarRightAngleRadius,
-          basicStyle.columnBarRightAngleRadius
-        ]
-      }
-      options = {
-        ...options,
-        barStyle
-      }
+
+    options = {
+      ...options,
+      ...configRoundAngle(chart, 'barStyle')
     }
     let barWidthRatio
     const _v = basicStyle.columnWidthRatio ?? DEFAULT_BASIC_STYLE.columnWidthRatio

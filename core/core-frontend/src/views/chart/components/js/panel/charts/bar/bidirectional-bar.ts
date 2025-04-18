@@ -6,14 +6,14 @@ import { cloneDeep, defaultTo, isEmpty, map } from 'lodash-es'
 import {
   configAxisLabelLengthLimit,
   configPlotTooltipEvent,
+  configRoundAngle,
   getPadding,
   getTooltipContainer,
   getTooltipItemConditionColor,
   getYAxis,
   getYAxisExt,
   setGradientColor,
-  TOOLTIP_TPL,
-  addConditionsStyleColorToData
+  TOOLTIP_TPL
 } from '@/views/chart/components/js/panel/common/common_antv'
 import type {
   BidirectionalBar as G2BidirectionalBar,
@@ -213,19 +213,9 @@ export class BidirectionalHorizontalBar extends G2PlotChartView<
       ...options,
       layout: basicStyle.layout
     }
-    if (basicStyle.radiusColumnBar === 'roundAngle') {
-      const barStyle = {
-        radius: [
-          basicStyle.columnBarRightAngleRadius,
-          basicStyle.columnBarRightAngleRadius,
-          basicStyle.columnBarRightAngleRadius,
-          basicStyle.columnBarRightAngleRadius
-        ]
-      }
-      options = {
-        ...options,
-        barStyle
-      }
+    options = {
+      ...options,
+      ...configRoundAngle(chart, 'barStyle')
     }
     return options
   }

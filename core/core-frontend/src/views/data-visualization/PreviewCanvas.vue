@@ -64,7 +64,8 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
       sourceDvId: jumpParam.sourceDvId,
       sourceViewId: jumpParam.sourceViewId,
       sourceFieldId: null,
-      targetDvId: dvId
+      targetDvId: dvId,
+      resourceTable: state.editPreview ? 'snapshot' : 'core'
     }
     try {
       // 刷新跳转目标仪表板联动信息
@@ -126,18 +127,20 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
       canvasViewInfoPreview,
       curPreviewGap
     }) {
+      state.dvInfo = dvInfo
+      if (state.dvInfo.status) {
+        if (jumpParam || (!ignoreParams && attachParam)) {
+          await filterEnumMapSync(canvasDataResult)
+        }
+      }
       state.canvasDataPreview = canvasDataResult
       state.canvasStylePreview = canvasStyleResult
       state.canvasViewInfoPreview = canvasViewInfoPreview
-      state.dvInfo = dvInfo
       if (state.editPreview) {
         state.dvInfo.status = 1
       }
       state.curPreviewGap = curPreviewGap
       if (state.dvInfo.status) {
-        if (jumpParam || (!ignoreParams && attachParam)) {
-          await filterEnumMapSync(canvasDataResult)
-        }
         if (jumpParam) {
           dvMainStore.addViewTrackFilter(jumpParam)
         }
