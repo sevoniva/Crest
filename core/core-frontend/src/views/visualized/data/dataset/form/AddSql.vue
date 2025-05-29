@@ -506,37 +506,77 @@ const mouseupDrag = () => {
 
 const parseVariable = () => {
   state.variablesTmp = []
-  const reg = new RegExp('\\${(.*?)}', 'gim')
-  const match = codeCom.value.state.doc.toString().match(reg)
-  const names = []
-  if (match !== null) {
-    for (let index = 0; index < match.length; index++) {
-      let name = match[index].substring(2, match[index].length - 1)
-      if (names.indexOf(name) < 0) {
-        names.push(name)
-        // eslint-disable-next-line
-        let obj = undefined
-        for (let i = 0; i < state.variables?.length; i++) {
-          if (state.variables[i].variableName === name) {
-            obj = state.variables[i]
-            if (!obj.hasOwnProperty('defaultValueScope')) {
-              obj.defaultValueScope = 'EDIT'
+  const variableReg = new RegExp('\\$DE_PARAM{(.*?)}', 'gim')
+  const variableMatch = codeCom.value.state.doc.toString().match(variableReg)
+  if (variableMatch !== null) {
+    const names = []
+    const reg = new RegExp('\\$\\[[^\\]]+\\]', 'gim')
+    for (let index = 0; index < variableMatch.length; index++) {
+      let sqlItem = variableMatch[index].substring(10, variableMatch[index].length - 1)
+      const match = sqlItem.match(reg)
+      if (match !== null) {
+        for (let matchIndex = 0; matchIndex < match.length; matchIndex++) {
+          let name = match[matchIndex].substring(2, match[matchIndex].length - 1)
+          if (names.indexOf(name) < 0) {
+            names.push(name)
+            let obj = undefined
+            for (let i = 0; i < state.variables?.length; i++) {
+              if (state.variables[i].variableName === name) {
+                obj = state.variables[i]
+                if (!obj.hasOwnProperty('defaultValueScope')) {
+                  obj.defaultValueScope = 'EDIT'
+                }
+              }
+            }
+            if (obj === undefined) {
+              obj = {
+                variableName: name,
+                alias: '',
+                type: [],
+                required: false,
+                defaultValue: '',
+                details: '',
+                defaultValueScope: 'EDIT'
+              }
+              obj.type.push('TEXT')
+            }
+            state.variablesTmp.push(obj)
+          }
+        }
+      }
+    }
+  } else {
+    const reg = new RegExp('\\${(.*?)}', 'gim')
+    const match = codeCom.value.state.doc.toString().match(reg)
+    const names = []
+    if (match !== null) {
+      for (let index = 0; index < match.length; index++) {
+        let name = match[index].substring(2, match[index].length - 1)
+        if (names.indexOf(name) < 0) {
+          names.push(name)
+          let obj = undefined
+          for (let i = 0; i < state.variables?.length; i++) {
+            if (state.variables[i].variableName === name) {
+              obj = state.variables[i]
+              if (!obj.hasOwnProperty('defaultValueScope')) {
+                obj.defaultValueScope = 'EDIT'
+              }
             }
           }
-        }
-        if (obj === undefined) {
-          obj = {
-            variableName: name,
-            alias: '',
-            type: [],
-            required: false,
-            defaultValue: '',
-            details: '',
-            defaultValueScope: 'EDIT'
+          if (obj === undefined) {
+            obj = {
+              variableName: name,
+              alias: '',
+              type: [],
+              required: false,
+              defaultValue: '',
+              details: '',
+              defaultValueScope: 'EDIT'
+            }
+            obj.type.push('TEXT')
           }
-          obj.type.push('TEXT')
+          state.variablesTmp.push(obj)
         }
-        state.variablesTmp.push(obj)
       }
     }
   }
@@ -959,7 +999,7 @@ const mousedownDrag = () => {
   <el-drawer
     :title="dialogTitle"
     v-model="showVariableMgm"
-    custom-class="sql-dataset-drawer"
+    modal-class="sql-dataset-drawer"
     size="870px"
     direction="rtl"
   >
@@ -1611,6 +1651,7 @@ const mousedownDrag = () => {
   }
   .ed-input-group__prepend {
     padding: 0 11px;
+    width: 163px;
   }
   .de-group__prepend {
     .ed-date-editor {
@@ -1625,7 +1666,6 @@ const mousedownDrag = () => {
 
   .ed-date-editor {
     width: 100%;
-    display: inline-block;
   }
 
   .select-type {
@@ -1637,7 +1677,7 @@ const mousedownDrag = () => {
   .select-svg-icon {
     position: absolute;
     left: 24px;
-    top: 15px;
+    top: 19px;
   }
 
   .content {
@@ -1646,6 +1686,7 @@ const mousedownDrag = () => {
     border-radius: 4px;
     background: #e1eaff;
     position: relative;
+    line-height: 22px;
     padding: 9px 0 9px 40px;
     font-family: var(--de-custom_font, 'PingFang');
     font-size: 14px;

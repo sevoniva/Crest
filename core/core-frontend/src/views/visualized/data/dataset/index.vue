@@ -1040,8 +1040,8 @@ const proxyAllowDrop = debounce((arg1, arg2) => {
                     key="structPreview"
                     :columns="columns"
                     v-loading="dataPreviewLoading"
-                    header-class="header-cell"
                     :data="tableData"
+                    header-class="excel-header-cell"
                     :width="width"
                     :height="height"
                     fixed
@@ -1057,7 +1057,6 @@ const proxyAllowDrop = debounce((arg1, arg2) => {
                 <el-table
                   v-loading="dataPreviewLoading"
                   class="dataset-preview_table"
-                  header-class="header-cell"
                   :data="tableData"
                   @row-click="rowClick"
                   key="dataPreview"
@@ -1217,6 +1216,10 @@ const proxyAllowDrop = debounce((arg1, arg2) => {
     background: #eff0f1;
   }
 }
+.custom-tree {
+  height: calc(100vh - 172px);
+  padding: 0 8px;
+}
 .dataset-manage {
   display: flex;
   width: 100%;
@@ -1226,6 +1229,9 @@ const proxyAllowDrop = debounce((arg1, arg2) => {
 
   &.de-100vh {
     height: 100vh;
+    .custom-tree {
+      height: calc(100vh - 122px);
+    }
   }
 
   .resource-area {
@@ -1390,11 +1396,6 @@ const proxyAllowDrop = debounce((arg1, arg2) => {
       }
     }
   }
-}
-
-.custom-tree {
-  height: calc(100vh - 172px);
-  padding: 0 8px;
 }
 
 .custom-tree-node {

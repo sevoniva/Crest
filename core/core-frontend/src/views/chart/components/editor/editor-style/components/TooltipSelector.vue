@@ -472,6 +472,7 @@ onMounted(() => {
     :disabled="!state.tooltipForm.show"
     :model="state.tooltipForm"
     label-position="top"
+    size="small"
   >
     <el-form-item
       :label="t('chart.background') + t('chart.color')"
@@ -994,13 +995,8 @@ onMounted(() => {
 
 <style lang="less" scoped>
 .series-select {
-  :deep(.ed-select__prefix--light) {
-    padding-right: unset;
-    border-right: unset;
-  }
-  :deep(.ed-select__prefix--dark) {
-    padding-right: unset;
-    border-right: unset;
+  :deep(.ed-select__prefix::after) {
+    display: none;
   }
 }
 

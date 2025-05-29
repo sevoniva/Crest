@@ -119,7 +119,7 @@ defineExpose({
     :title="t('common.filter_condition')"
     v-model="userDrawer"
     size="600px"
-    custom-class="drawer-main-container"
+    modal-class="drawer-main-container"
     direction="rtl"
   >
     <div v-for="(component, index) in componentList" :key="index">
@@ -164,7 +164,6 @@ defineExpose({
 
 <style lang="less">
 .drawer-main-container {
-  width: 600px;
   .ed-drawer__body {
     padding: 16px 24px 80px !important;
   }

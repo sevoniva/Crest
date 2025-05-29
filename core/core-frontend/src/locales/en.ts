@@ -2107,7 +2107,7 @@ export default {
     select_year: 'Select year',
     sql_variable_limit_1: '1. SQL variables can only be used in WHERE conditions',
     sql_variable_limit_2:
-      "2. Example: select * from table_name where col_name1='${'{'}param_name1{'}'}' and col_name2 in (${'{'}param_name2{'}'})",
+      "2. select * from table where $DE_PARAM{'{'} name = '$[PARAM1]' {'}'} and $DE_PARAM{'{'} name in ($[PARAM2]) {'}'}",
     select_month: 'Select month',
     select_date: 'Select date',
     select_time: 'Select time',
@@ -3265,7 +3265,6 @@ export default {
     space_left: 'Left',
     space_width: 'Width',
     space_height: 'Height',
-    to_top: 'Move to Top',
     down: 'Download',
     mobile_style_setting: 'Style Setting',
     mobile_style_setting_tips: 'Customize mobile background',

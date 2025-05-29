@@ -13,7 +13,8 @@ import {
   exportDelete,
   exportDeleteAll,
   exportDeletePost,
-  exportTasksRecords
+  exportTasksRecords,
+  generateDownloadUri
 } from '@/api/dataset'
 import { useI18n } from '@/hooks/web/useI18n'
 import { useEmitt } from '@/hooks/web/useEmitt'
@@ -67,7 +68,6 @@ const handleClose = () => {
 }
 const { wsCache } = useCache()
 const openType = wsCache.get('open-backend') === '1' ? '_self' : '_blank'
-const xpack = wsCache.get('xpack-model-distributed')
 const desktop = wsCache.get('app.desktop')
 
 onUnmounted(() => {
@@ -220,12 +220,16 @@ const callbackExportSuc = () => {
 const downLoadAll = () => {
   if (multipleSelection.value.length === 0) {
     tableData.value.forEach(item => {
-      window.open(PATH_URL + '/exportCenter/download/' + item.id)
+      generateDownloadUri(item.id).then(() => {
+        window.open(PATH_URL + '/exportCenter/download/' + item.id)
+      })
     })
     return
   }
   multipleSelection.value.map(ele => {
-    window.open(PATH_URL + '/exportCenter/download/' + ele.id)
+    generateDownloadUri(ele.id).then(() => {
+      window.open(PATH_URL + '/exportCenter/download/' + ele.id)
+    })
   })
 }
 const showMsg = item => {
@@ -242,7 +246,9 @@ const timestampFormatDate = value => {
 import { PATH_URL } from '@/config/axios/service'
 import GridTable from '../../../../components/grid-table/src/GridTable.vue'
 const downloadClick = item => {
-  window.open(PATH_URL + '/exportCenter/download/' + item.id, openType)
+  generateDownloadUri(item.id).then(() => {
+    window.open(PATH_URL + '/exportCenter/download/' + item.id, openType)
+  })
 }
 
 const retry = item => {
@@ -336,7 +342,7 @@ defineExpose({
 <template>
   <el-drawer
     v-loading="drawerLoading"
-    custom-class="de-export-excel"
+    modal-class="de-export-excel"
     :title="$t('data_export.export_center')"
     v-model="drawer"
     direction="rtl"

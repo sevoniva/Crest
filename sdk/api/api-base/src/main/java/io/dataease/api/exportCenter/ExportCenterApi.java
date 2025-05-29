@@ -20,7 +20,6 @@ import static io.dataease.constant.AuthResourceEnum.DATASOURCE;
 
 @Tag(name = "数据导出中心")
 @ApiSupport(order = 971)
-@DeApiPath(value = "/exportCenter", rt = DATASOURCE)
 public interface ExportCenterApi {
 
 
@@ -46,6 +45,10 @@ public interface ExportCenterApi {
     @Operation(summary = "下载")
     @GetMapping("/download/{id}")
     public void download(@PathVariable String id, HttpServletResponse response) throws Exception;
+
+    @Operation(summary = "生成下载Url")
+    @GetMapping("/generateDownloadUri/{id}")
+    public String generateDownloadUri(@PathVariable String id) throws Exception;
 
     @Operation(summary = "重试")
     @PostMapping("/retry/{id}")

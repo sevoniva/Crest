@@ -1,20 +1,19 @@
 import type { ManipulateType } from 'dayjs'
 import dayjs from 'dayjs'
 function getThisYear() {
-  return new Date(`${new Date().getFullYear()}/1`)
+  return new Date(dayjs().startOf('year').format('YYYY/MM/DD HH:mm:ss'))
 }
 
 function getLastYear() {
-  return new Date(`${new Date().getFullYear() - 1}/1`)
+  return new Date(dayjs().subtract(1, 'year').startOf('year').format('YYYY/MM/DD HH:mm:ss'))
 }
 
 function getNextYear() {
-  return new Date(`${new Date().getFullYear() + 1}/1`)
+  return new Date(dayjs().add(1, 'year').startOf('year').format('YYYY/MM/DD HH:mm:ss'))
 }
 
 function getThisMonth() {
-  const date = new Date()
-  return new Date(`${date.getFullYear()}/${date.getMonth() + 1}`)
+  return new Date(dayjs().startOf('month').format('YYYY/MM/DD HH:mm:ss'))
 }
 
 function getLastStart(val = 'month' as ManipulateType) {
@@ -26,23 +25,19 @@ function getLastMonth() {
 }
 
 function getNextMonth() {
-  const date = getCustomTime(1, 'month', 'month', 'b')
-  return new Date(`${date.getFullYear()}/${date.getMonth() + 1}`)
+  return new Date(dayjs().add(1, 'month').startOf('month').format('YYYY/MM/DD HH:mm:ss'))
 }
 
 function getToday() {
-  const date = new Date()
-  return new Date(`${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`)
+  return new Date(dayjs().startOf('day').format('YYYY/MM/DD HH:mm:ss'))
 }
 
 function getYesterday() {
-  const date = new Date(new Date().getTime() - 24 * 60 * 60 * 1000)
-  return new Date(`${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`)
+  return new Date(dayjs().subtract(1, 'day').startOf('day').format('YYYY/MM/DD HH:mm:ss'))
 }
 
 function getMonthBeginning() {
-  const date = new Date()
-  return new Date(`${date.getFullYear()}/${date.getMonth() + 1}/1`)
+  return new Date(dayjs().startOf('month').format('YYYY/MM/DD HH:mm:ss'))
 }
 
 function getMonthEnd() {
@@ -50,19 +45,18 @@ function getMonthEnd() {
 }
 
 function getYearBeginning() {
-  const date = new Date()
-  return new Date(`${date.getFullYear()}/1/1`)
+  return new Date(dayjs().startOf('year').format('YYYY/MM/DD HH:mm:ss'))
 }
 
-function getYearMonthRange(result, sort) {
+function getYearMonthRange(result, sort, type) {
   const [direction, scene] = (sort || '').split('-')
   if (direction === 'start') {
-    return new Date(result.startOf('day').format('YYYY/MM/DD HH:mm:ss'))
+    return new Date(result.startOf(type).format('YYYY/MM/DD HH:mm:ss'))
   } else if (direction === 'end') {
     if (scene === 'config') {
       return new Date(result.format('YYYY/MM/DD HH:mm:ss'))
     } else if (scene === 'panel') {
-      return new Date(dayjs(result).endOf('day').format('YYYY/MM/DD HH:mm:ss'))
+      return new Date(dayjs(result).endOf(type).format('YYYY/MM/DD HH:mm:ss'))
     }
   }
 }
@@ -81,11 +75,12 @@ function getCustomTime(
   const result = dayjs()[type](timeNum, timeType === 'date' ? 'day' : timeType)
 
   if (['monthrange', 'yearrange', 'daterange'].includes(timeGranularityMultiple)) {
-    return getYearMonthRange(result, sort)
+    return getYearMonthRange(result, sort, timeGranularityMultiple.split('range')[0])
   }
 
   if (!!arbitraryTime) {
     const time = dayjs(arbitraryTime).format('YYYY/MM/DD HH:mm:ss')
+    // eslint-disable-next-line
     const [_, q] = time.split(' ')
     const [s] = result.format('YYYY/MM/DD HH:mm:ss').split(' ')
 

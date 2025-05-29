@@ -4,7 +4,6 @@ import icon_deleteTrash_outlined from '@/assets/svg/icon_delete-trash_outlined.s
 import icon_add_outlined from '@/assets/svg/icon_add_outlined.svg'
 import { PropType, reactive } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
-import { COLOR_PANEL } from '../../../util/chart'
 import { fieldType } from '@/utils/attr'
 import { iconFieldMap } from '@/components/icon-group/field-list'
 import PictureItem from '@/custom-component/picture-group/PictureItem.vue'
@@ -201,7 +200,6 @@ const valueOptions = [
     ]
   }
 ]
-const predefineColors = COLOR_PANEL
 
 const state = reactive({
   thresholdArr: [] as TableThreshold[],
@@ -303,7 +301,11 @@ init()
       >
         <el-row style="margin-top: 6px; align-items: center; justify-content: space-between">
           <el-form-item class="form-item">
-            <el-select v-model="fieldItem.fieldId" @change="addField(fieldItem)">
+            <el-select
+              style="width: 181px"
+              v-model="fieldItem.fieldId"
+              @change="addField(fieldItem)"
+            >
               <el-option
                 class="series-select-option"
                 v-for="fieldOption in state.fields"
@@ -437,6 +439,7 @@ init()
                 <el-select
                   v-model="item.url"
                   @change="changeThreshold"
+                  style="width: 181px"
                   popper-class="picture-group-select"
                 >
                   <template v-if="item.url" #prefix>

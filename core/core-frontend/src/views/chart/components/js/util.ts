@@ -1,4 +1,4 @@
-import { cloneDeep, isEmpty, isNumber } from 'lodash-es'
+import { isNumber } from 'lodash-es'
 import { DEFAULT_TITLE_STYLE } from '../editor/util/chart'
 import { equalsAny, includesAny } from '../editor/util/StringUtils'
 import { FeatureCollection } from '@antv/l7plot/dist/esm/plots/choropleth/types'
@@ -12,8 +12,7 @@ import { ElMessage } from 'element-plus-secondary'
 import { useI18n } from '@/hooks/web/useI18n'
 import { useLinkStoreWithOut } from '@/store/modules/link'
 import { useAppStoreWithOut } from '@/store/modules/app'
-import { valueFormatter } from '@/views/chart/components/js/formatter'
-import { deepCopy } from '@/utils/utils'
+import { Decimal } from 'decimal.js'
 
 const appStore = useAppStoreWithOut()
 const isDataEaseBi = computed(() => appStore.getIsDataEaseBi)
@@ -808,7 +807,7 @@ export function getColor(chart: Chart) {
   }
 }
 
-export function setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
+export function setupSeriesColor(chart: ChartObj): ChartBasicStyle['seriesColor'] {
   const result: ChartBasicStyle['seriesColor'] = []
   const seriesSet = new Set<string>()
   const colors = chart.customAttr.basicStyle.colors
@@ -1181,8 +1180,10 @@ export function getLineLabelColorByCondition(conditions, value, fieldId) {
   if (fieldConditions.length) {
     fieldConditions.some(item => {
       if (
-        (item.term === 'lt' && value <= item.value) ||
-        (item.term === 'gt' && value >= item.value) ||
+        (item.term === 'lt' && value < item.value) ||
+        (item.term === 'le' && value <= item.value) ||
+        (item.term === 'gt' && value > item.value) ||
+        (item.term === 'ge' && value >= item.value) ||
         (item.term === 'between' && value >= item.min && value <= item.max)
       ) {
         color = item.color
@@ -1235,4 +1236,28 @@ export const hexToRgba = (hex, alpha = 1) => {
   const a = hexAlpha ? parseInt(hex.slice(6, 8), 16) / 255 : alpha
   // 返回 RGBA 格式
   return `rgba(${r}, ${g}, ${b}, ${a})`
+}
+
+// 安全计算数值字段的总和，使用 Decimal 避免浮点数精度问题
+export function safeDecimalSum(data, field) {
+  // 使用 reduce 累加所有行的指定字段值
+  return data
+    .reduce((acc, row) => {
+      // 将字段值转换为 Decimal 类型并累加到累加器
+      return acc.plus(new Decimal(row[field] ?? 0))
+    }, new Decimal(0))
+    .toNumber() // 最终结果转换为普通数字返回
+}
+
+// 安全计算数值字段的平均值，使用 Decimal 避免浮点数精度问题
+export function safeDecimalMean(data, field) {
+  // 如果数据为空，直接返回 0
+  if (!data.length) return 0
+  // 计算所有行的指定字段值的总和
+  const sum = data.reduce((acc, row) => {
+    // 将字段值转换为 Decimal 类型并累加到累加器
+    return acc.plus(new Decimal(row[field] ?? 0))
+  }, new Decimal(0))
+  // 将总和除以数据行数，得到平均值，并转换为普通数字返回
+  return sum.dividedBy(data.length).toNumber()
 }

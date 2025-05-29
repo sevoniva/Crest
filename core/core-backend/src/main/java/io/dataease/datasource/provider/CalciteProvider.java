@@ -607,7 +607,7 @@ public class CalciteProvider extends Provider {
         if (DatasourceConfiguration.DatasourceType.valueOf(value.getType()) == DatasourceConfiguration.DatasourceType.oracle) {
             statement = getStatement(con, datasourceConfiguration.getQueryTimeout());
             statement.executeUpdate("ALTER SESSION SET CURRENT_SCHEMA = " + datasourceConfiguration.getSchema());
-
+            statement.executeUpdate("ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS'");
             //调整字符集
             if (StringUtils.isNotEmpty(datasourceConfiguration.getCharset()) && StringUtils.isNotEmpty(datasourceConfiguration.getTargetCharset())) {
                 datasourceRequest.setQuery(new String(datasourceRequest.getQuery().getBytes(datasourceConfiguration.getTargetCharset()), datasourceConfiguration.getCharset()));
@@ -696,7 +696,7 @@ public class CalciteProvider extends Provider {
         int columnCount = metaData.getColumnCount();
         for (int j = 0; j < columnCount; j++) {
             String f = metaData.getColumnName(j + 1);
-            if (StringUtils.equalsIgnoreCase(f, "DE_ROWNUM")) {
+            if (StringUtils.containsIgnoreCase(f, "ROWNUM")) {
                 continue;
             }
             String l = StringUtils.isNotEmpty(metaData.getColumnLabel(j + 1)) ? metaData.getColumnLabel(j + 1) : f;
@@ -1284,8 +1284,11 @@ public class CalciteProvider extends Provider {
                                    END,
                                CASE
                                    WHEN pg_get_expr(ad.adbin, ad.adrelid) LIKE 'nextval%%' THEN 1
-                                   WHEN a.attidentity = 'd' THEN 1
-                                   WHEN a.attidentity = 'a' THEN 1
+                        """ + (
+                        datasourceRequest.getDsVersion() > 9 ? """
+                                           WHEN a.attidentity = 'd' THEN 1
+                                           WHEN a.attidentity = 'a' THEN 1
+                                """ : "") + """
                                    ELSE 0
                                    END
                         FROM pg_class c

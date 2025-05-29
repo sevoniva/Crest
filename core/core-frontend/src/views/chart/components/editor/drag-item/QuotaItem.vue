@@ -210,23 +210,12 @@ const beforeSort = type => {
   }
 }
 
-const switchChartType = param => {
-  item.value.chartType = param.type
-  emit('onQuotaItemChange', item.value)
-}
-
 const summary = param => {
   item.value.summary = param.type
   emit('onQuotaItemChange', item.value)
 }
 
 const beforeSummary = type => {
-  return {
-    type: type
-  }
-}
-
-const beforeSwitchType = type => {
   return {
     type: type
   }
@@ -672,6 +661,7 @@ onMounted(() => {
                     class="menu-item-padding"
                     :disabled="state.disableEditCompare"
                     :command="beforeQuickCalc('setting')"
+                    v-if="!(chart.type.includes('chart-mix') && type === 'quotaExt')"
                   >
                     <div
                       class="sub-menu-content"

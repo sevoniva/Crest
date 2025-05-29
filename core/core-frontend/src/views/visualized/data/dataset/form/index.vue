@@ -86,7 +86,12 @@ const appStore = useAppStoreWithOut()
 const embeddedStore = useEmbedded()
 const { t } = useI18n()
 const route = useRoute()
-const { push } = useRouter()
+const { push } = useRouter() || {
+  push: val => {
+    if (embeddedStore.getToken) return
+    window.location.href = val as string
+  }
+}
 const quotaTableHeight = ref(238)
 const creatDsFolder = ref()
 const editCalcField = ref(false)
@@ -254,14 +259,14 @@ const getDsName = (id: string) => {
 }
 
 const pushDataset = () => {
+  wsCache.set(`dataset-info-id`, nodeInfo.id)
   if (appStore.isDataEaseBi) {
     embeddedStore.clearState()
     useEmitt().emitter.emit('changeCurrentComponent', 'Dataset')
     return
   }
   const routeName = embeddedStore.getToken && appStore.getIsIframe ? 'dataset-embedded' : 'dataset'
-  wsCache.set(`${routeName}-info-id`, nodeInfo.id)
-  if (!!history.state.back) {
+  if (!!history.state.back && !appStore.getIsIframe) {
     history.back()
   } else {
     push({
@@ -1150,7 +1155,6 @@ const initGroupField = val => {
 const confirmGroupField = () => {
   ruleGroupFieldRef.value.validate(val => {
     let count = 0
-    let flag = false
     let time
     refsForm.value.forEach(ele => {
       ele?.validate(val => {
@@ -1161,7 +1165,6 @@ const confirmGroupField = () => {
     })
     time = setTimeout(() => {
       clearTimeout(time)
-      flag = true
       time = null
       if (val && count === currentGroupField.groupList.length) {
         const groupList = []
@@ -2548,7 +2551,7 @@ const getIconNameCalc = (deType, extField, dimension = false) => {
     <el-drawer
       :title="t('dataset.edit_union_relation')"
       v-model="editUnion"
-      custom-class="union-dataset-drawer"
+      modal-class="union-dataset-drawer"
       size="840px"
       :before-close="closeEditUnion"
       direction="rtl"
@@ -2566,7 +2569,7 @@ const getIconNameCalc = (deType, extField, dimension = false) => {
     ref="creatDsFolder"
   ></creat-ds-group>
   <el-dialog
-    custom-class="calc-field-edit-dialog"
+    modal-class="calc-field-edit-dialog"
     v-model="editCalcField"
     width="1000px"
     :title="calcTitle"

@@ -1,6 +1,5 @@
 :root {
   font-family: var(--de-custom_font, 'PingFang');
-  line-height: 1.5;
   font-weight: 400;
   color-scheme: light dark;
   -webkit-font-smoothing: antialiased;
@@ -113,19 +112,6 @@ body {
     top: 50%;
     transform: translateY(-50%);
     left: 0;
-  }
-}
-
-.header-cell {
-  background-color: #f5f6f7 !important;
-  border-top: 1px solid rgba(31, 35, 41, 0.15);
-}
-
-.excel-header-cell {
-  background-color: #f5f6f7 !important;
-
-  .ed-table-v2__header-cell {
-    background-color: transparent;
   }
 }
 
@@ -696,4 +682,17 @@ strong {
 
 .ed-month-table td {
   padding: 8px 0 !important;
+}
+
+.excel-header-cell,
+.header-cell {
+  background-color: #f5f6f7 !important;
+}
+
+.logic-right {
+  .ed-select__selected-item {
+    .ed-tag {
+      max-width: 100px !important;
+    }
+  }
 }

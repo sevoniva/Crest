@@ -502,6 +502,7 @@ const isProgressBar = computed(() => {
     :disabled="!state.labelForm.show"
     :model="state.labelForm"
     label-position="top"
+    size="small"
   >
     <el-row v-show="showEmpty" style="margin-bottom: 12px">
       {{ t('chart.no_other_configurable_properties') }}</el-row
@@ -2024,9 +2025,8 @@ const isProgressBar = computed(() => {
 }
 
 .series-select {
-  :deep(.ed-select__prefix--light) {
-    padding-right: unset;
-    border-right: unset;
+  :deep(.ed-select__prefix::after) {
+    display: none;
   }
 
   :deep(.ed-select__prefix--dark) {

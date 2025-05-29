@@ -22,7 +22,6 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.util.deparser.ExpressionDeParser;
-import net.sf.jsqlparser.util.deparser.SelectDeParser;
 import org.apache.calcite.sql.*;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.sql.util.SqlShuttle;
@@ -30,7 +29,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.junit.jupiter.params.provider.CsvSource;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -50,19 +48,20 @@ public class SqlparserUtils {
     boolean hasVariables = false;
     private UserFormVO userEntity;
     private final List<Map<String, String>> sysParams = new ArrayList<>();
+    private static final String deVariablePattern = "\\$DE_PARAM\\{(.*?)\\}";
 
     public String handleVariableDefaultValue(String sql, String sqlVariableDetails, boolean isEdit, boolean isFromDataSet, List<SqlVariableDetails> parameters, boolean isCross, Map<Long, DatasourceSchemaDTO> dsMap, PluginManageApi pluginManage, UserFormVO userEntity) {
+        Pattern r = Pattern.compile(deVariablePattern);
+        Matcher m = r.matcher(sql);
+        if (m.find()) {
+            return new DeSqlparserUtils().handleVariableDefaultValue(sql, sqlVariableDetails, isEdit, isFromDataSet, parameters, isCross, dsMap, pluginManage, userEntity);
+        }
+
         DatasourceSchemaDTO ds = dsMap.entrySet().iterator().next().getValue();
         if (StringUtils.isEmpty(sql)) {
             DEException.throwException(Translator.get("i18n_sql_not_empty"));
         }
         this.userEntity = userEntity;
-        try {
-            this.removeSysParams = true;
-            removeVariables(sql, ds.getType());
-        } catch (Exception e) {
-            DEException.throwException(e);
-        }
         hasVariables = false;
         sql = sql.trim();
         if (sql.endsWith(";")) {
@@ -150,22 +149,23 @@ public class SqlparserUtils {
         return sql;
     }
 
-    private static boolean isParams(String paramId){
-        if(Arrays.asList("sysParams.userId", "sysParams.userEmail", "sysParams.userName").contains(paramId)){
+    private static boolean isParams(String paramId) {
+        if (Arrays.asList("sysParams.userId", "sysParams.userEmail", "sysParams.userName").contains(paramId)) {
             return true;
         }
         boolean isLong = false;
         try {
             Long.valueOf(paramId);
             isLong = true;
-        }catch (Exception e){
+        } catch (Exception e) {
             isLong = false;
         }
-        if(paramId.length() >= 18 && isLong){
+        if (paramId.length() >= 18 && isLong) {
             return true;
         }
         return false;
     }
+
     private String removeVariables(final String sql, String dsType) throws Exception {
         String tmpSql = sql.replaceAll("(?m)^\\s*$[\n\r]{0,}", "");
         Pattern pattern = Pattern.compile(regex);
@@ -182,7 +182,7 @@ public class SqlparserUtils {
             matcher = pattern.matcher(tmpSql);
             while (matcher.find()) {
                 String paramId = matcher.group().substring(7, matcher.group().length() - 1);
-                if(!isParams(paramId)){
+                if (!isParams(paramId)) {
                     continue;
                 }
                 hasVariables = true;
@@ -193,7 +193,7 @@ public class SqlparserUtils {
             matcher = pattern.matcher(tmpSql);
             while (matcher.find()) {
                 String paramId = matcher.group().substring(7, matcher.group().length() - 1);
-                if(!isParams(paramId)){
+                if (!isParams(paramId)) {
                     continue;
                 }
                 hasVariables = true;
@@ -204,7 +204,7 @@ public class SqlparserUtils {
                 sysParams.add(sysParam);
             }
         }
-        if(!hasVariables && !sql.contains(SubstitutedParams)){
+        if (!hasVariables && !sql.contains(SubstitutedParams)) {
             return sql;
         }
         Statement statement = CCJSqlParserUtil.parse(tmpSql);

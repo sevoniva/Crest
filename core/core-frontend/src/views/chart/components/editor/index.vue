@@ -1077,7 +1077,7 @@ const onMiscChange = val => {
 }
 
 const onLabelChange = (chartForm: ChartEditorForm<ChartLabelAttr>, prop: string) => {
-  const { data, requestData, render } = chartForm
+  const { data, render } = chartForm
   let labelObj = data
   if (!data) {
     labelObj = chartForm as unknown as ChartLabelAttr
@@ -1859,7 +1859,7 @@ const setActiveShift = (ele, type = 'dimension') => {
 
 const isDrag = ref(false)
 
-const dragStartD = (e: DragEvent) => {
+const dragStartD = () => {
   isDrag.value = true
   setTimeout(() => {
     isDraggingItem.value = true
@@ -1876,7 +1876,7 @@ const singleDragStartD = (e: DragEvent, ele, type) => {
   startToMove(e, unref(activeDimension.value))
 }
 
-const dragStart = (e: DragEvent) => {
+const dragStart = () => {
   isDrag.value = true
   setTimeout(() => {
     isDraggingItem.value = true
@@ -4342,63 +4342,8 @@ span {
     overflow-x: hidden;
     height: 100%;
 
-    :deep(.ed-collapse-item__header) {
-      height: 36px !important;
-      line-height: 36px !important;
-      font-size: 12px !important;
-      padding: 0 !important;
-      font-weight: 500 !important;
-      border-top: unset;
-
-      &.is-active {
-        border-bottom-color: var(--ed-collapse-border-color);
-        color: #1f2329;
-      }
-
-      .ed-collapse-item__arrow {
-        margin: 0 6px 0 8px;
-
-        &.is-active {
-          color: #646a73;
-        }
-      }
-    }
-
     :deep(.ed-collapse-item__content) {
       padding: 16px 10px 0;
-      border: none;
-      :deep(.ed-checkbox) {
-        height: 20px;
-      }
-      .ed-checkbox {
-        height: 20px;
-      }
-    }
-
-    :deep(.style-dark) {
-      .ed-collapse-item__header {
-        &.is-active {
-          color: #fff;
-        }
-
-        .ed-collapse-item__arrow {
-          &.is-active {
-            color: #a6a6a6;
-          }
-        }
-      }
-    }
-    :deep(.ed-collapse-item.ed-collapse--dark .ed-collapse-item__header) {
-      border-color: rgba(255, 255, 255, 0.15);
-
-      &.is-active {
-        color: #fff;
-      }
-      .ed-collapse-item__arrow {
-        &.is-active {
-          color: #a6a6a6;
-        }
-      }
     }
   }
 
@@ -4423,11 +4368,14 @@ span {
       font-size: 12px;
       padding: 0 8px !important;
       margin-right: 12px;
+    }
+
+    :deep(.ed-tabs__item:not(.is-active)) {
       color: var(--custom-tab-color);
     }
-    :deep(.is-active) {
+
+    :deep(.ed-tabs__item.is-active) {
       font-weight: 500;
-      color: var(--ed-color-primary, #3370ff);
     }
 
     :deep(.ed-tabs__nav-scroll) {
@@ -4762,6 +4710,7 @@ span {
     align-items: center;
     justify-content: space-between;
     padding: 0 8px;
+    line-height: 22px;
 
     span {
       width: calc(100% - 24px);
@@ -5186,10 +5135,13 @@ span {
 .chart-type-select {
   width: 100%;
   margin-top: 8px;
-  :deep(.ed-input__prefix-inner > div) {
+  :deep(.ed-select__prefix) {
     padding: 0;
     margin: 0;
-    border: none;
+    &::after {
+      display: none;
+    }
+    height: 20px;
     .chart-type-select-icon {
       width: 23px;
       height: 16px;

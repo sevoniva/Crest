@@ -3515,7 +3515,7 @@ defineExpose({
   min-width: 210px !important;
 }
 .ed-select-dropdown__header {
-  padding: 0 8px;
+  padding: 0 8px !important;
   .params-select--header {
     --ed-tabs-header-height: 32px;
     .ed-tabs__item {
@@ -3567,11 +3567,11 @@ defineExpose({
     justify-content: center;
   }
 
-  .ed-input .ed-select__prefix--light {
-    border-right: none;
-    padding: 0;
+  .ed-select__prefix {
     font-size: 16px;
-    margin-right: 4px;
+    &::after {
+      display: none;
+    }
   }
   .container {
     font-size: 14px;

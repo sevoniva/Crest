@@ -2,7 +2,7 @@
   <el-drawer
     :title="t('visualization.app_export')"
     v-model="state.applyDownloadDrawer"
-    custom-class="de-user-drawer"
+    modal-class="de-user-drawer"
     size="600px"
     direction="rtl"
   >
@@ -55,11 +55,9 @@ import { ElButton, ElDrawer, ElForm, ElFormItem, ElInput } from 'element-plus-se
 import { reactive, ref, toRefs } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { export2AppCheck } from '@/api/visualization/dataVisualization'
-import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 const { t } = useI18n()
 const emits = defineEmits(['closeDraw', 'downLoadApp'])
 const applyDownloadForm = ref(null)
-const dvMainStore = dvMainStoreWithOut()
 
 const props = defineProps({
   componentData: {
