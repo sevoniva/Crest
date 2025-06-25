@@ -525,6 +525,7 @@ export const dvMainStore = defineStore('dataVisualization', {
               placeholderShow: true,
               placeholderSize: 14,
               queryConditionSpacing: 16,
+              queryConditionHeight: 32,
               labelColorBtn: '#ffffff',
               btnColor: '#3370ff'
             }
@@ -552,7 +553,7 @@ export const dvMainStore = defineStore('dataVisualization', {
       })
     },
 
-    deleteComponentById(componentId, componentData = this.componentData, deep = true) {
+    deleteComponentById(componentId, componentData = this.componentData, deep = false) {
       if (componentId) {
         let indexResult
         componentData.forEach((component, index) => {

@@ -1,6 +1,7 @@
 export default {
   common: {
     empty: '',
+    first_item: '首項',
     cross_source: '跨源',
     single_source: '單源',
     source_tips: '資料集存在跨源情況，請檢查其他 SQL 節點的語法，是否確認將類型改為單源?',
@@ -1348,6 +1349,7 @@ export default {
     table_title_fontsize: '表頭字體大小',
     table_item_fontsize: '表格字體大小',
     table_header_bg: '表頭背景',
+    table_header_row_bg: '表頭/行背景',
     table_item_bg: '表格背景',
     table_header_font_color: '表頭字型',
     table_item_font_color: '表格字型',
@@ -2893,6 +2895,7 @@ export default {
       '如果展示查詢按鈕，需要點擊該按鈕後才能觸發圖表查詢；如果不展示查詢按鈕，選擇完查詢條件後立即觸發圖表查詢',
     custom_query_bg_color: '自定義查詢條件背景',
     query_condition_space: '查詢條件間距',
+    query_condition_height: '查詢條件高度',
     query_condition_name: '查詢條件名稱',
     condition_left: '左側',
     condition_top: '上側',
@@ -3209,8 +3212,7 @@ export default {
     template_preview: '預覽模板',
     apply: '應用',
     apply_this_template: '應用此模板',
-    market_network_tips:
-      '查看模板市場模板需要服務器與模板市場(https://templates.dataease.cn)連通，請檢查網絡...',
+    market_network_tips: '查看模板市場模板需要服務器與模板市場({0})連通，請檢查網絡...',
     enter_name_tips: '請輸入儀表板名稱',
     apply_template: '應用模板',
     style_template: '樣式模板',

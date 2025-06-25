@@ -32,6 +32,7 @@ interface SelectConfig {
   placeholder: string
   resultMode: number
   displayId: string
+  defaultValueFirstItem: boolean
   sort: string
   sortId: string
   checkedFields: string[]
@@ -99,6 +100,10 @@ const cascade = computed(() => {
   return cascadeList() || []
 })
 
+const disabledFirstItem = computed(() => {
+  const { defaultValueFirstItem, optionValueSource, multiple } = props.config
+  return defaultValueFirstItem && optionValueSource === 1 && !multiple
+})
 const setDefaultMapValue = arr => {
   const { displayId, field } = config.value
   if (config.value.optionValueSource !== 1) {
@@ -215,7 +220,7 @@ const handleValueChange = () => {
     setCascadeValueBack(config.value.mapValue)
     emitCascade()
     nextTick(() => {
-      isConfirmSearch(config.value.id)
+      isConfirmSearch(config.value.id, disabledFirstItem.value)
     })
     return
   }
@@ -367,6 +372,10 @@ const handleFieldIdChange = (val: EnumValue) => {
           : selectValue.value
       }
 
+      if (disabledFirstItem.value) {
+        setDefaultValueFirstItem()
+      }
+
       isFromRemote.value = false
     })
 }
@@ -377,6 +386,20 @@ watch(
   () => config.value.showEmpty,
   () => {
     setEmptyData()
+  }
+)
+
+const setDefaultValueFirstItem = () => {
+  if (!options.value.length) return
+  selectValue.value = options.value[0].value
+  handleValueChange()
+}
+
+watch(
+  () => config.value.defaultValueFirstItem,
+  val => {
+    if (!val) return
+    setDefaultValueFirstItem()
   }
 )
 
@@ -441,6 +464,7 @@ watch(
     }
     nextTick(() => {
       multiple.value = val
+      config.value.defaultValueFirstItem = false
       if (!val) {
         nextTick(() => {
           selectValue.value = undefined
@@ -478,6 +502,7 @@ watch(
       config.value.defaultValue = cloneDeep(selectValue.value)
     }
     debounceOptions(valNew)
+    config.value.defaultValueFirstItem = false
   }
 )
 
@@ -640,11 +665,11 @@ onMounted(() => {
 })
 
 const tagWidth = computed(() => {
-  return Math.min(getCustomWidth() / 3, 40) + 'px'
+  return Math.min((getCustomWidth() - 60) / 2, 50) + 'px'
 })
 
 const tagTextWidth = computed(() => {
-  return Math.min(getCustomWidth() / 3, 50) - 25 + 'px'
+  return Math.min((getCustomWidth() - 60) / 2 - 25, 40) + 'px'
 })
 
 defineExpose({
@@ -685,6 +710,7 @@ defineExpose({
     v-loading="loading"
     @change="handleValueChange"
     clearable
+    :disabled="disabledFirstItem && props.isConfig"
     ref="single"
     :style="selectStyle"
     filterable
@@ -741,9 +767,9 @@ defineExpose({
 </style>
 
 <style lang="less" scoped>
-:deep(.ed-select-v2__selection) {
+:deep(.ed-select__selected-item) {
   .ed-tag {
-    max-width: v-bind(tagWidth);
+    max-width: v-bind(tagWidth) !important;
   }
 
   .ed-select__tags-text {

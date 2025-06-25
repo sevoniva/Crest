@@ -136,7 +136,7 @@ const defaultRule = {
 
 const rule = ref<FormRules>(cloneDeep(defaultRule))
 const activeTab = ref('')
-
+let time
 const initForm = type => {
   form.value.configuration = {
     url: '',
@@ -154,6 +154,11 @@ const initForm = type => {
     cron: '0 0/1 * * * ? *'
   }
   form.value.type = type
+
+  time = setTimeout(() => {
+    clearTimeout(time)
+    remoteExcelForm.value.clearValidate()
+  }, 0)
 }
 
 const handleResize = debounce(() => {

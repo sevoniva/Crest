@@ -63,6 +63,7 @@ const dvMainStore = dvMainStoreWithOut()
 const { emitter } = useEmitt()
 const dePreviewPopDialogRef = ref(null)
 let innerRefreshTimer = null
+let innerSearchCount = 0
 const appStore = useAppStoreWithOut()
 const appearanceStore = useAppearanceStoreWithOut()
 const isDataEaseBi = computed(() => appStore.getIsDataEaseBi)
@@ -240,6 +241,7 @@ const buildInnerRefreshTimer = (
     innerRefreshTimer = setInterval(() => {
       clearViewLinkage()
       queryData()
+      innerSearchCount++
     }, timerRefreshTime)
   }
 }
@@ -706,10 +708,19 @@ const changeChartType = () => {
 const changeDataset = () => {
   checkFieldIsAllowEmpty()
 }
+
+const loadPlugin = ref(false)
+
 onMounted(() => {
   if (!view.value.isPlugin) {
     state.drillClickDimensionList = view.value?.chartExtRequest?.drill ?? []
     queryData(!showPosition.value.includes('viewDialog'))
+  } else {
+    const searched = dvMainStore.firstLoadMap.includes(element.value.id)
+    const queryFilter = filter(!searched)
+    view.value['chartExtRequest'] = queryFilter
+    chartExtRequest.value = queryFilter
+    loadPlugin.value = true
   }
   if (!listenerEnable.value) {
     return
@@ -844,7 +855,11 @@ onMounted(() => {
 
 // 1.开启仪表板刷新 2.首次加载（searchCount =0 ）3.正在请求数据 则显示加载状态
 const loadingFlag = computed(() => {
-  return (canvasStyleData.value.refreshViewLoading || searchCount.value === 0) && loading.value
+  return (
+    (canvasStyleData.value.refreshViewLoading ||
+      (searchCount.value === 0 && innerSearchCount === 0)) &&
+    loading.value
+  )
 })
 
 const chartAreaShow = computed(() => {
@@ -1146,7 +1161,7 @@ const clearG2Tooltip = () => {
     <!--这里去渲染不同图库的图表-->
     <div v-if="allEmptyCheck || (chartAreaShow && !showEmpty)" style="flex: 1; overflow: hidden">
       <plugin-component
-        v-if="view.plugin?.isPlugin"
+        v-if="view.plugin?.isPlugin && loadPlugin"
         :jsname="view.plugin.staticMap['index']"
         :scale="scale"
         :dynamic-area-id="dynamicAreaId"

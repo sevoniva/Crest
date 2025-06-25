@@ -1,6 +1,7 @@
 export default {
   common: {
     empty: '',
+    first_item: '首项',
     cross_source: '跨源',
     single_source: '单源',
     source_tips: '数据集存在跨源情况，请检查其他 SQL 节点的语法，是否确认将类型改为单源?',
@@ -1353,6 +1354,7 @@ export default {
     table_title_fontsize: '表头字体大小',
     table_item_fontsize: '表格字体大小',
     table_header_bg: '表头背景',
+    table_header_row_bg: '表头/行背景',
     table_item_bg: '表格背景',
     table_header_font_color: '表头字体',
     table_item_font_color: '表格字体',
@@ -2900,6 +2902,7 @@ export default {
       '如果展示查询按钮，需要点击该按钮后才能触发图表查询；如果不展示查询按钮，选择完查询条件后立即触发图表查询',
     custom_query_bg_color: '自定义查询条件背景',
     query_condition_space: '查询条件间距',
+    query_condition_height: '查询条件高度',
     query_condition_name: '查询条件名称',
     condition_left: '左侧',
     condition_top: '上侧',
@@ -3214,8 +3217,7 @@ export default {
     template_preview: '预览模板',
     apply: '应用',
     apply_this_template: '应用此模板',
-    market_network_tips:
-      '查看模板市场模板需要服务器与模板市场(https://templates.dataease.cn)连通，请检查网络...',
+    market_network_tips: `查看模板市场模板需要服务器与模板市场({0})连通，请检查网络...`,
     enter_name_tips: '请输入仪表板名称',
     apply_template: '应用模板',
     style_template: '样式模板',

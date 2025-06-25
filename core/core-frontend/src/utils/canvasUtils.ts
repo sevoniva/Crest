@@ -660,7 +660,7 @@ export function setIdValueTrans(from, to, content, colList) {
     pre[next[from]] = next[to]
     return pre
   }, {})
-  const on = content?.match(/\[(.+?)\]/g)
+  const on = content?.match(/\[(.+?)\]/g) || []
   if (on) {
     on.forEach(itm => {
       const ele = itm.slice(1, -1)
@@ -1019,12 +1019,12 @@ export function findComponentById(componentId) {
   return result
 }
 
-export function onInitReady(params) {
+export function onInitReady(params, eventName = 'canvas_init_ready') {
   try {
-    console.info('Canvas initReady')
+    console.info('event:' + eventName)
     const targetPm = {
       type: 'dataease-embedded-interactive',
-      eventName: 'canvas_init_ready',
+      eventName: eventName,
       args: params
     }
     window.parent.postMessage(targetPm, '*')

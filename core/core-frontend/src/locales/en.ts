@@ -1,6 +1,7 @@
 export default {
   common: {
     empty: ' ',
+    first_item: 'First Item',
     cross_source: 'Cross-source',
     single_source: 'Single-source',
     source_tips:
@@ -1386,6 +1387,7 @@ export default {
     table_title_fontsize: 'Header font size',
     table_item_fontsize: 'Table font size',
     table_header_bg: 'Header Bg',
+    table_header_row_bg: 'Header&Row Bg',
     table_item_bg: 'Table Bg',
     table_header_font_color: 'Header font',
     table_item_font_color: 'Table font',
@@ -2977,6 +2979,7 @@ export default {
       'If the query button is displayed, the chart query will be triggered only after clicking the button. If not displayed, the query is triggered immediately after selecting the query conditions.',
     custom_query_bg_color: 'Custom Query Background Color',
     query_condition_space: 'Query Condition Spacing',
+    query_condition_height: 'Query condition height',
     query_condition_name: 'Query Condition Name',
     condition_left: 'Left Side',
     condition_top: 'Top Side',
@@ -3303,7 +3306,7 @@ export default {
     apply: 'Apply',
     apply_this_template: 'Apply This Template',
     market_network_tips:
-      'To view templates from the template market, your server must be connected to the template market (https://templates.dataease.cn). Please check your network connection...',
+      'To view templates from the template market, your server must be connected to the template market ({0}). Please check your network connection...',
     enter_name_tips: 'Please enter the dashboard name.',
     apply_template: 'App Template',
     style_template: 'Style Template',

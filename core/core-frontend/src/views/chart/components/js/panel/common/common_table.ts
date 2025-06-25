@@ -1377,9 +1377,9 @@ export async function exportGridPivot(instance: PivotSheet, chart: ChartObj) {
       if (fieldValue === 0 || fieldValue) {
         const meta = metaMap[dataCellMeta.valueField]
         const cell = worksheet.getCell(rowIndex + maxColHeight + 1, rowLength + colIndex + 1)
-        const value = meta?.formatter?.(fieldValue) || fieldValue.toString()
+        const value = meta?.formatter?.(fieldValue) || fieldValue
         cell.alignment = { vertical: 'middle', horizontal: 'center' }
-        cell.value = value
+        cell.value = isNumeric(value) ? parseFloat(value) : value
       }
     }
   }
@@ -1548,9 +1548,9 @@ export async function exportRowQuotaGridPivot(instance: PivotSheet, chart: Chart
       if (fieldValue === 0 || fieldValue) {
         const meta = metaMap[dataCellMeta.valueField]
         const cell = worksheet.getCell(rowIndex + maxColHeight + 1, rowLength + colIndex + 2)
-        const value = meta?.formatter?.(fieldValue) || fieldValue.toString()
+        const value = meta?.formatter?.(fieldValue) || fieldValue
         cell.alignment = { vertical: 'middle', horizontal: 'center' }
-        cell.value = value
+        cell.value = isNumeric(value) ? parseFloat(value) : value
       }
     }
   }
@@ -1670,9 +1670,9 @@ export async function exportTreePivot(instance: PivotSheet, chart: ChartObj) {
       if (fieldValue === 0 || fieldValue) {
         const meta = metaMap[dataCellMeta.valueField]
         const cell = worksheet.getCell(rowIndex + maxColHeight + 1, colIndex + 1 + 1)
-        const value = meta?.formatter?.(fieldValue) || fieldValue.toString()
+        const value = meta?.formatter?.(fieldValue) || fieldValue
         cell.alignment = { vertical: 'middle', horizontal: 'center' }
-        cell.value = value
+        cell.value = isNumeric(value) ? parseFloat(value) : value
       }
     }
   }
@@ -1793,9 +1793,9 @@ export async function exportRowQuotaTreePivot(instance: PivotSheet, chart: Chart
       if (fieldValue === 0 || fieldValue) {
         const meta = metaMap[dataCellMeta.valueField]
         const cell = worksheet.getCell(rowIndex + maxColHeight + 1, colIndex + 2)
-        const value = meta?.formatter?.(fieldValue) || fieldValue.toString()
+        const value = meta?.formatter?.(fieldValue) || fieldValue
         cell.alignment = { vertical: 'middle', horizontal: 'center' }
-        cell.value = value
+        cell.value = isNumeric(value) ? parseFloat(value) : value
       }
     }
   }
@@ -1804,6 +1804,11 @@ export async function exportRowQuotaTreePivot(instance: PivotSheet, chart: Chart
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
   })
   saveAs(dataBlob, `${chart.title ?? '透视表'}.xlsx`)
+}
+
+
+function isNumeric(value: string): boolean {
+  return /^[+-]?\d+(\.\d+)?$/.test(value)
 }
 
 export async function exportPivotExcel(instance: PivotSheet, chart: ChartObj) {
@@ -2387,4 +2392,52 @@ export function drawImage() {
       }
     })
   }
+}
+
+
+export function calcTreeWidth(node) {
+  if (!node.children?.length) {
+    return node.width
+  }
+  return node.children.reduce((pre, cur) => {
+    return pre + calcTreeWidth(cur)
+  }, 0)
+}
+
+export function getStartPosition(node) {
+  if (!node.children?.length) {
+    return node.x
+  }
+  return getStartPosition(node.children[0])
+}
+
+function getMaxTreeDepth(nodes) {
+  if (!nodes?.length) {
+    return 0
+  }
+  return Math.max(
+    ...nodes.map(node => {
+      if (!node.children?.length) {
+        return 1
+      }
+      return getMaxTreeDepth(node.children) + 1
+    })
+  )
+}
+
+export function summaryRowStyle(newChart, newData, tableCell, tableHeader, showSummary) {
+  if (!showSummary || !newData.length) return
+  const columns = newChart.dataCfg.fields.columns
+  const showHeader = tableHeader.showTableHeader === true
+  // 不显示表头时，减少一个表头的高度
+  const headerAndSummaryHeight = showHeader ? getMaxTreeDepth(columns) + 1 : 1
+  newChart.on(S2Event.LAYOUT_BEFORE_RENDER, () => {
+    const totalHeight =
+      tableHeader.tableTitleHeight * headerAndSummaryHeight +
+      tableCell.tableItemHeight * (newData.length - 1)
+    if (totalHeight < newChart.container.cfg.height) {
+      newChart.options.height =
+        totalHeight < newChart.container.cfg.height - 8 ? totalHeight + 8 : totalHeight
+    }
+  })
 }

@@ -269,14 +269,15 @@ const closeSqlNode = () => {
     changeSqlId.value.length === 1
   ) {
     currentNode.value = state.nodeList[0]
-    const { datasourceId, id, info, tableName } = currentNode.value
+    const { datasourceId, id, info, tableName, sqlVariableDetails } = currentNode.value
     getTableField({
       datasourceId,
       id,
       info,
       tableName,
       type: 'sql',
-      isCross: isCross.value
+      isCross: isCross.value,
+      sqlVariableDetails: sqlVariableDetails
     }).then(res => {
       const idOriginNameMap = allfields.value.reduce((pre, next) => {
         pre[`${next.datasetTableId}${next.originName}`] = next.id
@@ -373,7 +374,7 @@ const confirmEditUnion = () => {
   if (!!ids.length) {
     const idArr = allfields.value.reduce((pre, next) => {
       if (next.extField === 2) {
-        let idMap = next.originName.match(/\[(.+?)\]/g)
+        let idMap = next.originName.match(/\[(.+?)\]/g) || []
         idMap = idMap.filter(
           itx => !next.params?.map(element => element.id).includes(itx.slice(1, -1))
         )
@@ -461,7 +462,7 @@ const handleCommand = (ele, command) => {
     if (!!fakeDelId.length) {
       const idArr = allfields.value.reduce((pre, next) => {
         if (next.extField === 2) {
-          const idMap = next.originName.match(/\[(.+?)\]/g)
+          const idMap = next.originName.match(/\[(.+?)\]/g) || []
           const result = idMap.map(itm => {
             return itm.slice(1, -1)
           })

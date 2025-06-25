@@ -262,9 +262,21 @@ public class ChartDataServer implements ChartDataApi {
                         if ((details.size() + extractPageSize) > sheetLimit || i == chartViewDTO.getTotalPage()) {
                             detailsSheet = wb.createSheet("数据" + sheetIndex);
                             Integer[] excelTypes = request.getExcelTypes();
-                            details.add(0, request.getHeader());
-                            ViewDetailField[] detailFields = request.getDetailFields();
                             Object[] header = request.getHeader();
+                            request.getViewInfo().setXAxis(request.getViewInfo().getXAxis().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
+                            request.getViewInfo().setYAxis(request.getViewInfo().getYAxis().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
+                            request.getViewInfo().setXAxisExt(request.getViewInfo().getXAxisExt().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
+                            request.getViewInfo().setYAxisExt(request.getViewInfo().getYAxisExt().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
+                            request.getViewInfo().setExtStack(request.getViewInfo().getExtStack().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
+                            List<ChartViewFieldDTO> xAxis = new ArrayList<>();
+                            xAxis.addAll(request.getViewInfo().getXAxis());
+                            xAxis.addAll(request.getViewInfo().getYAxis());
+                            xAxis.addAll(request.getViewInfo().getXAxisExt());
+                            xAxis.addAll(request.getViewInfo().getYAxisExt());
+                            xAxis.addAll(request.getViewInfo().getExtStack());
+                            header = Arrays.stream(request.getHeader()).filter(item -> xAxis.stream().map(DatasetTableFieldDTO::getName).collect(Collectors.toList()).contains(item)).collect(Collectors.toList()).toArray();
+                            details.add(0, header);
+                            ViewDetailField[] detailFields = request.getDetailFields();
                             ChartDataServer.setExcelData(detailsSheet, cellStyle, header, details, detailFields, excelTypes, request.getViewInfo(), wb);
                             sheetIndex++;
                             details.clear();
@@ -332,9 +344,10 @@ public class ChartDataServer implements ChartDataApi {
         xAxis.addAll(viewInfo.getXAxisExt());
         xAxis.addAll(viewInfo.getYAxisExt());
         xAxis.addAll(viewInfo.getExtStack());
+        xAxis.addAll(viewInfo.getDrillFields());
         TableHeader tableHeader = null;
         Integer totalDepth = 0;
-        if (viewInfo.getType().equalsIgnoreCase("table-normal") || viewInfo.getType().equalsIgnoreCase("table-info")) {
+        if (StringUtils.equalsAnyIgnoreCase(viewInfo.getType(), "table-normal", "table-info")) {
             for (ChartViewFieldDTO xAxi : xAxis) {
                 if (xAxi.getDeType().equals(DeTypeConstants.DE_INT) || xAxi.getDeType().equals(DeTypeConstants.DE_FLOAT)) {
                     CellStyle formatterCellStyle = createCellStyle(wb, xAxi.getFormatterCfg(), null);
@@ -346,13 +359,21 @@ public class ChartDataServer implements ChartDataApi {
 
             Map<String, Object> customAttr = viewInfo.getCustomAttr();
             Map<String, Object> tableHeaderMap = (Map<String, Object>) customAttr.get("tableHeader");
-            if (tableHeaderMap.get("headerGroup") != null && Boolean.valueOf(tableHeaderMap.get("headerGroup").toString())) {
-                tableHeader = JsonUtil.parseObject((String) JsonUtil.toJSONString(customAttr.get("tableHeader")), TableHeader.class);
-                for (TableHeader.ColumnInfo column : tableHeader.getHeaderGroupConfig().getColumns()) {
-                    totalDepth = Math.max(totalDepth, getDepth(column, 1));
+            if (tableHeaderMap.get("headerGroup") != null && Boolean.parseBoolean(tableHeaderMap.get("headerGroup").toString())) {
+                var tmpHeader = JsonUtil.parseObject((String) JsonUtil.toJSONString(customAttr.get("tableHeader")), TableHeader.class);
+                // 校验字段数量和顺序
+                var allAxis = new ArrayList<>(viewInfo.getXAxis().stream().filter(x -> !x.isHide()).toList());
+                if (StringUtils.equalsIgnoreCase(viewInfo.getType(), "table-normal")) {
+                    allAxis.addAll(viewInfo.getYAxis().stream().filter(x -> !x.isHide()).toList());
                 }
-                for (TableHeader.ColumnInfo column : tableHeader.getHeaderGroupConfig().getColumns()) {
-                    setWidth(column, 1);
+                if (validateHeaderGroup(tmpHeader, allAxis)) {
+                    tableHeader = tmpHeader;
+                    for (TableHeader.ColumnInfo column : tableHeader.getHeaderGroupConfig().getColumns()) {
+                        totalDepth = Math.max(totalDepth, getDepth(column, 1));
+                    }
+                    for (TableHeader.ColumnInfo column : tableHeader.getHeaderGroupConfig().getColumns()) {
+                        setWidth(column, 1);
+                    }
                 }
             }
         }
@@ -504,6 +525,39 @@ public class ChartDataServer implements ChartDataApi {
         }
     }
 
+    private static boolean validateHeaderGroup(TableHeader header, List<ChartViewFieldDTO> fields) {
+        if (header == null) {
+            return false;
+        }
+        var columns = header.getHeaderGroupConfig().getColumns();
+        if (CollectionUtils.isEmpty(columns)) {
+            return false;
+        }
+        var leafColumn = getHeaderLeafColumn(columns);
+        if (CollectionUtils.isEmpty(leafColumn) || leafColumn.size() != fields.size()) {
+            return false;
+        }
+        for (int i = 0; i < leafColumn.size(); i++) {
+            var a = leafColumn.get(i);
+            var b = fields.get(i).getDataeaseName();
+            if (!StringUtils.equals(a, b)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static List<String> getHeaderLeafColumn(List<TableHeader.ColumnInfo> columns) {
+        var result = new ArrayList<String>();
+        for (TableHeader.ColumnInfo column : columns) {
+            if (CollectionUtils.isEmpty(column.getChildren())) {
+                result.add(column.getKey());
+            } else {
+                result.addAll(getHeaderLeafColumn(column.getChildren()));
+            }
+        }
+        return result;
+    }
 
     private static Integer getDepth(TableHeader.ColumnInfo column, Integer parentDepth) {
         if (org.springframework.util.CollectionUtils.isEmpty(column.getChildren())) {
@@ -568,7 +622,7 @@ public class ChartDataServer implements ChartDataApi {
     private static String getDeFieldName(List<ChartViewFieldDTO> xAxis, String key) {
         for (ChartViewFieldDTO xAxi : xAxis) {
             if (xAxi.getDataeaseName().equals(key)) {
-                return xAxi.getName();
+                return StringUtils.isNotBlank(xAxi.getChartShowName()) ? xAxi.getChartShowName() : xAxi.getName();
             }
         }
         return "";
@@ -608,22 +662,22 @@ public class ChartDataServer implements ChartDataApi {
         if (formatter.getType().equals("auto")) {
             String[] valueSplit = String.valueOf(value).split(".");
             if (StringUtils.isEmpty(value) || !value.contains(".")) {
-                formatStr = "0";
+                formatStr = "General";
             } else {
                 formatStr = "0." + new String(new char[valueSplit.length]).replace('\0', '0');
             }
             switch (formatter.getUnit()) {
                 case 1000:
-                    formatStr = formatStr + "千";
+                    formatStr = formatStr + "\"千\"";
                     break;
                 case 10000:
-                    formatStr = formatStr + "万";
+                    formatStr = formatStr + "\"万\"";
                     break;
                 case 1000000:
-                    formatStr = formatStr + "百万";
+                    formatStr = formatStr + "\"百万\"";
                     break;
                 case 100000000:
-                    formatStr = formatStr + "'亿'";
+                    formatStr = formatStr + "\"亿\"";
                     break;
                 default:
                     break;
@@ -635,7 +689,7 @@ public class ChartDataServer implements ChartDataApi {
                 if (formatter.getSuffix().equals("%")) {
                     formatStr = formatStr + "\"%\"";
                 } else {
-                    formatStr = formatStr + formatter.getSuffix();
+                    formatStr = formatStr + "\"" + formatter.getSuffix() + "\"";
                 }
             }
         }
@@ -647,16 +701,16 @@ public class ChartDataServer implements ChartDataApi {
             }
             switch (formatter.getUnit()) {
                 case 1000:
-                    formatStr = formatStr + "千";
+                    formatStr = formatStr + "\"千\"";
                     break;
                 case 10000:
-                    formatStr = formatStr + "万";
+                    formatStr = formatStr + "\"万\"";
                     break;
                 case 1000000:
-                    formatStr = formatStr + "百万";
+                    formatStr = formatStr + "\"百万\"";
                     break;
                 case 100000000:
-                    formatStr = formatStr + "'亿'";
+                    formatStr = formatStr + "\"亿\"";
                     break;
                 default:
                     break;
@@ -668,7 +722,7 @@ public class ChartDataServer implements ChartDataApi {
                 if (formatter.getSuffix().equals("%")) {
                     formatStr = formatStr + "\"%\"";
                 } else {
-                    formatStr = formatStr + formatter.getSuffix();
+                    formatStr = formatStr + "\"" + formatter.getSuffix() + "\"";
                 }
             }
         } else if (formatter.getType().equals("percent")) {
