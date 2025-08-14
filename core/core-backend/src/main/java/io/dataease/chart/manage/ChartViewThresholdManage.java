@@ -171,7 +171,9 @@ public class ChartViewThresholdManage {
                 int unit = Integer.parseInt(map.get("unit").toString());
                 int suffix = Integer.parseInt(map.get("suffix").toString());
                 String time = map.get("time").toString();
-
+                if (unit > 3) {
+                    time = getCustomTimeValue(format, unit, suffix, count, false);
+                }
                 List<String> unitLabels = null;
                 if (StringUtils.equalsIgnoreCase("YYYY", format)) {
                     unitLabels = List.of(Translator.get("i18n_time_year"));
@@ -182,7 +184,7 @@ public class ChartViewThresholdManage {
                 } else if (StringUtils.equalsIgnoreCase("HH:mm:ss", format)) {
                     DEException.throwException("纯时间格式不支持动态格式");
                 } else {
-                    unitLabels = List.of(Translator.get("i18n_time_year"), Translator.get("i18n_time_month"), Translator.get("i18n_time_date"));
+                    unitLabels = List.of(Translator.get("i18n_time_year"), Translator.get("i18n_time_month"), Translator.get("i18n_time_date"), Translator.get("i18n_time_hour"));
                 }
                 String unitText = unitLabels.get(unit - 1);
                 String suffixText = Translator.get("i18n_time_ago");
@@ -191,7 +193,7 @@ public class ChartViewThresholdManage {
                 }
                 String timeText = "";
                 if (StringUtils.containsIgnoreCase(format, "HH")) {
-                    timeText = " " + time;
+                    timeText = " (" + time + ")";
                 }
                 return count + " " + unitText + suffixText + timeText;
             } else {
@@ -281,7 +283,7 @@ public class ChartViewThresholdManage {
                 DatasetTableFieldDTO fieldDTO = fieldMap.get(id);
                 if (ObjectUtils.isEmpty(fieldDTO)) continue;
                 String fieldDTOName = fieldDTO.getName();
-                String dataeaseName = fieldDTO.getDataeaseName();
+                /*String dataeaseName = fieldDTO.getDataeaseName();
                 String replacement = null;
                 if (fieldDTO.getDeType().equals(DeTypeConstants.DE_FLOAT) || fieldDTO.getDeType().equals(DeTypeConstants.DE_INT)) {
                     List<String> valueList = rows.stream().map(row -> ObjectUtils.isEmpty(row.get(dataeaseName)) ? null : stripTrailingZeros2String(row.get(dataeaseName))).collect(Collectors.toList());
@@ -292,7 +294,8 @@ public class ChartViewThresholdManage {
                 }
 
                 // 替换文本
-                matcher.appendReplacement(sb, replacement);
+                matcher.appendReplacement(sb, replacement);*/
+                matcher.appendReplacement(sb, fieldDTOName);
             }
             matcher.appendTail(sb);
 
@@ -348,7 +351,7 @@ public class ChartViewThresholdManage {
                 int suffix = Integer.parseInt(map.get("suffix").toString());
                 String time = map.get("time").toString();
                 String timeValue = getCustomTimeValue(format, unit, suffix, count, false);
-                if (StringUtils.containsIgnoreCase(format, "yyyy-MM-dd HH") && StringUtils.isNotBlank(time)) {
+                if (unit < 4 && StringUtils.containsIgnoreCase(format, "yyyy-MM-dd HH") && StringUtils.isNotBlank(time)) {
                     return timeValue + " " + time;
                 }
                 return timeValue;
@@ -393,7 +396,7 @@ public class ChartViewThresholdManage {
         if (hasTime) {
             now = now.withHour(0).withMinute(0).withSecond(0);
         } else {
-            len = Math.min(len, 10);
+            len = unit > 3 ? len : Math.min(len, 10);
         }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(fullFormat.substring(0, len));
         if (count == 0) {
@@ -409,11 +412,16 @@ public class ChartViewThresholdManage {
                 return now.minusMonths(count).format(formatter);
             }
             return now.plusMonths(count).format(formatter);
-        } else {
+        } else if (unit == 3) {
             if (suffix == 1) {
                 return now.minusDays(count).format(formatter);
             }
             return now.plusDays(count).format(formatter);
+        } else {
+            if (suffix == 1) {
+                return now.minusHours(count).format(formatter);
+            }
+            return now.plusHours(count).format(formatter);
         }
     }
 

@@ -17,6 +17,9 @@ import { enumValueObj, type EnumValue, getEnumValue } from '@/api/dataset'
 import { cloneDeep, debounce } from 'lodash-es'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import { useI18n } from '@/hooks/web/useI18n'
+import colorFunctions from 'less/lib/less/functions/color.js'
+import colorTree from 'less/lib/less/tree/color.js'
+import { colorStringToHex } from '@/utils/color'
 
 interface SelectConfig {
   selectValue: any
@@ -89,6 +92,7 @@ const isConfirmSearch = inject('is-confirm-search', Function, true)
 const queryConditionWidth = inject('com-width', Function, true)
 const cascadeList = inject('cascade-list', Function, true)
 const setCascadeDefault = inject('set-cascade-default', Function, true)
+const customStyle: any = inject('$custom-style-filter')
 
 const placeholderText = computed(() => {
   if (placeholder?.value?.placeholderShow) {
@@ -99,7 +103,7 @@ const placeholderText = computed(() => {
 const cascade = computed(() => {
   return cascadeList() || []
 })
-
+let time
 const disabledFirstItem = computed(() => {
   const { defaultValueFirstItem, optionValueSource, multiple } = props.config
   return defaultValueFirstItem && optionValueSource === 1 && !multiple
@@ -126,6 +130,7 @@ const setDefaultMapValue = arr => {
 }
 
 onUnmounted(() => {
+  clearTimeout(time)
   enumValueArr = []
 })
 
@@ -374,7 +379,10 @@ const handleFieldIdChange = (val: EnumValue) => {
       }
 
       if (disabledFirstItem.value) {
-        setDefaultValueFirstItem()
+        time = setTimeout(() => {
+          clearTimeout(time)
+          setDefaultValueFirstItem()
+        }, 300)
       }
 
       isFromRemote.value = false
@@ -665,12 +673,28 @@ onMounted(() => {
     Boolean(document.querySelector('.datav-preview'))
 })
 
+const tagColor = computed(() => {
+  if (
+    !customStyle ||
+    ['#FFFFFF', 'rgba(255, 255, 255, 1)', 'rgb(255, 255, 255)'].includes(customStyle.background)
+  )
+    return ''
+  if (customStyle.background === '#131C42') return 'rgb(38, 53, 82)'
+  const hexColor = customStyle.background.startsWith('#')
+    ? customStyle.background
+    : colorStringToHex(customStyle.background)
+
+  return colorFunctions
+    .mix(new colorTree('ffffff'), new colorTree(hexColor.substr(1)), { value: 20 })
+    .toRGB()
+})
+
 const tagWidth = computed(() => {
-  return Math.min((getCustomWidth() - 60) / 2, 50) + 'px'
+  return (getCustomWidth() - 65) / 2 + 'px'
 })
 
 const tagTextWidth = computed(() => {
-  return Math.min((getCustomWidth() - 60) / 2 - 25, 40) + 'px'
+  return (getCustomWidth() - 65) / 2 - 20 + 'px'
 })
 
 defineExpose({
@@ -694,6 +718,7 @@ defineExpose({
     :popper-class="popperClass"
     multiple
     show-checked
+    :tagColor="tagColor"
     scrollbar-always-on
     clearable
     :style="selectStyle"

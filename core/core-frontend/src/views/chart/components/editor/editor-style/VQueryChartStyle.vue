@@ -200,7 +200,7 @@ onMounted(() => {
 const reUpload = e => {
   const file = e.target.files[0]
   if (file.size > 15000000) {
-    ElMessage.success('图片大小不能超过15M')
+    ElMessage.error('图片大小不能超过15M')
     return
   }
   uploadFileResult(file, fileUrl => {
@@ -278,6 +278,16 @@ const onTitleChange = () => {
   element.value.label = chart.value.customStyle.component.title
   element.value.name = chart.value.customStyle.component.title
   chart.value.title = chart.value.customStyle.component.title
+}
+
+const onPlaceholderChange = () => {
+  props.element.propValue.forEach(ele => {
+    if (ele.id === currentPlaceholder.value) {
+      ele.placeholder = currentSearch.value.placeholder
+      ele.queryConditionWidth = currentSearch.value.queryConditionWidth
+    }
+  })
+  snapshotStore.recordSnapshotCacheToMobile('propValue')
 }
 </script>
 
@@ -464,7 +474,7 @@ const onTitleChange = () => {
                   v-model="chart.customStyle.component.placeholderSize"
                   @change="handleCurrentPlaceholderCustomChange"
                   :min="10"
-                  :max="20"
+                  :max="40"
                   :disabled="!chart.customStyle.component.placeholderShow"
                   style="margin-left: 8px"
                   step-strictly
@@ -497,7 +507,7 @@ const onTitleChange = () => {
             >
               <el-input
                 :effect="themes"
-                @change="handleCurrentPlaceholderChange"
+                @change="onPlaceholderChange"
                 :disabled="!chart.customStyle.component.placeholderShow || !currentPlaceholder"
                 v-model.lazy="currentSearch.placeholder"
               />
@@ -512,7 +522,7 @@ const onTitleChange = () => {
                 :effect="themes"
                 :min="100"
                 controls-position="right"
-                @change="handleCurrentPlaceholderChange"
+                @change="onPlaceholderChange"
                 :disabled="!chart.customStyle.component.placeholderShow || !currentPlaceholder"
                 v-model.lazy="currentSearch.queryConditionWidth"
               />

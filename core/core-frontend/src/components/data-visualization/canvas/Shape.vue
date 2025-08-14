@@ -336,6 +336,7 @@ const freezeFlag = computed(() => {
   return (
     isMainCanvas(canvasId.value) &&
     element.value.freeze &&
+    !mobileInPc.value &&
     mainScrollTop.value - defaultStyle.value.top > 0
   )
 })
@@ -734,8 +735,10 @@ const handleMouseDownOnPoint = (point, e) => {
   }
 
   // 获取画布位移信息
-  const editorRectInfo = editorMap.value[canvasId.value].getBoundingClientRect()
-
+  const editorRectInfo = editorMap.value[canvasId.value]?.getBoundingClientRect()
+  if (!editorRectInfo) {
+    return
+  }
   // 获取 point 与实际拖动基准点的差值
   const pointRect = e.target.getBoundingClientRect()
   // 当前点击圆点相对于画布的中心坐标

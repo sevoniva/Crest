@@ -538,6 +538,7 @@ export default {
     website_name: 'Website name',
     web_page_tab: 'Platform name displayed on web page tab',
     under_product_logo: 'Slogan under product logo',
+    slogan_content: 'Slogan content',
     footer: 'Footer',
     footer_content: 'Footer content',
     platform_settings: 'Platform settings',
@@ -1873,7 +1874,7 @@ export default {
     end_point: 'Ending point',
     line: 'Line',
     map_style: 'Map style',
-    map_style_url: 'Map style URL',
+    map_style_url: 'Map style URL/ID',
     map_pitch: 'Pitch',
     map_rotation: 'Rotation',
     map_style_normal: 'Standard',
@@ -1980,7 +1981,7 @@ export default {
     merge_group: 'Merge group',
     table_header_group_config_tip:
       'Field additions, deletions, positional changes, and explicit and implicit modifications can cause grouping to become invalid.',
-    group_name_edit_tip: 'Group names are 1-20 characters in length',
+    group_name_edit_tip: 'Group names are 1-50 characters in length',
     group_name_error_tip: 'Please input valid group name',
     merge_cells: 'Merge cells',
     length_limit: 'Length limit',
@@ -2093,7 +2094,8 @@ export default {
     quota_col_label: 'Quota Column Label',
     table_grand_total_label: 'Total Alias',
     table_field_total_label: 'Field Alias',
-    table_row_header_freeze: 'Row Header Freeze'
+    table_row_header_freeze: 'Row Header Freeze',
+    value_formatter_total_out_percent: 'Show percentage'
   },
   dataset: {
     field_value: 'Field Value',
@@ -2906,6 +2908,15 @@ export default {
     column_name: 'Field name'
   },
   visualization: {
+    select_resource: 'Select {0}',
+    change_screen_page: 'Change {0}',
+    new_screen_page: 'New page',
+    screen_page: 'Page',
+    color_setting: 'Color{0}',
+    decoration_name: 'Decoration {0}',
+    decoration: 'Decoration',
+    dynamic_background_name: 'Animated {0}',
+    dynamic_background: 'Animated Image',
     support_query: 'Only query components can be added',
     publish_update_tips: 'Update available',
     filter_freeze_tips:
@@ -3125,6 +3136,7 @@ export default {
     screen_adaptor_width_first: 'Width First',
     screen_adaptor_height_first: 'Height First',
     screen_adaptor_full: 'Full Screen',
+    screen_adaptor_keep_proportion: 'Keep Proportion:',
     screen_adaptor_keep: 'No Scaling',
     effective_during_preview: 'Effective during preview',
     base_config: 'Base Configuration',
@@ -3180,7 +3192,8 @@ export default {
     required: 'Required',
     default_value: 'Default Value',
     default_value_tips1: 'Please use JSON array format Example:',
-    default_value_tips2: 'Single value ["name1"], Multiple values ["name1","name2"]',
+    default_value_tips2:
+      'Single value ["name1"], multiple values ["name1","name2"]; Bind SQL custom parameters, multiple values not supported;',
     default_value_tips3: 'Please enter parameters, e.g.: ["name1"]',
     time_year_widget: 'Year Filter Widget',
     time_month_widget: 'Month Filter Widget',
@@ -4115,7 +4128,11 @@ export default {
     time_end: 'End',
     es_query_param_formatter_error:
       'Query parameter format error, please enter the correct JSON format, please check',
-    show_task_id: 'View Task ID'
+    show_task_id: 'View Task ID',
+    offset: 'Offset',
+    offset_tip: 'Offset: negative for backward, positive for forward',
+    millisecond: 'Millisecond',
+    units: 'Unit'
   },
   watermark: {
     support_params: 'Currently supported parameters:',

@@ -47,7 +47,7 @@ import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
 import { BASE_VIEW_CONFIG, getViewConfig } from '@/views/chart/components/editor/util/chart'
 import ChartType from '@/views/chart/components/editor/chart-type/ChartType.vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router_2'
 import CompareEdit from '@/views/chart/components/editor/drag-item/components/CompareEdit.vue'
 import ValueFormatterEdit from '@/views/chart/components/editor/drag-item/components/ValueFormatterEdit.vue'
 import CustomSortEdit from '@/views/chart/components/editor/drag-item/components/CustomSortEdit.vue'
@@ -512,6 +512,17 @@ const quotaItemRemove = item => {
 
 const isFilterActive = computed(() => {
   return !!view.value.customFilter?.items?.length
+})
+const isFilterInvalid = computed(() => {
+  if (!view.value.customFilter?.items?.length) {
+    return false
+  }
+  if (!view.value.tableId) {
+    return false
+  }
+  const item = view.value.customFilter.items[0]
+  const valid = allFields.value.some(f => f.id === item.fieldId)
+  return !valid
 })
 
 const drillItemChange = () => {
@@ -3157,7 +3168,11 @@ const deleteChartFieldItem = id => {
                           <div
                             class="tree-btn"
                             v-if="isFilterActive || themes === 'dark'"
-                            :class="{ 'tree-btn--dark': themes === 'dark', active: isFilterActive }"
+                            :class="{
+                              'tree-btn--dark': themes === 'dark',
+                              active: isFilterActive,
+                              invalid: isFilterInvalid
+                            }"
                             @click="openTreeFilter"
                           >
                             <el-icon style="margin-right: 2px; font-size: 12px">
@@ -4677,6 +4692,11 @@ span {
       &.active {
         color: #3370ff;
         border-color: #3370ff;
+      }
+
+      &.invalid {
+        color: red !important;
+        border-color: red !important;
       }
     }
 

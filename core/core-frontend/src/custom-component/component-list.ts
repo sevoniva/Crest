@@ -245,7 +245,8 @@ export const commonAttr = {
     'videoLinks',
     'streamLinks',
     'carouselInfo',
-    'events'
+    'events',
+    'decoration_style'
   ], // 编辑组件时记录当前使用的是哪个折叠面板，再次回来时恢复上次打开的折叠面板，优化用户体验
   linkage: {
     duration: 0, // 过渡持续时间
@@ -493,6 +494,38 @@ const list = [
     }
   },
   {
+    component: 'DeDecoration',
+    name: t('visualization.decoration'),
+    label: t('visualization.decoration'),
+    propValue: '&nbsp;',
+    icon: 'dv_decoration',
+    style: {
+      width: 400,
+      height: 300,
+      color0: '#298e73',
+      color1: '#2862b7',
+      color2: '#2862b7',
+      dur: 6,
+      reverse: false,
+      borderActive: false,
+      backdropFilter: 'blur(0px)'
+    }
+  },
+  {
+    component: 'DynamicBackground',
+    name: t('visualization.dynamic_background'),
+    label: t('visualization.dynamic_background'),
+    propValue: '&nbsp;',
+    icon: 'dv_dynamic_background',
+    style: {
+      width: 400,
+      height: 300,
+      backgroundColor: 'rgba(236,231,231,0.1)',
+      borderActive: false,
+      backdropFilter: 'blur(0px)'
+    }
+  },
+  {
     component: 'RectShape',
     name: t('visualization.rect_shape'),
     label: t('visualization.rect_shape'),
@@ -597,6 +630,42 @@ const list = [
       verticalAlign: 'middle',
       scrollSpeed: 0
     }
+  },
+  {
+    component: 'DeScreen',
+    name: t('visualization.screen_page'),
+    label: t('visualization.screen_page'),
+    propValue: [
+      {
+        name: 'screen',
+        title: t('visualization.new_screen_page'),
+        screenId: null,
+        closable: true
+      }
+    ],
+    icon: 'tab-screen',
+    innerType: '',
+    editing: false,
+    canvasActive: false,
+    x: 1,
+    y: 1,
+    sizeX: 36,
+    sizeY: 14,
+    style: {
+      width: 600,
+      height: 300,
+      fontSize: 16,
+      activeFontSize: 18,
+      headHorizontalPosition: 'left',
+      headFontColor: '#000000',
+      headFontActiveColor: '#000000',
+      titleHide: false,
+      showTabTitle: true,
+      // #13540
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      textDecoration: 'none'
+    }
   }
 ]
 
@@ -623,7 +692,7 @@ export function findNewComponentFromList(
         COMMON_COMPONENT_BACKGROUND_MAP[curOriginThemes.value]
       )
       newComponent.innerType = innerType
-      if (comp.component === 'DeTabs') {
+      if (['DeTabs', 'DeScreen'].includes(comp.component)) {
         newComponent.propValue[0].name = guid()
         newComponent['titleBackground'] = deepCopy(COMMON_TAB_TITLE_BACKGROUND)
       }

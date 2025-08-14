@@ -10,6 +10,8 @@ import iconVideo from '@/assets/svg/icon-video.svg'
 import icon_graphical from '@/assets/svg/icon_graphical.svg'
 import icon_search from '@/assets/svg/icon_search.svg'
 import other_material_board from '@/assets/svg/other_material_board.svg'
+import dv_dynamic_background from '@/assets/svg/dv_dynamic_background.svg'
+import dv_decoration from '@/assets/svg/dv_decoration.svg'
 import other_material_icon from '@/assets/svg/other_material_icon.svg'
 import scrollText from '@/assets/svg/scroll-text.svg'
 import areaOrigin from '@/assets/svg/area-origin.svg'
@@ -68,7 +70,7 @@ import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { snapshotStoreWithOut } from '@/store/modules/data-visualization/snapshot'
 import { layerStoreWithOut } from '@/store/modules/data-visualization/layer'
 import { storeToRefs } from 'pinia'
-import { ElIcon, ElRow, ElSwitch } from 'element-plus-secondary'
+import { ElIcon, ElMessage, ElRow, ElSwitch } from 'element-plus-secondary'
 import Icon from '../icon-custom/src/Icon.vue'
 import { computed, nextTick, ref } from 'vue'
 import draggable from 'vuedraggable'
@@ -220,6 +222,10 @@ const closeEditComponentName = () => {
   if (inputName.value.trim() === curEditComponent.name) {
     return
   }
+  if (inputName.value.length < 1 || inputName.value.length > 64) {
+    ElMessage.warning(t('components.length_1_64_characters'))
+    return
+  }
   curEditComponent.name = inputName.value
   syncViewTitle(curEditComponent)
   inputName.value = ''
@@ -288,6 +294,8 @@ const iconMap = {
   icon_graphical: icon_graphical,
   icon_search: icon_search,
   other_material_board: other_material_board,
+  dv_dynamic_background: dv_dynamic_background,
+  dv_decoration: dv_decoration,
   other_material_icon: other_material_icon,
   'scroll-text': scrollText,
   'area-origin': areaOrigin,

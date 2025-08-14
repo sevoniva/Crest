@@ -37,6 +37,9 @@ const commonFilterAttrsFilterBorder = [
 ]
 
 const props = defineProps({
+  curStyle: {
+    type: Object
+  },
   active: {
     type: Boolean,
     default: false
@@ -371,6 +374,7 @@ const freezeFlag = computed(() => {
   return (
     isMainCanvas(props.canvasId) &&
     config.value.freeze &&
+    !isMobile() &&
     scrollMain.value - config.value.style?.top > 0
   )
 })
@@ -468,6 +472,7 @@ const updateFromMobile = (e, type) => {
           :dv-type="dvInfo.type"
           :canvas-view-info="canvasViewInfo"
           :style="getComponentStyleDefault(config?.style)"
+          :curStyle="curStyle"
           :prop-value="config?.propValue"
           :element="config"
           :request="config?.request"

@@ -31,6 +31,7 @@ const { curComponent, canvasViewInfo, mobileInPc, batchOptStatus } = storeToRefs
       <picture-group-upload-attr
         :themes="themes"
         :element="curComponent"
+        :view="canvasViewInfo[curComponent ? curComponent.id : 'default']"
         v-if="!mobileInPc && !batchOptStatus"
       ></picture-group-upload-attr>
       <template v-slot:carousel v-if="!mobileInPc">

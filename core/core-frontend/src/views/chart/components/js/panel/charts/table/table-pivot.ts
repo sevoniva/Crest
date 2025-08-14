@@ -174,7 +174,8 @@ export class TablePivot extends S2ChartView<PivotSheet> {
           } else {
             return valueFormatter(value, formatterItem)
           }
-        }
+        },
+        id: ele.id
       })
     })
 
@@ -781,6 +782,11 @@ export class TablePivot extends S2ChartView<PivotSheet> {
           textAlign: tableHeader.tableHeaderCornerAlign,
           fontStyle: cornerFontStyle,
           fontWeight: cornerFontWeight
+        }
+      },
+      dataCell: {
+        bolderText: {
+          fontWeight: 'bold'
         }
       }
     }

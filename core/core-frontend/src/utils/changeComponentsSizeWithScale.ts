@@ -31,7 +31,10 @@ export function changeSizeWithScale(scale) {
 }
 
 function changeComponentsSizeWithScaleCircle(componentDataCopy, scale) {
-  componentDataCopy.forEach(component => {
+  if (!componentDataCopy || !Array.isArray(componentDataCopy)) {
+    return
+  }
+  componentDataCopy?.forEach(component => {
     Object.keys(component.style).forEach(key => {
       if (needToChangeDirectionAttrs.width.includes(key)) {
         // 根据原来的比例获取样式原来的尺寸
@@ -61,6 +64,7 @@ function changeComponentsSizeWithScaleCircle(componentDataCopy, scale) {
             changeComponentsSizeWithScaleCircle(tabItem.componentData, scale)
           })
         } else {
+          changeComponentsSizeWithScaleCircle(componentInner.propValue, scale)
           groupItemStyleAdaptor(componentInner, parentStyle)
         }
       })
@@ -117,7 +121,7 @@ export function changeRefComponentsSizeWithScale(componentDataRef, canvasStyleDa
   canvasStyleDataRef.scale = scale
 }
 
-export function changeRefComponentsSizeWithScalePoint(
+export function changeRefComponentsSizeWithScalePointCircle(
   componentDataRef,
   canvasStyleDataRef,
   scaleWidth,
@@ -126,7 +130,6 @@ export function changeRefComponentsSizeWithScalePoint(
 ) {
   componentDataRef.forEach(component => {
     Object.keys(component.style).forEach(key => {
-      if (key === 'fontSize' && component.style[key] === '') return
       if (needToChangeDirectionAttrs.width.includes(key)) {
         // 根据原来的比例获取样式原来的尺寸
         // 再用原来的尺寸 * 现在的比例得出新的尺寸
@@ -143,7 +146,32 @@ export function changeRefComponentsSizeWithScalePoint(
         )
       }
     })
+    if (component.component === 'Group') {
+      changeRefComponentsSizeWithScalePointCircle(
+        component.propValue,
+        canvasStyleDataRef,
+        scaleWidth,
+        scaleHeight,
+        outScale
+      )
+    }
   })
+}
+
+export function changeRefComponentsSizeWithScalePoint(
+  componentDataRef,
+  canvasStyleDataRef,
+  scaleWidth,
+  scaleHeight,
+  outScale
+) {
+  changeRefComponentsSizeWithScalePointCircle(
+    componentDataRef,
+    canvasStyleDataRef,
+    scaleWidth,
+    scaleHeight,
+    outScale
+  )
   canvasStyleDataRef.scale = scaleWidth
   canvasStyleDataRef.scaleWidth = scaleWidth
   canvasStyleDataRef.scaleHeight = scaleHeight

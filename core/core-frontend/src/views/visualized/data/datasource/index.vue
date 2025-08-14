@@ -56,7 +56,7 @@ import CreatDsGroup from './form/CreatDsGroup.vue'
 import type { Tree } from '../dataset/form/CreatDsGroup.vue'
 import { previewData, getById } from '@/api/datasource'
 import { useI18n } from '@/hooks/web/useI18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router_2'
 import DatasetDetail from '@/views/visualized/data/dataset/DatasetDetail.vue'
 import { timestampFormatDate } from '@/views/visualized/data/dataset/form/util'
 import EmptyBackground from '@/components/empty-background/src/EmptyBackground.vue'
@@ -797,8 +797,12 @@ const handleCopy = async data => {
       fileName,
       size,
       description,
-      lastSyncTime
+      lastSyncTime,
+      enableDataFill
     } = res.data
+    let arr = pluginDs.value.filter(ele => {
+      return ele.type == res.data.type
+    })
     if (configuration) {
       configuration = JSON.parse(symmetricDecrypt(configuration, symmetricKey.value))
     }
@@ -824,7 +828,10 @@ const handleCopy = async data => {
       syncSetting,
       apiConfiguration: apiConfigurationStr,
       paramsConfiguration: paramsStr,
-      lastSyncTime
+      lastSyncTime,
+      enableDataFill,
+      isPlugin: arr && arr.length > 0,
+      staticMap: arr[0]?.staticMap
     })
     datasource.id = ''
     datasource.copy = true

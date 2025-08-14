@@ -54,7 +54,7 @@ import request from '@/config/axios'
 import { store } from '@/store'
 import { clearExtremum } from '@/views/chart/components/js/extremumUitl'
 import DePreviewPopDialog from '@/components/visualization/DePreviewPopDialog.vue'
-import { useRoute } from 'vue-router'
+import { useRoute } from 'vue-router_2'
 const route = useRoute()
 const { wsCache } = useCache()
 const chartComponent = ref<any>()
@@ -1087,7 +1087,7 @@ const clearG2Tooltip = () => {
       :style="{ 'justify-content': titleAlign, 'margin-bottom': marginBottom }"
     >
       <template v-if="!titleEditStatus">
-        <p v-if="titleShow" :style="state.title_class" @dblclick="changeEditTitle">
+        <p class="ellipsis" v-if="titleShow" :style="state.title_class" @dblclick="changeEditTitle">
           {{ view.title }}
         </p>
       </template>
@@ -1172,6 +1172,9 @@ const clearG2Tooltip = () => {
         :emitter="emitter"
         :store="store"
         :suffixId="suffixId"
+        :active="active"
+        :disabled="!['canvas', 'canvasDataV'].includes(showPosition) || disabled"
+        :edit-mode="editMode"
         ref="chartComponent"
         @onChartClick="chartClick"
         @onPointClick="onPointClick"
@@ -1328,5 +1331,12 @@ const clearG2Tooltip = () => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.ellipsis {
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 </style>

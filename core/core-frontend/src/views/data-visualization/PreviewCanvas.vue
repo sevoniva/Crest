@@ -16,9 +16,10 @@ import { propTypes } from '@/utils/propTypes'
 import { downloadCanvas2 } from '@/utils/imgUtils'
 import { isLink, setTitle } from '@/utils/utils'
 import EmptyBackground from '../../components/empty-background/src/EmptyBackground.vue'
-import { useRoute } from 'vue-router'
+import { useRoute } from 'vue-router_2'
 import { filterEnumMapSync } from '@/utils/componentUtils'
 import CanvasOptBar from '@/components/visualization/CanvasOptBar.vue'
+import DvPreview from '@/views/data-visualization/DvPreview.vue'
 const routeWatch = useRoute()
 
 const dvMainStore = dvMainStoreWithOut()
@@ -38,7 +39,8 @@ const state = reactive({
   showOffset: {
     top: 3,
     left: 3
-  }
+  },
+  containerMainHeight: '1000px'
 })
 
 const props = defineProps({
@@ -48,6 +50,10 @@ const props = defineProps({
     default: false
   },
   isSelector: {
+    type: Boolean,
+    default: false
+  },
+  outerId: {
     type: Boolean,
     default: false
   },
@@ -119,7 +125,11 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
 
   await initCanvasData(
     dvId,
-    { busiFlag: dvType, resourceTable: state.editPreview ? 'snapshot' : 'core' },
+    {
+      busiFlag: dvType,
+      resourceTable: state.editPreview ? 'snapshot' : 'core',
+      onlyPreview: !!props.outerId
+    },
     async function ({
       canvasDataResult,
       canvasStyleResult,
@@ -195,7 +205,7 @@ onMounted(async () => {
     }
   })
   await Promise.all([new Promise(r => (p = r)), new Promise(r => (p1 = r))])
-  let dvId = embeddedStore.dvId || router.currentRoute.value.query.dvId
+  let dvId = props.outerId || embeddedStore.dvId || router.currentRoute.value.query.dvId
   if (router.currentRoute.value.query.jumpInfoParam && router.currentRoute.value.query.dvId) {
     dvId = router.currentRoute.value.query.dvId
   }
@@ -216,17 +226,43 @@ onMounted(async () => {
     return
   }
   dvMainStore.setEmbeddedCallBack(callBackFlag || 'no')
+
+  window.matchMedia('print').addListener(async mql => {
+    if (mql.matches) {
+      await prepareForPrint()
+    }
+  })
 })
 
 const dataVKeepSize = computed(() => {
   return state.canvasStylePreview?.screenAdaptor === 'keep'
 })
 
-const freezeStyle = computed(() => [
-  { '--top-show-offset': state.showOffset.top },
-  { '--left-show-offset': state.showOffset.left }
-])
+const freezeStyle = computed(() => {
+  return [
+    { '--top-show-offset': state.showOffset.top },
+    { '--left-show-offset': state.showOffset.left },
+    { '--print-height': state.containerMainHeight }
+  ]
+})
 
+const dvPreview = ref(null)
+const getPrintHeight = async () => {
+  if (dvPreview.value) {
+    state.containerMainHeight = await dvPreview.value.getDownloadStatusMainHeightV2()
+  }
+}
+
+// 打印前准备
+const prepareForPrint = async () => {
+  await getPrintHeight()
+}
+
+// 暴露方法给外部调用打印
+const handlePrint = async () => {
+  await prepareForPrint()
+  window.print()
+}
 defineExpose({
   loadCanvasDataAsync
 })
@@ -246,9 +282,24 @@ defineExpose({
       :canvas-style-data="state.canvasStylePreview || {}"
       :component-data="state.canvasDataPreview || []"
     ></canvas-opt-bar>
+    <dv-preview
+      ref="dvPreviewRef"
+      style="height: 100vh"
+      v-if="state.canvasStylePreview && state.initState && state.dvInfo?.type === 'dataV'"
+      :canvas-data-preview="state.canvasDataPreview"
+      :canvas-style-preview="state.canvasStylePreview"
+      :canvas-view-info-preview="state.canvasViewInfoPreview"
+      :dv-info="state.dvInfo"
+      :cur-preview-gap="state.curPreviewGap"
+      :is-selector="props.isSelector"
+      :download-status="downloadStatus"
+      :show-pop-bar="true"
+      :show-position="state.showPosition"
+      :show-linkage-button="false"
+    ></dv-preview>
     <de-preview
       ref="dvPreview"
-      v-if="state.canvasStylePreview && state.initState"
+      v-if="state.canvasStylePreview && state.initState && state.dvInfo?.type === 'dashboard'"
       :component-data="state.canvasDataPreview"
       :canvas-style-data="state.canvasStylePreview"
       :canvas-view-info="state.canvasViewInfoPreview"
@@ -278,6 +329,19 @@ defineExpose({
     @load-fail="initIframe"
   />
 </template>
+
+<style lang="less">
+@media print {
+  html,
+  body {
+    height: auto !important;
+  }
+  .content {
+    height: var(--print-height, auto) !important;
+    min-height: 0 !important;
+  }
+}
+</style>
 
 <style lang="less" scoped>
 ::-webkit-scrollbar {

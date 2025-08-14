@@ -176,6 +176,13 @@ export class SankeyBar extends G2PlotChartView<SankeyOptions, Sankey> {
       if (customAttr.tooltip) {
         const t = JSON.parse(JSON.stringify(customAttr.tooltip))
         if (t.show) {
+          // 计算每个source节点的总出
+          const outTotal = {}
+          if (Array.isArray(options.data)) {
+            options.data?.forEach(d => {
+              outTotal[d.source] = (outTotal[d.source] || 0) + d.value
+            })
+          }
           tooltip = {
             showTitle: false,
             showMarkers: false,
@@ -186,6 +193,15 @@ export class SankeyBar extends G2PlotChartView<SankeyOptions, Sankey> {
             },
             formatter: (datum: Datum) => {
               const { source, target, value } = datum
+              // 总出占比
+              if (t.tooltipFormatter.showTotalPercent) {
+                const { decimalCount = 2 } = t.tooltipFormatter
+                const ratioStr = ((value / outTotal[source]) * 100).toFixed(decimalCount) + '%'
+                return {
+                  name: `${source} -> ${target}`,
+                  value: valueFormatter(value, t.tooltipFormatter) + ` (${ratioStr})`
+                }
+              }
               return {
                 name: source + ' -> ' + target,
                 value: valueFormatter(value, t.tooltipFormatter)

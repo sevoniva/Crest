@@ -28,6 +28,10 @@ const props = defineProps({
         }
       }
     }
+  },
+  view: {
+    type: Object,
+    required: true
   }
 })
 
