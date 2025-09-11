@@ -176,7 +176,7 @@ const handleInnerMouseDown = e => {
       ['popEdit', 'preview'].includes(showPosition.value)) ||
     dvMainStore.mobileInPc
   ) {
-    onClick(e)
+    onClick()
     if (e.target?.className?.includes('ed-input__inner')) return
     e?.stopPropagation()
     e?.preventDefault()
@@ -321,7 +321,7 @@ const onWrapperClickCur = e => {
 }
 
 const onWrapperClick = e => {
-  if (eventEnable.value) {
+  if (eventEnable.value && !['edit-preview'].includes(showPosition.value)) {
     if (config.value.events.type === 'showHidden') {
       // 打开弹框区域
       nextTick(() => {
@@ -339,8 +339,14 @@ const onWrapperClick = e => {
           } else {
             window.open(url, '_blank')
           }
+          if (isMobile()) {
+            window.location.reload()
+          }
         } else {
           initOpenHandler(window.open(url, jumpType))
+          if (isMobile()) {
+            window.location.reload()
+          }
         }
       } catch (e) {
         console.warn('url 格式错误:' + url)

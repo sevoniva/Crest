@@ -429,6 +429,9 @@ const windowsJump = (url, jumpType, size = 'middle') => {
       }
     } else {
       newWindow = window.open(url, jumpType)
+      if (inMobile.value) {
+        window.location.reload()
+      }
     }
     initOpenHandler(newWindow)
   } catch (e) {
@@ -711,6 +714,24 @@ const changeDataset = () => {
 
 const loadPlugin = ref(false)
 
+// 渲染图表回调
+const renderChartCallback = val => {
+  if (!state.initReady) {
+    return
+  }
+  initTitle()
+  const viewInfo = val ? val : view.value
+  nextTick(() => {
+    if (view.value?.plugin?.isPlugin) {
+      chartComponent?.value?.invokeMethod({
+        methodName: 'renderChart',
+        args: [viewInfo]
+      })
+      return
+    }
+    chartComponent?.value?.renderChart?.(viewInfo)
+  })
+}
 onMounted(() => {
   if (!view.value.isPlugin) {
     state.drillClickDimensionList = view.value?.chartExtRequest?.drill ?? []
@@ -795,21 +816,7 @@ onMounted(() => {
   useEmitt({
     name: 'renderChart-' + view.value.id,
     callback: function (val) {
-      if (!state.initReady) {
-        return
-      }
-      initTitle()
-      const viewInfo = val ? val : view.value
-      nextTick(() => {
-        if (view.value?.plugin?.isPlugin) {
-          chartComponent?.value?.invokeMethod({
-            methodName: 'renderChart',
-            args: [viewInfo]
-          })
-          return
-        }
-        chartComponent?.value?.renderChart?.(viewInfo)
-      })
+      renderChartCallback(val)
     }
   })
   useEmitt({
@@ -846,6 +853,14 @@ onMounted(() => {
       clearExtremum(chart)
     }
   })
+  if (showPosition.value === 'viewDialog') {
+    useEmitt({
+      name: 'renderChart-viewDialog-' + view.value.id,
+      callback: function (val) {
+        renderChartCallback(val)
+      }
+    })
+  }
 
   const { refreshViewEnable, refreshUnit, refreshTime } = view.value
   buildInnerRefreshTimer(refreshViewEnable, refreshUnit, refreshTime)

@@ -1,5 +1,16 @@
 export default {
   common: {
+    next_week: 'Next week',
+    next_month: 'Next month',
+    next_quarter: 'Next quarter',
+    next_year: 'Next year',
+    sqlbot_settings: 'SQLBot Settings',
+    third_party_embed: 'Third-party embed',
+    application_id: 'Application ID',
+    sqlbot_server_url: 'SQLBot server URL',
+    enter_the_url: 'Please enter the URL',
+    the_application_id: 'Please enter the application ID',
+    embed: 'Embed',
     empty: ' ',
     first_item: 'First Item',
     cross_source: 'Cross-source',
@@ -776,6 +787,7 @@ export default {
     than_end_time: ', Cannot be greater than the end time:',
     variable: 'Variable',
     variable_value: 'Variable value',
+    variable_desc: 'Describe',
     enter_a_value: 'Please enter a value',
     contact_the_administrator: 'If the execution fails, please contact the administrator',
     data_import_successful: 'Import data successfully',
@@ -2095,7 +2107,8 @@ export default {
     table_grand_total_label: 'Total Alias',
     table_field_total_label: 'Field Alias',
     table_row_header_freeze: 'Row Header Freeze',
-    value_formatter_total_out_percent: 'Show percentage'
+    value_formatter_total_out_percent: 'Show percentage',
+    enable_slider_tip: 'After enabling the slider, the carousel prompt will be disabled.'
   },
   dataset: {
     field_value: 'Field Value',
@@ -4219,7 +4232,8 @@ export default {
       retrying: 'Retry on Failure',
       retrying_rate: 'Retry Interval (minutes)',
       please_input_positive_int: 'Please input a positive integer for {0}',
-      rate: 'Sending frequency'
+      rate: 'Sending frequency',
+      ext_wait_time: 'additional waiting time(s)'
     },
     filter: {
       title: 'Set Query Component Default Values',

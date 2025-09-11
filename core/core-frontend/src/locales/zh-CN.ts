@@ -1,5 +1,16 @@
 export default {
   common: {
+    next_week: '下周',
+    next_month: '下月',
+    next_quarter: '下季',
+    next_year: '明年',
+    sqlbot_settings: 'SQLBot 设置',
+    third_party_embed: '第三方嵌入',
+    application_id: '应用 ID',
+    sqlbot_server_url: 'SQLBot 服务器 URL',
+    enter_the_url: '请输入 URL',
+    the_application_id: '请输入应用 ID',
+    embed: '嵌入',
     empty: '',
     first_item: '首项',
     cross_source: '跨源',
@@ -650,6 +661,7 @@ export default {
     add_variable_value: '添加变量值',
     search_variable_value: '搜索变量值',
     variable_value: '变量值',
+    variable_desc: '描述',
     set_variable_value: '设置变量值',
     the_minimum_value: '请输入最小值',
     the_maximum_value: '请输入最大值',
@@ -2042,7 +2054,8 @@ export default {
     table_grand_total_label: '总计别名',
     table_field_total_label: '字段别名',
     table_row_header_freeze: '行头冻结',
-    value_formatter_total_out_percent: '显示占比'
+    value_formatter_total_out_percent: '显示占比',
+    enable_slider_tip: '开启缩略轴后，轮播提示将会失效'
   },
   dataset: {
     field_value: '字段值',
@@ -4105,7 +4118,8 @@ export default {
       retrying: '失败重试',
       retrying_rate: '重试间隔（分钟）',
       please_input_positive_int: '请输入 {0} 正整数',
-      rate: '发送频率'
+      rate: '发送频率',
+      ext_wait_time: '额外等待时间（秒）'
     },
     filter: {
       title: '设置查询组件默认值',

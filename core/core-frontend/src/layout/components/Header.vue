@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import logo from '@/assets/svg/logo.svg'
-import copilot from '@/assets/svg/copilot.svg'
+import logo_sqlbot from '@/assets/svg/logo_sqlbot.svg'
 import msgNotice from '@/assets/svg/icon_notification_outlined.svg'
 import dvAi from '@/assets/svg/dv-ai.svg'
 import dvPreviewDownload from '@/assets/svg/icon_download_outlined.svg'
@@ -22,8 +22,8 @@ import { useAppearanceStoreWithOut } from '@/store/modules/appearance'
 import AiComponent from '@/layout/components/AiComponent.vue'
 import { findBaseParams } from '@/api/aiComponent'
 import AiTips from '@/layout/components/AiTips.vue'
-import CopilotCom from '@/layout/components/Copilot.vue'
 import DesktopSetting from './DesktopSetting.vue'
+import request from '@/config/axios'
 
 const appearanceStore = useAppearanceStoreWithOut()
 const { push } = useRouter()
@@ -42,10 +42,11 @@ const handleAiClick = () => {
   useEmitt().emitter.emit('aiComponentChange')
 }
 const { t } = useI18n()
-const handleCopilotClick = () => {
-  push('/copilot/index')
-}
 
+const handleSQLBotClick = () => {
+  push('/sqlbot/index')
+}
+const sqlbotEnabled = ref(false)
 const desktop = isDesktop()
 const activeIndex = computed(() => {
   if (route.path.includes('system')) {
@@ -63,7 +64,6 @@ const showSystem = ref(false)
 const showMsg = ref(false)
 const showToolbox = ref(false)
 const showOverlay = ref(false)
-const showOverlayCopilot = ref(false)
 const handleSelect = (index: string) => {
   // 自定义事件
   if (isExternal(index)) {
@@ -111,13 +111,18 @@ const msgNoticePush = () => {
   push('/msg/msg-fill')
 }
 
-const copilotConfirm = () => {
-  wsCache.set('DE-COPILOT-TIPS-CHECK', 'CHECKED')
-  showOverlayCopilot.value = false
-}
 const badgeCount = ref('0')
-
+const loadSqlbotInfo = () => {
+  const url = '/sysParameter/sqlbot'
+  request.get({ url }).then(res => {
+    if (res && res.data) {
+      const { domain, id, enabled, valid } = res.data
+      sqlbotEnabled.value = domain && id && enabled && valid
+    }
+  })
+}
 onMounted(() => {
+  loadSqlbotInfo()
   initShowSystem()
   initShowToolbox()
   initShowMsg()
@@ -146,20 +151,11 @@ onMounted(() => {
     </el-menu>
     <div class="operate-setting" v-if="!desktop">
       <XpackComponent jsname="c3dpdGNoZXI=" />
-      <el-tooltip effect="dark" content="Copilot" placement="bottom">
-        <el-icon
-          style="margin: 0 10px"
-          class="ai-icon copilot-icon"
-          v-if="!showOverlayCopilot && appearanceStore.getShowCopilot"
-        >
-          <Icon name="copilot"><copilot @click="handleCopilotClick" class="svg-icon" /></Icon>
+      <el-tooltip effect="dark" content="SQLBot" placement="bottom">
+        <el-icon style="margin: 0 10px" class="ai-icon copilot-icon" v-if="sqlbotEnabled">
+          <Icon name="copilot"><logo_sqlbot @click="handleSQLBotClick" class="svg-icon" /></Icon>
         </el-icon>
       </el-tooltip>
-      <CopilotCom
-        @confirm="copilotConfirm"
-        v-if="showOverlayCopilot && appearanceStore.getShowCopilot"
-        class="copilot-icon-tips"
-      />
       <el-tooltip effect="dark" :content="t('commons.assistant')" placement="bottom">
         <el-icon
           style="margin: 0 10px"
@@ -215,7 +211,6 @@ onMounted(() => {
         :base-url="aiBaseUrl"
       ></ai-component>
       <div v-if="showOverlay && appearanceStore.getShowAi" class="overlay"></div>
-      <div v-if="showOverlayCopilot && appearanceStore.getShowCopilot" class="overlay"></div>
     </div>
     <div v-else class="operate-setting">
       <desktop-setting />

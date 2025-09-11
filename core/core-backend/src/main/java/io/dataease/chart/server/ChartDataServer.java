@@ -257,16 +257,16 @@ public class ChartDataServer implements ChartDataApi {
                     ChartViewDTO chartViewDTO = findExcelData(request);
                     for (long i = 1; i < chartViewDTO.getTotalPage() + 1; i++) {
                         request.getViewInfo().getChartExtRequest().setGoPage(i);
+                        request.getViewInfo().setXAxis(request.getViewInfo().getXAxis().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
+                        request.getViewInfo().setYAxis(request.getViewInfo().getYAxis().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
+                        request.getViewInfo().setXAxisExt(request.getViewInfo().getXAxisExt().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
+                        request.getViewInfo().setYAxisExt(request.getViewInfo().getYAxisExt().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
+                        request.getViewInfo().setExtStack(request.getViewInfo().getExtStack().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
                         findExcelData(request);
                         details.addAll(request.getDetails());
                         if ((details.size() + extractPageSize) > sheetLimit || i == chartViewDTO.getTotalPage()) {
                             detailsSheet = wb.createSheet("数据" + sheetIndex);
                             Integer[] excelTypes = request.getExcelTypes();
-                            request.getViewInfo().setXAxis(request.getViewInfo().getXAxis().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
-                            request.getViewInfo().setYAxis(request.getViewInfo().getYAxis().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
-                            request.getViewInfo().setXAxisExt(request.getViewInfo().getXAxisExt().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
-                            request.getViewInfo().setYAxisExt(request.getViewInfo().getYAxisExt().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
-                            request.getViewInfo().setExtStack(request.getViewInfo().getExtStack().stream().filter(ele -> !ele.isHide()).collect(Collectors.toList()));
                             List<ChartViewFieldDTO> xAxis = new ArrayList<>();
                             xAxis.addAll(request.getViewInfo().getXAxis());
                             xAxis.addAll(request.getViewInfo().getYAxis());
@@ -380,15 +380,15 @@ public class ChartDataServer implements ChartDataApi {
                 Map<String, Object> tableCell = (Map<String, Object>) viewInfo.getCustomAttr().get("tableCell");
                 Boolean mergeCells = (Boolean) tableCell.get("mergeCells");
                 if (mergeCells != null && mergeCells) {
-                    var quotaIndex = 0;
+                    var mergeIndex = viewInfo.getXAxis().size();
                     for (int i = 0; i < viewInfo.getXAxis().size(); i++) {
                         if ("q".equalsIgnoreCase(viewInfo.getXAxis().get(i).getGroupType())) {
-                            quotaIndex = i;
+                            mergeIndex = i;
                             break;
                         }
                     }
-                    if (quotaIndex >= 1 && details.size() > 1) {
-                        mergeConfig = getMergeConfig(details.subList(1, details.size()), quotaIndex - 1, totalDepth == 0 ? 1 : totalDepth);
+                    if (mergeIndex >= 1 && details.size() > 1) {
+                        mergeConfig = getMergeConfig(details.subList(1, details.size()), mergeIndex - 1, totalDepth == 0 ? 1 : totalDepth);
                     }
                 }
             }
@@ -555,12 +555,22 @@ public class ChartDataServer implements ChartDataApi {
                 var preRowRange = preRange.get(preRangeIndex);
                 var start = preRowRange[0];
                 var end = preRowRange[1];
-                var lastColValue = data.get(start)[curColIndex].toString();
+                var lastColValue = data.get(start)[curColIndex];
+                if (lastColValue != null) {
+                    lastColValue = lastColValue.toString();
+                } else {
+                    lastColValue = "";
+                }
                 var lastRowIndex = start;
                 for (Integer curRowIndex = start + 1; curRowIndex <= end; curRowIndex++) {
                     var curRow = data.get(curRowIndex);
-                    var curColValue = curRow[curColIndex].toString();
-                    if (!StringUtils.equals(lastColValue, curColValue) && (curRowIndex - lastRowIndex > 1)) {
+                    var curColValue = curRow[curColIndex];
+                    if (curColValue != null) {
+                        curColValue = curColValue.toString();
+                    } else {
+                        curColValue = "";
+                    }
+                    if (!StringUtils.equals(lastColValue.toString(), curColValue.toString()) && (curRowIndex - lastRowIndex > 1)) {
                         curRange.add(new Integer[]{lastRowIndex, curRowIndex - 1});
                         result.add(new CellRangeAddress(lastRowIndex + offsetHeight, curRowIndex + offsetHeight - 1, curColIndex, curColIndex));
                     }
@@ -568,7 +578,7 @@ public class ChartDataServer implements ChartDataApi {
                         curRange.add(new Integer[]{lastRowIndex, curRowIndex});
                         result.add(new CellRangeAddress(lastRowIndex + offsetHeight, curRowIndex + offsetHeight, curColIndex, curColIndex));
                     }
-                    if (!StringUtils.equals(lastColValue, curColValue)) {
+                    if (!StringUtils.equals(lastColValue.toString(), curColValue.toString())) {
                         lastColValue = curColValue;
                         lastRowIndex = curRowIndex;
                     }

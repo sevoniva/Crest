@@ -13,6 +13,7 @@ import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.dialect.*;
 import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,12 +123,15 @@ public abstract class Provider {
     }
 
     public String rebuildSQL(String sql, SQLMeta sqlMeta, boolean crossDs, Map<Long, DatasourceSchemaDTO> dsMap) {
+        return rebuildSQL(sql, sqlMeta, crossDs, dsMap, false);
+    }
+    public String rebuildSQL(String sql, SQLMeta sqlMeta, boolean crossDs, Map<Long, DatasourceSchemaDTO> dsMap, boolean forSqlbot) {
         logger.debug("calcite sql: " + sql);
         if (crossDs) {
             return sql;
         }
 
-        String s = transSqlDialect(sql, dsMap);
+        String s = transSqlDialect(sql, dsMap, forSqlbot);
         String tableDialect = sqlMeta.getTableDialect();
         s = replaceTablePlaceHolder(s, tableDialect);
         s = replaceCalcFieldPlaceHolder(s, sqlMeta);
@@ -135,17 +139,36 @@ public abstract class Provider {
     }
 
     public String transSqlDialect(String sql, Map<Long, DatasourceSchemaDTO> dsMap) throws DEException {
+        return transSqlDialect(sql, dsMap, false);
+    }
+    public String transSqlDialect(String sql, Map<Long, DatasourceSchemaDTO> dsMap, boolean forSqlbot) throws DEException {
         DatasourceSchemaDTO value = dsMap.entrySet().iterator().next().getValue();
-        try (ConnectionObj connection = getConnection(value)) {
-            // 获取数据库version
-            if (connection != null) {
-                value.setDsVersion(connection.getConnection().getMetaData().getDatabaseMajorVersion());
+        ConnectionObj connection = null;
+        try {
+            if (!forSqlbot) {
+                connection = getConnection(value);
+                // 获取数据库version
+                if (connection != null) {
+                    value.setDsVersion(connection.getConnection().getMetaData().getDatabaseMajorVersion());
+                }
             }
             SqlParser parser = SqlParser.create(sql, SqlParser.Config.DEFAULT.withLex(Lex.JAVA));
             SqlNode sqlNode = parser.parseStmt();
-            return sqlNode.toSqlString(getDialect(value)).toString();
+            String dialect = sqlNode.toSqlString(getDialect(value)).toString();
+            if (StringUtils.equalsIgnoreCase(value.getType(), "sqlServer")) {
+                dialect = dialect.replaceAll("\\[CONCAT]", "CONCAT");
+            }
+            return dialect;
         } catch (Exception e) {
             DEException.throwException(e.getMessage());
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
         return null;
     }
@@ -164,7 +187,7 @@ public abstract class Provider {
         Matcher matcher = compile.matcher(s);
         while (matcher.find()) {
             String v = matcher.group();
-            s = s.replaceAll(v, "N" + v.replace("-DENS-", ""));
+            s = s.replaceAll(Pattern.quote(v), "N" + v.replace("-DENS-", ""));
         }
         return s;
     }
@@ -283,7 +306,7 @@ public abstract class Provider {
                 Integer lport = Provider.getLPorts().get(datasourceId);
                 if (lport != null) {
                     configuration.setLPort(lport);
-                        if (Provider.getSessions().get(datasourceId) == null || !Provider.getSessions().get(datasourceId).isConnected()) {
+                    if (Provider.getSessions().get(datasourceId) == null || !Provider.getSessions().get(datasourceId).isConnected()) {
                         Session session = initSession(configuration);
                         Provider.getSessions().put(datasourceId, session);
                     }

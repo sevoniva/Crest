@@ -182,7 +182,6 @@ const getCascadeFieldId = () => {
   cascade.value.forEach(ele => {
     let condition = null
     ele.forEach(item => {
-      // eslint-disable-next-line
       const [_, queryId, fieldId] = item.datasetId.split('--')
       if (queryId === config.value.id && condition) {
         if (item.fieldId) {
@@ -225,7 +224,7 @@ const handleValueChange = () => {
     setCascadeValueBack(config.value.mapValue)
     emitCascade()
     nextTick(() => {
-      isConfirmSearch(config.value.id, disabledFirstItem.value)
+      isConfirmSearch(config.value.id)
     })
     return
   }
@@ -350,6 +349,14 @@ const handleFieldIdChange = (val: EnumValue) => {
     })
     .finally(() => {
       loading.value = false
+      if (disabledFirstItem.value) {
+        time = setTimeout(() => {
+          clearTimeout(time)
+          setDefaultValueFirstItem()
+        }, 300)
+        return
+      }
+
       if (config.value.defaultValueCheck && !isFromRemote.value) {
         selectValue.value = Array.isArray(config.value.defaultValue)
           ? [...config.value.defaultValue]
@@ -369,6 +376,7 @@ const handleFieldIdChange = (val: EnumValue) => {
         config.value.mapValue = setDefaultMapValue(
           Array.isArray(selectValue.value) ? [...selectValue.value] : [selectValue.value]
         )
+
         if (shouldReSearch) {
           queryDataForId(config.value.id)
         }
@@ -377,14 +385,6 @@ const handleFieldIdChange = (val: EnumValue) => {
           ? [...selectValue.value]
           : selectValue.value
       }
-
-      if (disabledFirstItem.value) {
-        time = setTimeout(() => {
-          clearTimeout(time)
-          setDefaultValueFirstItem()
-        }, 300)
-      }
-
       isFromRemote.value = false
     })
 }
@@ -401,7 +401,32 @@ watch(
 const setDefaultValueFirstItem = () => {
   if (!options.value.length) return
   selectValue.value = options.value[0].value
-  handleValueChange()
+  const value = Array.isArray(selectValue.value) ? [...selectValue.value] : selectValue.value
+  if (!props.isConfig) {
+    config.value.selectValue = Array.isArray(selectValue.value)
+      ? [...selectValue.value]
+      : selectValue.value
+    config.value.mapValue = setDefaultMapValue(
+      Array.isArray(selectValue.value) ? [...selectValue.value] : [selectValue.value]
+    )
+    setCascadeValueBack(config.value.mapValue)
+    emitCascade()
+    nextTick(() => {
+      isConfirmSearch(config.value.id, true)
+    })
+    return
+  }
+
+  setCascadeDefault(emitCascadeConfig())
+
+  config.value.defaultValue = value
+  config.value.mapValue = setDefaultMapValue(
+    Array.isArray(selectValue.value) ? [...selectValue.value] : [selectValue.value]
+  )
+  config.value.defaultMapValue = setDefaultMapValue(
+    Array.isArray(selectValue.value) ? [...selectValue.value] : [selectValue.value]
+  )
+  setCascadeValueBack(config.value.mapValue)
 }
 
 watch(
@@ -578,7 +603,10 @@ const setOptions = (num: number) => {
         (valueSource || []).map(ele => {
           return {
             label: `${ele}`,
-            value: `${ele}`
+            value: `${ele}`,
+            checked: Array.isArray(selectValue.value)
+              ? selectValue.value.includes(`${ele}`)
+              : selectValue.value === ele
           }
         })
       )

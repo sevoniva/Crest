@@ -103,6 +103,7 @@ const formQuotaConfirm = () => {
       const q = cloneDeep(unref(formQuota))
       fieldForm.params = [q]
       const i = state.quotaData.find(ele => ele.id === formQuota.id)
+
       if (i) {
         const str = mirror.value.state.doc.toString()
         const name2Auto = []
@@ -120,6 +121,7 @@ const formQuotaConfirm = () => {
         })
       } else {
         state.quotaData.push(q)
+        quotaDataList.push(q)
       }
       formQuotaClose()
     }

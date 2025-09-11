@@ -1,5 +1,16 @@
 export default {
   common: {
+    next_week: '下週',
+    next_month: '下個月',
+    next_quarter: '下季',
+    next_year: '明年',
+    sqlbot_settings: 'SQLBot 設定',
+    third_party_embed: '第三方嵌入',
+    application_id: '應用程式 ID',
+    sqlbot_server_url: 'SQLBot 伺服器 URL',
+    enter_the_url: '請輸入 URL',
+    the_application_id: '請輸入應用程式 ID',
+    embed: '嵌入',
     empty: '',
     first_item: '首項',
     cross_source: '跨源',
@@ -749,6 +760,7 @@ export default {
     than_end_time: '，不能大於結束時間：',
     variable: '變數',
     variable_value: '變數值',
+    variable_desc: '描述',
     enter_a_value: '請輸入數值',
     contact_the_administrator: '執行失敗請聯絡管理員',
     data_import_successful: '導入資料成功',
@@ -2036,7 +2048,8 @@ export default {
     table_grand_total_label: '總計別名',
     table_field_total_label: '字段別名',
     table_row_header_freeze: '行頭凍結',
-    value_formatter_total_out_percent: '顯示佔比'
+    value_formatter_total_out_percent: '顯示佔比',
+    enable_slider_tip: '開啟縮略軸後，輪播提示將會失效'
   },
   dataset: {
     field_value: '欄位值',
@@ -4101,7 +4114,8 @@ export default {
       retrying: '失敗重試',
       retrying_rate: '重試間隔（分鐘）',
       please_input_positive_int: '請輸入 {0} 正整數',
-      rate: '發送頻率'
+      rate: '發送頻率',
+      ext_wait_time: '額外等待時間（秒）'
     },
     filter: {
       title: '設置查詢組件默認值',

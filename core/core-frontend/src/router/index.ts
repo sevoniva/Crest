@@ -21,17 +21,17 @@ export const routes: AppRouteRecordRaw[] = [
     ]
   },
   {
-    path: '/copilot',
-    name: 'copilot',
+    path: '/sqlbot',
+    name: 'sqlbot',
     component: () => import('@/layout/index.vue'),
     hidden: true,
     meta: {},
     children: [
       {
         path: 'index',
-        name: 'cpt',
+        name: 'clt',
         hidden: true,
-        component: () => import('@/views/copilot/index.vue'),
+        component: () => import('@/views/sqlbot/index.vue'),
         meta: { hidden: true }
       }
     ]
