@@ -105,7 +105,8 @@ public class DatasetSQLBotManage {
         }
         return AesUtils.aesEncrypt(text, aesKey, iv);
     }
-
+    TypeReference<List<Long>> listTypeReference = new TypeReference<List<Long>>() {
+    };
     private Map<Long, List<DataSetColumnPermissionsDTO>> getColPermission(Long uid, List<Long> roleIds) {
         ColumnPermissionsApi columnPermissionsApi = CommonBeanFactory.getBean(ColumnPermissionsApi.class);
         Objects.requireNonNull(columnPermissionsApi);
@@ -113,7 +114,7 @@ public class DatasetSQLBotManage {
         DataSetColumnPermissionsDTO dataSetColumnPermissionsDTO = new DataSetColumnPermissionsDTO();
         dataSetColumnPermissionsDTO.setAuthTargetId(uid);
         dataSetColumnPermissionsDTO.setAuthTargetType("user");
-        dataSetColumnPermissionsDTO.setEnable(true);
+        // dataSetColumnPermissionsDTO.setEnable(true);
         List<DataSetColumnPermissionsDTO> dataSetColumnPermissionsDTOS = columnPermissionsApi.list(dataSetColumnPermissionsDTO);
 
         if (CollectionUtils.isNotEmpty(roleIds)) {
@@ -122,7 +123,14 @@ public class DatasetSQLBotManage {
             dataSetColumnPermissionsDTO.setAuthTargetType("role");
             List<DataSetColumnPermissionsDTO> roleDataSetColumnPermissionsDTOS = columnPermissionsApi.list(dataSetColumnPermissionsDTO);
             if (CollectionUtils.isNotEmpty(roleDataSetColumnPermissionsDTOS)) {
-                dataSetColumnPermissionsDTOS.addAll(roleDataSetColumnPermissionsDTOS);
+                for (DataSetColumnPermissionsDTO dto :roleDataSetColumnPermissionsDTOS) {
+                    List<Long> userIdList = JsonUtil.parseList(dto.getWhiteListUser(), listTypeReference);
+                    if (CollectionUtils.isEmpty(userIdList) || !userIdList.contains(uid)) {
+                       //  roleColumnPermissionsDTOS.add(columnPermissionsDTO);
+                        dataSetColumnPermissionsDTOS.add(dto);
+                    }
+                }
+                // dataSetColumnPermissionsDTOS.addAll(roleDataSetColumnPermissionsDTOS);
             }
         }
         if (CollectionUtils.isEmpty(dataSetColumnPermissionsDTOS)) {
@@ -364,6 +372,11 @@ public class DatasetSQLBotManage {
             if (ObjectUtils.isEmpty(fields)) {
                 DEException.throwException(Translator.get("i18n_no_column_permission"));
             }
+            if (sqlbotFields.size() > fields.size()) {
+                Set<Long> fieldIdSet = fields.stream().map(DatasetTableFieldDTO::getId).collect(Collectors.toSet());
+                List<SQLBotAssistantField> filterSqlbotFields = sqlbotFields.stream().filter(item -> fieldIdSet.contains(item.getFieldId())).collect(Collectors.toList());
+                table.setFields(filterSqlbotFields);
+            }
         }
         buildFieldName(sqlMap, originFields);
         Map<Long, DatasourceSchemaDTO> dsMap = (Map<Long, DatasourceSchemaDTO>) sqlMap.get("dsMap");
@@ -525,7 +538,7 @@ public class DatasetSQLBotManage {
                 String sql = new String(Base64.getDecoder().decode(tableInfoDTO.getSql()));
                 table.setSql(sql);
             }
-            if (StringUtils.isNotBlank(tableInfoDTO.getTable())) {
+            if (StringUtils.isBlank(tableInfoDTO.getSql()) && StringUtils.isNotBlank(tableInfoDTO.getTable())) {
                 table.setName(tableInfoDTO.getTable());
             }
         }
