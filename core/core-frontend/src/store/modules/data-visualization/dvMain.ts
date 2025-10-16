@@ -25,7 +25,7 @@ import { viewFieldTimeTrans } from '@/utils/viewUtils'
 import { useAppearanceStoreWithOut } from '@/store/modules/appearance'
 import { ElMessage } from 'element-plus-secondary'
 import { useI18n } from '@/hooks/web/useI18n'
-import { filterEnumParams } from '@/utils/componentUtils'
+import { filterEnumParams, filterEnumParamsReduce } from '@/utils/componentUtils'
 const { t } = useI18n()
 
 export const dvMainStore = defineStore('dataVisualization', {
@@ -1016,7 +1016,6 @@ export const dvMainStore = defineStore('dataVisualization', {
         trackInfo = this.nowPanelJumpInfoTargetPanel
       }
       const preActiveComponentIds = []
-      const checkQDList = [...data.dimensionList, ...data.quotaList]
       const customFilterInfo = data.customFilter
       for (let indexOuter = 0; indexOuter < this.componentData.length; indexOuter++) {
         const element = this.componentData[indexOuter]
@@ -1024,7 +1023,7 @@ export const dvMainStore = defineStore('dataVisualization', {
           if (['UserView', 'VQuery'].includes(element.component)) {
             this.trackFilterCursor(
               element,
-              checkQDList,
+              data,
               trackInfo,
               preActiveComponentIds,
               viewId,
@@ -1035,7 +1034,7 @@ export const dvMainStore = defineStore('dataVisualization', {
             element.propValue?.forEach((groupItem, index) => {
               this.trackFilterCursor(
                 groupItem,
-                checkQDList,
+                data,
                 trackInfo,
                 preActiveComponentIds,
                 viewId,
@@ -1048,7 +1047,7 @@ export const dvMainStore = defineStore('dataVisualization', {
               tabItem.componentData?.forEach((tabComponent, index) => {
                 this.trackFilterCursor(
                   tabComponent,
-                  checkQDList,
+                  data,
                   trackInfo,
                   preActiveComponentIds,
                   viewId,
@@ -1195,6 +1194,7 @@ export const dvMainStore = defineStore('dataVisualization', {
         return
       }
       const currentFilters = [] // 外部参数信息
+      const defaultValueMap = {}
       // 外部参数 可能会包含多个参数
       Object.keys(params).forEach(function (sourceInfo) {
         // 获取外部参数的值 sourceInfo 是外部参数名称 支持数组传入
@@ -1234,7 +1234,7 @@ export const dvMainStore = defineStore('dataVisualization', {
           const targetViewId = targetInfoArray[0] // 目标图表
           // DE_EMPTY 为清空条件标志
           if (element.component === 'UserView' && element.id === targetViewId) {
-            if ('DE_EMPTY' !== paramValueStr) {
+            if ('DE_EMPTY' !== paramValueStr && paramValueStr !== null && paramValueStr !== '') {
               // 如果目标图表 和 当前循环组件id相等 则进行条件增减
               const targetFieldId = targetInfoArray[1] // 目标图表列ID
               const condition = {
@@ -1259,7 +1259,6 @@ export const dvMainStore = defineStore('dataVisualization', {
             preActiveComponentIds.push(element.id)
           }
           if (element.component === 'VQuery') {
-            const defaultValueMap = {}
             element.propValue?.forEach(filterItem => {
               if (filterItem.id === targetViewId) {
                 let queryParams = paramValue
@@ -1276,6 +1275,7 @@ export const dvMainStore = defineStore('dataVisualization', {
                   const queryMapFlag = optionValueSource === 1 && field.id !== displayId
                   let queryMapParams = queryParams
                   if (queryMapFlag) {
+                    queryParams = filterEnumParamsReduce(queryParams, field.id)
                     queryMapParams = filterEnumParams(queryParams, field.id)
                   }
                   // 0 文本类型 1 数字类型
@@ -1330,6 +1330,10 @@ export const dvMainStore = defineStore('dataVisualization', {
                 }
               }
             })
+            const allCascadeDataset = element.cascade
+              .flat()
+              .map(item => `--${item.datasetId}`)
+              .join('')
             // 级联条件处理
             if (element.cascade?.length && Object.keys(defaultValueMap).length) {
               element.cascade.forEach(cascadeItem => {
@@ -1344,7 +1348,7 @@ export const dvMainStore = defineStore('dataVisualization', {
                         itemInner['selectValue'] = Array.isArray(curDefaultValue)
                           ? curDefaultValue
                           : [curDefaultValue]
-                      } else {
+                      } else if (!allCascadeDataset.includes(key)) {
                         itemInner['currentSelectValue'] = []
                         itemInner['selectValue'] = []
                       }
@@ -1367,12 +1371,13 @@ export const dvMainStore = defineStore('dataVisualization', {
     },
     trackFilterCursor(
       element,
-      checkQDList,
+      sourceData,
       trackInfo,
       preActiveComponentIds,
       viewId,
       customFilter?
     ) {
+      const checkQDList = [...sourceData.dimensionList, ...sourceData.quotaList]
       let currentFilters = element.linkageFilters || [] // 当前联动filter
       if (['table-info', 'table-normal'].includes(element.innerType)) {
         currentFilters = []
@@ -1387,7 +1392,10 @@ export const dvMainStore = defineStore('dataVisualization', {
       // 联动的图表情况历史条件
       // const currentFilters = []
       checkQDList.forEach(QDItem => {
-        const sourceInfo = viewId + '#' + QDItem.id
+        let sourceInfo = viewId + '#' + QDItem.id
+        if (sourceData.option === 'jump') {
+          sourceInfo = sourceInfo + '#' + sourceData.sourceFieldId
+        }
         // 获取所有目标联动信息
         const targetInfoList = trackInfo[sourceInfo] || []
         const paramValue = [QDItem.value]
@@ -1423,17 +1431,19 @@ export const dvMainStore = defineStore('dataVisualization', {
                   sourceViewId: viewId
                 }
               }
-              let j = currentFilters.length
-              while (j--) {
-                const filter = currentFilters[j]
-                // 兼容性准备 viewIds 只会存放一个值
-                if (targetFieldId === filter.fieldId && filter.viewIds.includes(targetViewId)) {
-                  currentFilters.splice(j, 1)
+              if (condition) {
+                let j = currentFilters.length
+                while (j--) {
+                  const filter = currentFilters[j]
+                  // 兼容性准备 viewIds 只会存放一个值
+                  if (targetFieldId === filter.fieldId && filter.viewIds.includes(targetViewId)) {
+                    currentFilters.splice(j, 1)
+                  }
                 }
+                // 不存在该条件 且 条件有效 直接保存该条件
+                // !filterExist && vValid && currentFilters.push(condition)
+                currentFilters.push(condition)
               }
-              // 不存在该条件 且 条件有效 直接保存该条件
-              // !filterExist && vValid && currentFilters.push(condition)
-              currentFilters.push(condition)
             }
             preActiveComponentIds.includes(element.id) || preActiveComponentIds.push(element.id)
           }
@@ -1453,6 +1463,7 @@ export const dvMainStore = defineStore('dataVisualization', {
                   const queryMapFlag = optionValueSource === 1 && field.id !== displayId
                   let queryMapParams = queryParams
                   if (queryMapFlag) {
+                    queryParams = filterEnumParamsReduce(queryParams, field.id)
                     queryMapParams = filterEnumParams(queryParams, field.id)
                   }
                   // 0 文本类型 1 数字类型
@@ -1492,6 +1503,7 @@ export const dvMainStore = defineStore('dataVisualization', {
         })
       })
       element.linkageFilters = currentFilters
+      console.log('===test===' + JSON.stringify(element.linkageFilters))
     },
 
     clearPanelLinkageInfo() {

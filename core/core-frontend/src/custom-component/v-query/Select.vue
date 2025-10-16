@@ -10,11 +10,13 @@ import {
   nextTick,
   computed,
   inject,
+  onBeforeUnmount,
   onUnmounted,
   Ref
 } from 'vue'
 import { enumValueObj, type EnumValue, getEnumValue } from '@/api/dataset'
 import { cloneDeep, debounce } from 'lodash-es'
+import eventBus from '@/utils/eventBus'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import { useI18n } from '@/hooks/web/useI18n'
 import colorFunctions from 'less/lib/less/functions/color.js'
@@ -105,8 +107,8 @@ const cascade = computed(() => {
 })
 let time
 const disabledFirstItem = computed(() => {
-  const { defaultValueFirstItem, optionValueSource, multiple } = props.config
-  return defaultValueFirstItem && optionValueSource === 1 && !multiple
+  const { defaultValueFirstItem, optionValueSource } = props.config
+  return defaultValueFirstItem && optionValueSource === 1
 })
 const setDefaultMapValue = arr => {
   const { displayId, field } = config.value
@@ -349,7 +351,7 @@ const handleFieldIdChange = (val: EnumValue) => {
     })
     .finally(() => {
       loading.value = false
-      if (disabledFirstItem.value) {
+      if (disabledFirstItem.value && config.value.defaultValueCheck) {
         time = setTimeout(() => {
           clearTimeout(time)
           setDefaultValueFirstItem()
@@ -400,7 +402,7 @@ watch(
 
 const setDefaultValueFirstItem = () => {
   if (!options.value.length) return
-  selectValue.value = options.value[0].value
+  selectValue.value = config.value.multiple ? [options.value[0].value] : options.value[0].value
   const value = Array.isArray(selectValue.value) ? [...selectValue.value] : selectValue.value
   if (!props.isConfig) {
     config.value.selectValue = Array.isArray(selectValue.value)
@@ -495,13 +497,15 @@ watch(
     if (!props.isConfig) return
     if (val) {
       selectValue.value = []
+      setDefaultValueFirstItem()
     }
     nextTick(() => {
       multiple.value = val
-      config.value.defaultValueFirstItem = false
       if (!val) {
         nextTick(() => {
           selectValue.value = undefined
+          if (!config.value.defaultValueFirstItem || !config.value.defaultValueCheck) return
+          setDefaultValueFirstItem()
         })
       }
     })
@@ -725,6 +729,18 @@ const tagTextWidth = computed(() => {
   return (getCustomWidth() - 65) / 2 - 20 + 'px'
 })
 
+const componentClick = () => {
+  mult.value?.blur()
+  single.value?.blur()
+}
+
+onMounted(() => {
+  eventBus.on('componentClick', componentClick)
+})
+onBeforeUnmount(() => {
+  eventBus.off('componentClick', componentClick)
+})
+
 defineExpose({
   displayTypeChange,
   mult,
@@ -748,6 +764,7 @@ defineExpose({
     show-checked
     :tagColor="tagColor"
     scrollbar-always-on
+    :disabled="disabledFirstItem && props.isConfig"
     clearable
     :style="selectStyle"
     collapse-tags

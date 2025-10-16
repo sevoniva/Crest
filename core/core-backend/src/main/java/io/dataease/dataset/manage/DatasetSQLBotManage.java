@@ -34,6 +34,7 @@ import io.dataease.extensions.datasource.dto.DatasourceSchemaDTO;
 import io.dataease.extensions.datasource.dto.FieldGroupDTO;
 import io.dataease.extensions.datasource.factory.ProviderFactory;
 import io.dataease.extensions.datasource.model.SQLMeta;
+import io.dataease.extensions.datasource.model.SQLObj;
 import io.dataease.extensions.datasource.provider.Provider;
 import io.dataease.extensions.datasource.vo.Configuration;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
@@ -105,8 +106,10 @@ public class DatasetSQLBotManage {
         }
         return AesUtils.aesEncrypt(text, aesKey, iv);
     }
+
     TypeReference<List<Long>> listTypeReference = new TypeReference<List<Long>>() {
     };
+
     private Map<Long, List<DataSetColumnPermissionsDTO>> getColPermission(Long uid, List<Long> roleIds) {
         ColumnPermissionsApi columnPermissionsApi = CommonBeanFactory.getBean(ColumnPermissionsApi.class);
         Objects.requireNonNull(columnPermissionsApi);
@@ -123,10 +126,10 @@ public class DatasetSQLBotManage {
             dataSetColumnPermissionsDTO.setAuthTargetType("role");
             List<DataSetColumnPermissionsDTO> roleDataSetColumnPermissionsDTOS = columnPermissionsApi.list(dataSetColumnPermissionsDTO);
             if (CollectionUtils.isNotEmpty(roleDataSetColumnPermissionsDTOS)) {
-                for (DataSetColumnPermissionsDTO dto :roleDataSetColumnPermissionsDTOS) {
+                for (DataSetColumnPermissionsDTO dto : roleDataSetColumnPermissionsDTOS) {
                     List<Long> userIdList = JsonUtil.parseList(dto.getWhiteListUser(), listTypeReference);
                     if (CollectionUtils.isEmpty(userIdList) || !userIdList.contains(uid)) {
-                       //  roleColumnPermissionsDTOS.add(columnPermissionsDTO);
+                        //  roleColumnPermissionsDTOS.add(columnPermissionsDTO);
                         dataSetColumnPermissionsDTOS.add(dto);
                     }
                 }
@@ -218,6 +221,16 @@ public class DatasetSQLBotManage {
                 tableFlagMap.put(tableId, table);
                 vo.getTables().add(table);
             }
+            Object cdt_id_obj = null;
+            Long cdt_id = null;
+
+            if (ObjectUtils.isNotEmpty(cdt_id_obj = row.get("cdt_id")) && !table.getTableIds().contains(cdt_id = Long.parseLong(cdt_id_obj.toString()))) {
+                table.getTableIds().add(cdt_id);
+                if (table.getTableIds().size() > 1) {
+                    table.setNeedTransform(true);
+                }
+            }
+
             // build field
             String fieldId = row.get("cdtf_id").toString();
             SQLBotAssistantField field = fieldFlagMap.get(fieldId);
@@ -397,6 +410,12 @@ public class DatasetSQLBotManage {
         String querySQL;
         querySQL = SQLProvider.createQuerySQL(sqlMeta, false, needOrder, false);
         querySQL = provider.rebuildSQL(querySQL, sqlMeta, false, dsMap, true);
+        for (int i = 0; i < sqlMeta.getXFields().size(); i++) {
+            SQLObj fieldObj = sqlMeta.getXFields().get(i);
+            if (fieldObj.getFieldAlias().endsWith("_" + i + '`')) {
+                table.getFields().get(i).setName(fieldObj.getFieldAlias().substring(1, fieldObj.getFieldAlias().length() - 1));
+            }
+        }
         table.setSql(querySQL);
     }
 
@@ -409,7 +428,37 @@ public class DatasetSQLBotManage {
         if (CollectionUtils.isEmpty(vos)) {
             return;
         }
-        vos.forEach(vo -> {
+        Iterator<DataSQLBotAssistantVO> voIterator = vos.iterator();
+        while (voIterator.hasNext()) {
+            DataSQLBotAssistantVO vo = voIterator.next();
+            Map<String, Object> dsRowData = vo.getRowData();
+            List<SQLBotAssistanTable> tables = vo.getTables();
+
+            // 使用迭代器遍历tables，以便在遍历时删除元素
+            Iterator<SQLBotAssistanTable> tableIterator = tables.iterator();
+            while (tableIterator.hasNext()) {
+                SQLBotAssistanTable table = tableIterator.next();
+                Long datasetGroupId = table.getDatasetGroupId();
+                List<DataSetColumnPermissionsDTO> columnPermissionsDTOS = ObjectUtils.isEmpty(colPermissionMap) ? null : colPermissionMap.get(datasetGroupId);
+                List<DataSetRowPermissionsTreeDTO> rowPermissionsTreeDTOS = ObjectUtils.isEmpty(rowPermissionMap) ? null : rowPermissionMap.get(datasetGroupId);
+
+                if (table.isNeedTransform() || ObjectUtils.isNotEmpty(columnPermissionsDTOS) || ObjectUtils.isNotEmpty(rowPermissionsTreeDTOS)) {
+                    try {
+                        rebuildTable(table, columnPermissionsDTOS, rowPermissionsTreeDTOS, dsRowData);
+                    } catch (Exception e) {
+                        LogUtil.error(e);
+                        // 遇到异常，移除当前table
+                        tableIterator.remove();
+                    }
+                }
+            }
+
+            // 如果vo中的tables为空，则移除vo
+            if (CollectionUtils.isEmpty(tables)) {
+                voIterator.remove();
+            }
+        }
+        /*vos.forEach(vo -> {
             Map<String, Object> dsRowData = vo.getRowData();
             List<SQLBotAssistanTable> tables = vo.getTables();
             tables.forEach(table -> {
@@ -424,7 +473,7 @@ public class DatasetSQLBotManage {
                     }
                 }
             });
-        });
+        });*/
     }
 
     private SQLBotAssistantField buildField(Map<String, Object> row) {
@@ -472,6 +521,10 @@ public class DatasetSQLBotManage {
         } else {
             config_json = EncryptUtils.aesDecrypt(dsConfig.toString()).toString();
             config = JsonUtil.parseObject(config_json, Configuration.class);
+            config.convertJdbcUrl();
+        }
+        if (dsType.contains(DatasourceConfiguration.DatasourceType.mysql.name()) && ObjectUtils.isNotEmpty(config) && StringUtils.isNotBlank(config.getHost()) && StringUtils.equalsIgnoreCase("mysql-de", config.getHost()) && StringUtils.isNotBlank(dsHost)) {
+            config.setHost(dsHost);
         }
         DataSQLBotAssistantVO vo = new DataSQLBotAssistantVO();
         vo.setDataBase(config.getDataBase());
@@ -545,6 +598,9 @@ public class DatasetSQLBotManage {
         Map<String, Object> tableRowData = buildRowData(row, 1);
         tableRowData.put("datasource_id", Long.parseLong(row.get("cd_id").toString()));
         table.setRowData(tableRowData);
+        Set<Long> tableIds = new HashSet<>();
+        tableIds.add(Long.parseLong(row.get("cdt_id").toString()));
+        table.setTableIds(tableIds);
         return table;
     }
 

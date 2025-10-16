@@ -33,6 +33,7 @@ import {
   getThisEnd,
   getLastStart,
   getAround,
+  getAroundStart,
   getCustomRange
 } from './time-format-dayjs'
 import { snapshotStoreWithOut } from '@/store/modules/data-visualization/snapshot'
@@ -1087,7 +1088,7 @@ const isInRange = (ele, startWindowTime, timeStamp) => {
   }
   let startTime
   if (relativeToCurrent === 'custom') {
-    startTime = getAround(relativeToCurrentType, around === 'f' ? 'subtract' : 'add', timeNum)
+    startTime = getAroundStart(relativeToCurrentType, around === 'f' ? 'subtract' : 'add', timeNum)
   } else {
     switch (relativeToCurrent) {
       case 'thisYear':
@@ -1130,6 +1131,7 @@ const isInRange = (ele, startWindowTime, timeStamp) => {
         break
     }
   }
+
   const startValue = regularOrTrends === 'fixed' ? regularOrTrendsValue : startTime
   if (intervalType === 'start') {
     return startWindowTime < +new Date(startValue) || isDynamicWindowTime
@@ -1147,7 +1149,7 @@ const isInRange = (ele, startWindowTime, timeStamp) => {
           ? new Date(
               dayjs(new Date(regularOrTrendsValue[0])).startOf(noTime).format('YYYY/MM/DD HH:mm:ss')
             )
-          : getAround(relativeToCurrentType, around === 'f' ? 'subtract' : 'add', timeNum)
+          : getAroundStart(relativeToCurrentType, around === 'f' ? 'subtract' : 'add', timeNum)
       endTime =
         regularOrTrends === 'fixed'
           ? new Date(
@@ -1508,6 +1510,8 @@ const validate = () => {
         return true
       }
       if (!ele.setTimeRange) return false
+      console.log(startTime, endTime)
+
       if (
         isInRange(
           ele,
@@ -2161,6 +2165,10 @@ const relativeToCurrentListRange = computed(() => {
         {
           label: t('v_query.last_12_months'),
           value: 'LastTwelveMonths'
+        },
+        {
+          label: t('common.to_this_month'),
+          value: 'YearToThisMonth'
         }
       ]
       break
@@ -2953,8 +2961,17 @@ defineExpose({
                 {{ t('v_query.of_option_values') }}
               </div>
               <div class="value">
-                <el-radio-group class="larger-radio" v-model="curComponent.resultMode">
-                  <el-radio :label="0">{{ t('login.default_login') }}</el-radio>
+                <el-radio-group class="larger-radio icon-info" v-model="curComponent.resultMode">
+                  <el-radio :label="0"
+                    >{{ t('login.default_login') }}
+                    <el-tooltip effect="dark" :content="t('common.up_to_options')" placement="top">
+                      <el-icon style="margin-left: 4px; color: #646a73">
+                        <icon name="icon_info_outlined"
+                          ><icon_info_outlined class="svg-icon"
+                        /></icon>
+                      </el-icon> </el-tooltip
+                  ></el-radio>
+
                   <el-radio :label="1">{{ t('chart.result_mode_all') }}</el-radio>
                 </el-radio-group>
               </div>
@@ -3418,8 +3435,16 @@ defineExpose({
                 {{ t('v_query.of_option_values') }}
               </div>
               <div class="value" style="margin-top: 10.5px">
-                <el-radio-group class="larger-radio" v-model="curComponent.resultMode">
-                  <el-radio :label="0">{{ t('chart.default') }}</el-radio>
+                <el-radio-group class="larger-radio icon-info" v-model="curComponent.resultMode">
+                  <el-radio :label="0"
+                    >{{ t('chart.default') }}
+                    <el-tooltip effect="dark" :content="t('common.up_to_options')" placement="top">
+                      <el-icon style="margin-left: 4px; color: #646a73">
+                        <icon name="icon_info_outlined"
+                          ><icon_info_outlined class="svg-icon"
+                        /></icon>
+                      </el-icon> </el-tooltip
+                  ></el-radio>
                   <el-radio :label="1">{{ t('data_set.all') }}</el-radio>
                 </el-radio-group>
               </div>
@@ -3723,14 +3748,15 @@ defineExpose({
           margin-bottom: 8px;
 
           .field-select--input {
-            .ed-select-tags-wrapper.has-prefix {
-              margin-left: 25px;
+            .ed-select__prefix {
+              padding-right: 0;
             }
+
             .ed-select__input {
               margin-left: 6px !important;
             }
             .ed-tag {
-              max-width: 52px;
+              max-width: 46px !important;
               .ed-tag__close {
                 margin-left: 2px;
               }
@@ -4184,6 +4210,12 @@ defineExpose({
   }
 }
 .larger-radio {
+  &.icon-info {
+    .ed-radio__label {
+      display: flex;
+      align-items: center;
+    }
+  }
   .ed-radio__inner {
     width: 16px;
     height: 16px;

@@ -127,7 +127,7 @@ const isNumber = (rule, value, callback) => {
     callback(new Error(t('datasource.please_input_query_timeout')))
     return
   }
-  if (value <= 0 || value > 300) {
+  if (value <= 0) {
     callback(new Error(t('datasource.please_input_query_timeout')))
     return
   }
@@ -853,7 +853,7 @@ defineExpose({
                   <span
                     :title="scope.row.originName"
                     class="ellipsis"
-                    style="display: inline-block; max-width: 80px"
+                    style="display: inline-block; max-width: 80px; line-height: 16px"
                     >{{ scope.row.originName }}</span
                   >
                 </el-checkbox>

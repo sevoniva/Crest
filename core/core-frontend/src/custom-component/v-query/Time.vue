@@ -12,6 +12,7 @@ import {
   getThisEnd,
   getLastStart,
   getAround,
+  getAroundStart,
   getCustomRange
 } from './time-format-dayjs'
 import VanPopup from 'vant/es/popup'
@@ -298,7 +299,7 @@ const disabledDate = val => {
   }
   let startTime
   if (relativeToCurrent === 'custom') {
-    startTime = getAround(relativeToCurrentType, around === 'f' ? 'subtract' : 'add', timeNum)
+    startTime = getAroundStart(relativeToCurrentType, around === 'f' ? 'subtract' : 'add', timeNum)
   } else {
     switch (relativeToCurrent) {
       case 'thisYear':
@@ -344,7 +345,10 @@ const disabledDate = val => {
   const startValue = regularOrTrends === 'fixed' ? regularOrTrendsValue : startTime
 
   if (intervalType === 'start') {
-    return timeStamp < +new Date(startValue) || isDynamicWindowTime
+    return (
+      timeStamp < +new Date(dayjs(startValue).startOf('day').format('YYYY/MM/DD HH:mm:ss')) ||
+      isDynamicWindowTime
+    )
   }
 
   if (intervalType === 'end') {
@@ -361,7 +365,7 @@ const disabledDate = val => {
                 .startOf(queryTimeType.value)
                 .format('YYYY/MM/DD HH:mm:ss')
             )
-          : getAround(relativeToCurrentType, around === 'f' ? 'subtract' : 'add', timeNum)
+          : getAroundStart(relativeToCurrentType, around === 'f' ? 'subtract' : 'add', timeNum)
       endTime =
         regularOrTrends === 'fixed'
           ? new Date(

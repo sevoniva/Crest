@@ -41,6 +41,14 @@ public interface XpackAuthenticationApi {
     @PostMapping("/save/oauth2")
     String saveOauth2(@RequestBody XpackOauth2VO editor);
 
+    @Operation(summary = "保存SAML2")
+    @PostMapping("/save/saml")
+    String saveSaml2(@RequestBody XpackSaml2VO editor);
+
+    @Operation(summary = "SAML2信息")
+    @GetMapping("/info/saml")
+    XpackSaml2VO samlInfo();
+
     @Operation(summary = "OIDC信息")
     @GetMapping("/info/oidc")
     XpackOidcVO oidcInfo();
@@ -72,6 +80,10 @@ public interface XpackAuthenticationApi {
     @Operation(summary = "验证OAuth2")
     @PostMapping("/validate/oauth2")
     String validateOauth2(@RequestBody XpackOauth2VO editor);
+
+    @Operation(summary = "验证SAML2")
+    @PostMapping("/validate/saml2")
+    String validateSaml2(@RequestBody XpackSaml2VO editor);
 
     @Operation(summary = "验证")
     @PostMapping("/validateId/{id}")

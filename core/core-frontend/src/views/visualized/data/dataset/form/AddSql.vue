@@ -84,7 +84,7 @@ const dsLoading = ref(false)
 const loading = ref(false)
 const LeftWidth = ref(240)
 const showLeft = ref(true)
-const editerName = ref()
+const editorName = ref()
 const state = reactive({
   plxTableData: [],
   variables: [],
@@ -600,7 +600,7 @@ const mousedownDrag = () => {
 
 <template>
   <div class="add-sql-name">
-    <el-input class="name" ref="editerName" v-model="sqlNode.tableName" @change="setFlag" />
+    <el-input class="name" ref="editorName" v-model="sqlNode.tableName" @change="setFlag" />
     <div class="save-or-cancel flex-align-center">
       <el-button @click="getSQLPreview" text style="color: #1f2329">
         <template #icon>
@@ -1559,13 +1559,13 @@ const mousedownDrag = () => {
       }
 
       &:focus {
-        background: #3370ff1a;
-        color: #3370ff;
+        background: var(--ed-color-primary-1a, #3370ff1a);
+        color: var(--ed-color-primary, #3370ff);
       }
 
       &:focus:hover {
-        color: #3370ff;
-        background: #3370ff33;
+        color: var(--ed-color-primary, #3370ff);
+        background: var(--ed-color-primary-33, #3370ff33);
       }
     }
   }

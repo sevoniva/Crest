@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.dataease.api.visualization.vo.DataVisualizationVO;
 import io.dataease.api.visualization.vo.VisualizationExport2AppVO;
+import io.dataease.constant.LogOT;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -38,6 +39,8 @@ public class DataVisualizationBaseRequest extends DataVisualizationVO {
     // 查询来源 main-edit= 主工程编辑区 main=主工程 report=定时报告
     private String source;
 
+    private Integer logOTValue;
+
     // 定时报告id
     @JsonSerialize(using = ToStringSerializer.class)
     private Long reportId;
@@ -63,6 +66,9 @@ public class DataVisualizationBaseRequest extends DataVisualizationVO {
 
     //数据来源 core 主表 snapshot 镜像表
     private String resourceTable = "core";
+
+    //应用数据来源 datasource 数据源  dataset 数据集
+    private String dataType = "datasource";
 
     public DataVisualizationBaseRequest(Long id,String busiFlag,String resource,String source) {
         this.busiFlag = busiFlag;

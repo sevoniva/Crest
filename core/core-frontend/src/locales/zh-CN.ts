@@ -1,5 +1,7 @@
 export default {
   common: {
+    to_this_month: '年初至本月',
+    up_to_options: '最多展示1000个选项',
     next_week: '下周',
     next_month: '下月',
     next_quarter: '下季',
@@ -603,6 +605,8 @@ export default {
     field_mapping: '字段映射',
     oauth2name:
       '例如：{\'{\'}"account": "oauth2Account", "name": "oauth2Name", "email": "email"{\'}\'}',
+    saml2name:
+      '例如：{\'{\'}"account": "saml2Account", "name": "saml2Name", "email": "email"{\'}\'}',
     oidc_settings: 'OIDC设置',
     test_mail_recipient: '仅用来作为测试邮件收件人',
     to_enable_ssl: '如果SMTP端口是 465 ，通常需要启用SSL',
@@ -679,7 +683,10 @@ export default {
     sub_area_tip: '请选择省份或直辖市',
     delete_custom_area_tip: '该操作会导致使用了自定义区域的地图无法正常展示，确定删除？',
     please_select_area: '请选择区域',
-    delete_custom_sub_area_tip: '确定删除该自定义区域？'
+    delete_custom_sub_area_tip: '确定删除该自定义区域？',
+    saml: {
+      title: 'SAML2 设置'
+    }
   },
   components: {
     dashboard_style: '仪表板风格',
@@ -1134,6 +1141,10 @@ export default {
     has_same_ds: '存在相同配置数据源，确认保存？',
     app_token: 'app_token',
     input_app_token: '请输入app_token',
+    doc_id: 'doc_id',
+    input_doc_id: '请输入doc_id',
+    sheet_id: 'sheet_id',
+    input_sheet_id: '请选择工作表',
     table_id: 'table_id',
     input_table_id: '请选择数据表',
     view_id: 'view_id',
@@ -2846,6 +2857,7 @@ export default {
     column_name: '字段名称'
   },
   visualization: {
+    data_match_type: '数据匹配方式',
     select_resource: '请选择{0}',
     change_screen_page: '更换{0}',
     new_screen_page: '新建分页',
@@ -2872,6 +2884,7 @@ export default {
     publish: '发布',
     freeze_top: '位置冻结在顶部',
     indicator_linkage: '指标卡联动仅携带图表过滤参数',
+    indicator_jump: '指标卡跳转仅携带图表过滤参数',
     gap_size: '间隙大小',
     small: '小',
     middle: '中',
@@ -2975,8 +2988,11 @@ export default {
     ds_group_name: '数据集分组名称',
     ds_group_position: '数据集分组位置',
     datasource_info: '数据源信息',
+    dataset_info: '数据集信息',
     app_datasource: '应用数据源',
+    app_dataset: '应用数据集',
     sys_datasource: '系统数据源',
+    sys_dataset: '系统数据集',
     select_folder: '请选择所属文件夹',
     belong_folder: '所属文件夹',
     no_content: '没有找到相关内容',
@@ -2984,6 +3000,7 @@ export default {
     cancel: '取消',
     select_ds_group_folder: '请选择数据集分组所属文件夹',
     app_no_datasource_tips: '存在未配置的数据源',
+    app_no_dataset_tips: '存在未配置的数据集',
     dataset: '数据集',
     delete: '删除',
     delete_success: '删除成功',
@@ -3287,7 +3304,23 @@ export default {
     stream_mobile_tips: 'IOS终端可能无法显示',
     json_params_error: '第三方参数解析失败，请检查参数格式是否正确',
     inner_padding: '内边距',
+    inner_padding_shorthand_mode: '模式',
+    inner_padding_shorthand_mode_uniform: '统一值',
+    inner_padding_shorthand_mode_axis: '轴向',
+    inner_padding_shorthand_mode_per_edge: '逐边',
+    edge_top: '上',
+    edge_right: '右',
+    edge_bottom: '下',
+    edge_left: '左',
     board_radio: '圆角',
+    corner_shorthand_mode: '模式',
+    corner_shorthand_mode_uniform: '统一值',
+    corner_shorthand_mode_axis: '对角',
+    corner_shorthand_mode_per_edge: '逐角',
+    corner_top_left: '左上',
+    corner_top_right: '右上',
+    corner_bottom_left: '左下',
+    corner_bottom_right: '右下',
     web_set_tips: '部分网站可能设置不允许嵌入而无法显示',
     repeat_params: '存在名称重复的参数',
     enable_outer_param_set: '启用外部参数设置',

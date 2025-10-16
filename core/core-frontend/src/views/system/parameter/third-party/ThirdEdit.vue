@@ -74,6 +74,23 @@ const save = () => {
     })
 }
 
+const saveClose = () => {
+  const param = { ...state.form }
+  const method = request.post({ url: '/sysParameter/sqlbot', data: param })
+  showLoading()
+  method
+    .then(res => {
+      if (!res.msg) {
+        ElMessage.success(t('common.save_success'))
+        emits('saved')
+      }
+      closeLoading()
+    })
+    .catch(() => {
+      closeLoading()
+    })
+}
+
 const emits = defineEmits(['saved'])
 const submitForm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
@@ -131,7 +148,7 @@ const validateHandlerOnly = () => {
       state.form.valid = false
     })
     .finally(() => {
-      save()
+      saveClose()
     })
 }
 
@@ -165,8 +182,12 @@ defineExpose({
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="resetForm(dingtalkForm)">{{ t('common.cancel') }}</el-button>
-        <el-button :disabled="!state.form.id || !state.form.domain" @click="validateHandlerOnly">
+        <el-button secondary @click="resetForm(dingtalkForm)">{{ t('common.cancel') }}</el-button>
+        <el-button
+          secondary
+          :disabled="!state.form.id || !state.form.domain"
+          @click="validateHandlerOnly"
+        >
           {{ t('commons.validate') }}
         </el-button>
         <el-button type="primary" @click="submitForm(dingtalkForm)">

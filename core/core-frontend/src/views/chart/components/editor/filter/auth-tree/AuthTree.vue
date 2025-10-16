@@ -70,6 +70,7 @@ const add = (type, child, logic) => {
           term: '',
           filterType: 'logic',
           name: '',
+          timeType: 'year',
           filterTypeTime: 'dateValue',
           timeValue: '',
           dynamicTimeSetting: {},
@@ -113,7 +114,7 @@ const del = (index, child) => {
         </el-icon>
       </span>
     </div>
-    <div class="logic-right">
+    <div class="logic-right" style="padding-right: 40px">
       <template :key="index" v-for="(item, index) in relationList">
         <logic-relation
           v-if="item.child"
@@ -145,7 +146,6 @@ const del = (index, child) => {
   align-items: center;
   position: relative;
   z-index: 1;
-  width: 100%;
 
   .logic-left {
     box-sizing: border-box;
