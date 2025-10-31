@@ -1,5 +1,6 @@
 export default {
   common: {
+    month_to_yesterday: 'From the beginning of the month to yesterday',
     to_this_month: 'From the beginning of the year to this month',
     up_to_options: 'Display up to 1000 options',
     next_week: 'Next week',
@@ -2929,6 +2930,8 @@ export default {
     column_name: 'Field name'
   },
   visualization: {
+    sqlbot_query_tips: 'Smart Data Query',
+    cur_sq_dataset: 'Currently selected dataset:',
     data_match_type: 'Data match type',
     select_resource: 'Select {0}',
     change_screen_page: 'Change {0}',
@@ -3809,6 +3812,7 @@ export default {
     frontTimeOut: 'Request timeout (seconds)',
     logLiveTime: 'Operation log retention time (days)',
     thresholdLogLiveTime: 'Threshold alarm record retention time (days)',
+    dataFillingLogLiveTime: 'DataFilling operation log retention time (days)',
     exportFileLiveTime: 'Background export file retention time (days)',
     platformOid: 'Third-party platform user organization',
     platformRid: 'Third-party platform user role',
@@ -4687,7 +4691,8 @@ export default {
       'After binding, you can log in by scanning the QR code through International Lark',
     bind: 'Bind',
     unbind_success: 'Unbind successfully',
-    confirm_unbind_dingtalk: 'Are you sure you want to unbind DingTalk? ',
+    confirm_unbind_dingtalk: 'Are you sure you want to unbind {0}? ',
+    unbind_error: 'Current user origin is {0}, cannot unbind',
     pls_use: 'Please use ',
     bind_use_qr: 'Scan QR code to bind',
     pls_use_dingtalk: 'Please use DingTalk to scan QR code to log in',
