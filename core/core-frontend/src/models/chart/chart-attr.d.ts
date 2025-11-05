@@ -306,6 +306,7 @@ declare interface ChartBasicStyle {
     show: boolean
     field: string
     summary: string
+    originName?: string
   }>
   /**
    * 符号地图符号大小最小值
@@ -729,6 +730,18 @@ declare interface ChartMiscAttr {
    * 水波图形状
    */
   liquidShape: string
+  /**
+   * 水波图边框显示
+   */
+  liquidShowBorder: boolean
+  /**
+   * 水波图边框宽度
+   */
+  liquidBorderWidth: number
+  /**
+   * 水波图边框距离
+   */
+  liquidBorderDistance: number
   /**
    * 地图倾角
    */
@@ -1301,6 +1314,10 @@ declare interface ChartIndicatorNameStyle {
    * 指标/名称间距
    */
   nameValueSpacing: number
+  /**
+   * 指标名称位置
+   */
+  namePosition?: 'top' | 'bottom'
 }
 
 /**

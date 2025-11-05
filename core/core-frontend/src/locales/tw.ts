@@ -1777,6 +1777,9 @@ export default {
     dimension_text_style: '名稱樣式',
     dimension_letter_space: '名稱字間距',
     name_value_spacing: '名稱/值間距',
+    name_position: '位置',
+    name_position_top: '上方',
+    name_position_bottom: '下方',
     font_family: '字體',
     letter_space: '字間距',
     font_shadow: '字體陰影',
@@ -2058,7 +2061,10 @@ export default {
     table_field_total_label: '字段別名',
     table_row_header_freeze: '行頭凍結',
     value_formatter_total_out_percent: '顯示佔比',
-    enable_slider_tip: '開啟縮略軸後，輪播提示將會失效'
+    enable_slider_tip: '開啟縮略軸後，輪播提示將會失效',
+    liquid_show_border: '顯示邊框',
+    liquid_border_width: '邊框寬度',
+    liquid_border_distance: '邊框間距'
   },
   dataset: {
     field_value: '欄位值',

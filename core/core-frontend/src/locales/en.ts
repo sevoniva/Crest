@@ -1821,6 +1821,9 @@ export default {
     dimension_text_style: 'Name style',
     dimension_letter_space: 'Name letter spacing',
     name_value_spacing: 'Name/value spacing',
+    name_position: 'Position',
+    name_position_top: 'Top',
+    name_position_bottom: 'Bottom',
     font_family: 'Font',
     letter_space: 'Letter spacing',
     font_shadow: 'Font shadow',
@@ -2117,7 +2120,10 @@ export default {
     table_field_total_label: 'Field Alias',
     table_row_header_freeze: 'Row Header Freeze',
     value_formatter_total_out_percent: 'Show percentage',
-    enable_slider_tip: 'After enabling the slider, the carousel prompt will be disabled.'
+    enable_slider_tip: 'After enabling the slider, the carousel prompt will be disabled.',
+    liquid_show_border: 'Show Border',
+    liquid_border_width: 'Border Width',
+    liquid_border_distance: 'Border Distance'
   },
   dataset: {
     field_value: 'Field Value',

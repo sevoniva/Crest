@@ -1785,6 +1785,9 @@ export default {
     dimension_text_style: '名称样式',
     dimension_letter_space: '名称字间距',
     name_value_spacing: '名称/值间距',
+    name_position: '位置',
+    name_position_top: '上方',
+    name_position_bottom: '下方',
     font_family: '字体',
     letter_space: '字间距',
     font_shadow: '字体阴影',
@@ -2067,7 +2070,10 @@ export default {
     table_field_total_label: '字段别名',
     table_row_header_freeze: '行头冻结',
     value_formatter_total_out_percent: '显示占比',
-    enable_slider_tip: '开启缩略轴后，轮播提示将会失效'
+    enable_slider_tip: '开启缩略轴后，轮播提示将会失效',
+    liquid_show_border: '显示边框',
+    liquid_border_width: '边框宽度',
+    liquid_border_distance: '边框间距'
   },
   dataset: {
     field_value: '字段值',

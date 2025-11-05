@@ -344,7 +344,10 @@ export const DEFAULT_MISC: ChartMiscAttr = {
         symbolSize: 4
       }
     }
-  }
+  },
+  liquidShowBorder: false,
+  liquidBorderWidth: 4,
+  liquidBorderDistance: 8
 }
 
 export const DEFAULT_MARK = {
@@ -548,7 +551,8 @@ export const DEFAULT_INDICATOR_NAME_STYLE: ChartIndicatorNameStyle = {
   fontFamily: 'Microsoft YaHei',
   letterSpace: 0,
   fontShadow: false,
-  nameValueSpacing: 0
+  nameValueSpacing: 0,
+  namePosition: 'bottom'
 }
 
 export const DEFAULT_TITLE_STYLE_BASE: ChartTextStyle = {
