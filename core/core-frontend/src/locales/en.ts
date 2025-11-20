@@ -1,5 +1,8 @@
 export default {
   common: {
+    display_formats: 'Display Formats',
+    dropdown_display: 'Drop-down Display',
+    tile_display: 'Tile Display',
     month_to_yesterday: 'From the beginning of the month to yesterday',
     to_this_month: 'From the beginning of the year to this month',
     up_to_options: 'Display up to 1000 options',
@@ -313,6 +316,7 @@ export default {
     time_function: 'Time function',
     customize: 'Customize',
     that_day: 'That day',
+    timestamp: 'current time (timestamp)',
     value: 'Value',
     name_use_parameters: "You can use ${'{'}parameter name{'}'}, use parameters",
     add_parameters: 'Add parameters',

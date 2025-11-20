@@ -1,5 +1,8 @@
 export default {
   common: {
+    display_formats: '展示形式',
+    dropdown_display: '下拉展示',
+    tile_display: '平铺展示',
     month_to_yesterday: '月初至昨天',
     to_this_month: '年初至本月',
     up_to_options: '最多展示1000個選項',
@@ -302,6 +305,7 @@ export default {
     time_function: '時間函數',
     customize: '自訂',
     that_day: '當天',
+    timestamp: '當前時間（時間戳）',
     value: '值',
     name_use_parameters: "可用${'{'}參數名稱{'}'}，使用參數",
     add_parameters: '新增參數',

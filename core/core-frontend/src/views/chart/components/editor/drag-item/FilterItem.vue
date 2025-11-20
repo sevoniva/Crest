@@ -7,10 +7,11 @@ import { getItemType } from './utils'
 import { Delete, Filter } from '@element-plus/icons-vue'
 import { fieldType } from '@/utils/attr'
 import { iconFieldMap } from '@/components/icon-group/field-list'
+import { getCSSVariable } from '@/utils/color'
 
 const state = reactive({
   formatterItem: formatterItem,
-  tagColor: '#3370ff'
+  tagColor: getCSSVariable()
 })
 
 const props = defineProps({
@@ -113,6 +114,7 @@ onMounted(() => {
           </el-icon>
         </span>
         <span class="item-span-style" :title="item.name">{{ item.name }}</span>
+        <span :data-id="item.id" class="node-id_private"></span>
         <el-icon class="child remove-icon" size="14px">
           <Icon name="icon_delete-trash_outlined" class-name="inner-class"
             ><icon_deleteTrash_outlined @click="removeItem" class="svg-icon inner-class"
