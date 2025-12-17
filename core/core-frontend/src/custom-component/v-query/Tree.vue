@@ -9,8 +9,10 @@ import {
   computed,
   inject,
   Ref,
+  onBeforeMount,
   shallowRef
 } from 'vue'
+import { useEmitt } from '@/hooks/web/useEmitt'
 import { cloneDeep, debounce } from 'lodash-es'
 import { getFieldTree } from '@/api/dataset'
 import colorFunctions from 'less/lib/less/functions/color.js'
@@ -40,6 +42,7 @@ interface SelectConfig {
 }
 
 const customStyle: any = inject('$custom-style-filter')
+const cascadeList = inject('cascade-list', Function, true)
 const props = defineProps({
   config: {
     type: Object as PropType<SelectConfig>,
@@ -121,7 +124,7 @@ watch(
   }
 )
 
-const init = () => {
+const init = (fromMount = false) => {
   loading.value = true
   const { defaultValueCheck, multiple: plus, defaultValue } = config.value
   if (defaultValueCheck) {
@@ -137,6 +140,8 @@ const init = () => {
     oldId = config.value.treeFieldList?.map(ele => ele.id).join('-')
     multiple.value = config.value.multiple
   })
+  if (getCascadeFieldId().some(ele => ele.defaultValueFirstItem) && fromMount && !props.isConfig)
+    return
   getTreeOption()
 }
 
@@ -155,6 +160,7 @@ const tagTextWidth = computed(() => {
 const showOrHide = ref(true)
 const queryConditionWidth = inject('com-width', Function, true)
 const isConfirmSearch = inject('is-confirm-search', Function, true)
+const isConfirmSearchNoRequiredName = inject('query-data-for-id-tree', Function, true)
 watch(
   () => config.value.id,
   () => {
@@ -163,7 +169,8 @@ watch(
 )
 onMounted(() => {
   setTimeout(() => {
-    init()
+    fromSelect = true
+    init(true)
   }, 0)
 })
 
@@ -235,21 +242,114 @@ const dfs = arr => {
     return { ...ele, value: ele.id, label: ele.text, children }
   })
 }
-
+const cascade = computed(() => {
+  return cascadeList() || []
+})
 const loading = ref(false)
+
+const getCascadeFieldId = () => {
+  const filter = []
+  cascade.value.forEach(ele => {
+    let condition = null
+    ele.forEach(item => {
+      const [_, queryId, fieldId] = item.datasetId.split('--')
+      const defaultValueFirstItem = item.defaultValueFirstItem
+      if (queryId === config.value.id && condition) {
+        if (item.fieldId) {
+          condition.fieldId = item.fieldId
+        }
+        filter.push(condition)
+      } else {
+        if (props.isConfig) {
+          if (!!item.selectValue?.length) {
+            condition = {
+              fieldId,
+              defaultValueFirstItem,
+              operator: 'in',
+              value: [...item.selectValue]
+            }
+          }
+        } else {
+          if (!!item.currentSelectValue?.length) {
+            condition = {
+              fieldId,
+              defaultValueFirstItem,
+              operator: 'in',
+              value: [...item.currentSelectValue]
+            }
+          }
+        }
+      }
+    })
+  })
+  return filter
+}
+
+let fromSelect = false
+const getOptionFromCascade = () => {
+  fromSelect = true
+  getTreeOption()
+}
+
+onBeforeMount(() => {
+  useEmitt({
+    name: `${config.value.id}-select`,
+    callback: getOptionFromCascade
+  })
+})
+
+const dfsAuth = (tree, val) => {
+  return tree.some(ele => {
+    if (ele.value === val) {
+      return true
+    }
+
+    if (ele.children?.length) {
+      return dfsAuth(ele.children, val)
+    }
+
+    return false
+  })
+}
 
 const getTreeOption = debounce(() => {
   loading.value = true
   getFieldTree({
     fieldIds: props.config.treeFieldList.map(ele => ele.id),
-    resultMode: config.value.resultMode || 0
+    resultMode: config.value.resultMode || 0,
+    filter: getCascadeFieldId()
   })
     .then(res => {
       treeOptionList.value = dfs(res)
+      if (fromSelect) {
+        fromTreeSelectConfirm.value = true
+        if (multiple.value && Array.isArray(treeValue.value) && treeValue.value.length) {
+          treeValue.value = treeValue.value.filter(ele => dfsAuth(treeOptionList.value, ele))
+        } else if (treeValue.value && !dfsAuth(treeOptionList.value, treeValue.value)) {
+          treeValue.value = undefined
+        } else {
+          fromSelect = false
+        }
+
+        if (fromSelect) {
+          config.value.selectValue = Array.isArray(treeValue.value)
+            ? [...treeValue.value]
+            : treeValue.value
+          config.value.defaultValue = config.value.selectValue
+
+          if (props.config) return
+
+          nextTick(() => {
+            fromTreeSelectConfirm.value = false
+            isConfirmSearchNoRequiredName(config.value.id)
+          })
+        }
+      }
     })
     .finally(() => {
       loading.value = false
       showWholePath.value = true
+      fromSelect = false
     })
 }, 300)
 watch(

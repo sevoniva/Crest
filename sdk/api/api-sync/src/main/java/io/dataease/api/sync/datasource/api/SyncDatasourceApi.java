@@ -70,5 +70,11 @@ public interface SyncDatasourceApi {
     @GetMapping("/table/list/{dsId}")
     List<DBTableDTO> getTableList(@PathVariable("dsId") String dsId) throws DEException;
 
+    @GetMapping("/query2Root/{id}")
+    String query2Root(@PathVariable("id") Long id);
+
+    @GetMapping("/getLogResourceId/{id}")
+    Long getLogResourceId(@PathVariable("id") String id);
+
 
 }

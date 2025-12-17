@@ -35,7 +35,8 @@ const requireKeys = [
   'dataFillingLogLiveTime',
   'frontTimeOut',
   'loginLimitTime',
-  'loginLimitRate'
+  'loginLimitRate',
+  'thresholdLimit'
 ]
 const state = reactive({
   form: reactive({
@@ -332,6 +333,19 @@ defineExpose({
             step-strictly
             class="text-left edit-all-line"
             :min="1"
+            :placeholder="t('common.inputText')"
+            controls-position="right"
+            type="number"
+          />
+        </div>
+        <div v-else-if="item.pkey === 'thresholdLimit'">
+          <el-input-number
+            v-model="state.form.thresholdLimit"
+            autocomplete="off"
+            step-strictly
+            class="text-left edit-all-line"
+            :min="1"
+            :max="50"
             :placeholder="t('common.inputText')"
             controls-position="right"
             type="number"

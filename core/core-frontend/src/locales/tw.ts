@@ -684,7 +684,12 @@ export default {
     sub_area_tip: '請選擇省份或直轄市',
     delete_custom_area_tip: '該操作會導致使用了自定義區域的地圖無法正常展示，確定刪除？',
     please_select_area: '請選擇區域',
-    delete_custom_sub_area_tip: '確定刪除該自定義區域？'
+    delete_custom_sub_area_tip: '確定刪除該自定義區域？',
+    saml: {
+      title: 'SAML2 設定',
+      request: '開啟請求簽名',
+      assertion: '開啟斷言簽名'
+    }
   },
   components: {
     effective_during_link: '公共連結生效',
@@ -2788,7 +2793,7 @@ export default {
     condition_cascade_configuration: '查詢條件級聯配置',
     not_reverse_cascade: '(僅上級能級聯下級,不可反向級聯)',
     must_be_met: '基於目前查詢元件的查詢條件，如果需要進行級聯配置，需要滿足以下條件：',
-    select_data_set: '1. 展示類型：文字下拉元件與數字下拉元件；2. 選項值來源：選擇資料集',
+    select_data_set: '1. 展示類型：文字下拉元件與數字下拉元件，下拉樹；2. 選項值來源：選擇資料集',
     add_cascade_configuration: '新增級聯配置',
     add_cascade_condition: '新增級聯條件',
     query_condition_level: '查詢條件層級',
@@ -2859,6 +2864,9 @@ export default {
     column_name: '欄位名稱'
   },
   visualization: {
+    number_formatter: '數字內容格式',
+    jump_dialog_background: '彈框背景色',
+    jump_dialog_button: '彈框字體色',
     sqlbot_query_tips: '智能問數',
     cur_sq_dataset: '當前選擇的數據集：',
     data_match_type: '資料匹配方式',
@@ -3726,7 +3734,8 @@ export default {
     loginLimit: '限制登入',
     loginLimitRate: '限制登入失敗次數 (次)',
     loginLimitTime: '限制登入失敗時間 (分)',
-    share_disable_tips: '開啟後儀表板以及大屏分享無效'
+    share_disable_tips: '開啟後儀表板以及大屏分享無效',
+    thresholdLimit: '告警數據限製'
   },
   resource_sort: {
     time_asc: '按建立時間升序',
@@ -4489,6 +4498,7 @@ export default {
     msg_title: '消息標題',
     msg_content: '消息正文',
     repeat_send: '是否重複發送',
+    show_field_value: '顯示字段值',
     recipient: '接收人',
     choose_recipient: '選擇接收人',
     trigger_alarm: '觸發告警',
@@ -4498,6 +4508,7 @@ export default {
     recipient_setting: '設置接收人',
     attention_quota_tip: '您關注的指標',
     pay_attention_in_time: '。請及時關注。',
+    threshold_record: '告警數據',
     msg_preview: '消息預覽',
     average: '平均值',
     next_time: '下一',

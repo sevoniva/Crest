@@ -709,7 +709,12 @@ export default {
     delete_custom_area_tip:
       'This operation will cause the map using the custom area to fail to display normally, are you sure to delete?',
     please_select_area: 'Please select an area',
-    delete_custom_sub_area_tip: 'Are you sure you want to delete this custom area?'
+    delete_custom_sub_area_tip: 'Are you sure you want to delete this custom area?',
+    saml: {
+      title: 'SAML2 Settings',
+      request: 'Enable Request Signing',
+      assertion: 'Enable Assertion Signing'
+    }
   },
   components: {
     dashboard_style: 'Dashboard style',
@@ -2863,7 +2868,7 @@ export default {
     must_be_met:
       "Based on  the current component's condition, if cascade configuration is required, the following conditions must be met:",
     select_data_set:
-      '1. Display type: text and number drop-down component; 2. Option value source: select Dataset',
+      '1. Display type: Text dropdown component and numeric dropdown component, dropdown tree; 2. Source of option values: Selection dataset',
     add_cascade_configuration: 'Add cascade configuration',
     add_cascade_condition: 'Add cascade condition',
     query_condition_level: 'Level',
@@ -2940,6 +2945,9 @@ export default {
     column_name: 'Field name'
   },
   visualization: {
+    number_formatter: 'Number Content Format',
+    jump_dialog_background: 'Dialog Background Color',
+    jump_dialog_button: 'Dialog Font Color',
     sqlbot_query_tips: 'Smart Data Query',
     cur_sq_dataset: 'Currently selected dataset:',
     data_match_type: 'Data match type',
@@ -3837,7 +3845,8 @@ export default {
     loginLimit: 'Limit login',
     loginLimitRate: 'Limit login failure times (times)',
     loginLimitTime: 'Limit login failure time (minutes)',
-    share_disable_tips: 'Dashboard and data screen sharing are invalid after turning on'
+    share_disable_tips: 'Dashboard and data screen sharing are invalid after turning on',
+    thresholdLimit: 'Alarm data limitation'
   },
   resource_sort: {
     time_asc: 'In ascending order by creation time',
@@ -4620,6 +4629,7 @@ export default {
     msg_title: 'Message title',
     msg_content: 'Message content',
     repeat_send: 'Repeat send',
+    show_field_value: 'Show field value',
     recipient: 'Recipient',
     choose_recipient: 'Select recipient',
     trigger_alarm: 'Trigger alarm',
@@ -4629,6 +4639,7 @@ export default {
     recipient_setting: 'Recipient setting',
     attention_quota_tip: 'The indicators you are following',
     pay_attention_in_time: '. Please pay attention in time.',
+    threshold_record: 'Alert Data',
     msg_preview: 'Message preview',
     average: 'Average value',
     next_time: 'Next ',

@@ -24,9 +24,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useEmbedded } from '@/store/modules/embedded'
 import { XpackComponent } from '@/components/plugin'
+import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
+import { storeToRefs } from 'pinia'
+import ChartCarouselTooltip from '@/views/chart/components/js/g2plot_tooltip_carousel'
+const dvMainStore = dvMainStoreWithOut()
+const { canvasStyleData } = storeToRefs(dvMainStore)
 const state = reactive({
   dialogShow: false,
   name: '',
@@ -39,9 +44,16 @@ const xpackIframe = ref()
 const embeddedStore = useEmbedded()
 const dialogStyle = computed(() => {
   if (state.fullscreen) {
-    return {}
+    return [
+      { '--ed-dialog-bg-color': canvasStyleData.value.dialogBackgroundColor },
+      { '--ed-dialog__de-text': canvasStyleData.value.dialogButton }
+    ]
   } else {
-    return { height: state.height }
+    return [
+      { '--ed-dialog-bg-color': canvasStyleData.value.dialogBackgroundColor },
+      { '--ed-dialog__de-text': canvasStyleData.value.dialogButton },
+      { height: state.height }
+    ]
   }
 })
 
@@ -73,6 +85,16 @@ const previewInit = params => {
     }
   }
 }
+// 监听弹窗显示隐藏，控制tooltip显示隐藏，避免遮挡弹窗
+watch(
+  () => state.dialogShow,
+  show => {
+    document.querySelectorAll('.g2-tooltip')?.forEach(tooltip => {
+      tooltip.classList.toggle('hidden-tooltip', show)
+    })
+    if (!show) ChartCarouselTooltip.closeEnlargeDialogDestroy()
+  }
+)
 
 defineExpose({
   previewInit
@@ -82,6 +104,14 @@ defineExpose({
 <style lang="less">
 .preview_pop_custom {
   overflow: hidden;
+  :deep(.is_link) {
+    &:hover {
+      color: var(--ed-dialog__de-text) !important;
+    }
+  }
+  .ed-dialog__close {
+    color: var(--ed-dialog__de-text) !important;
+  }
   .preview-main-frame-outer {
     width: 100%;
     height: 100%;

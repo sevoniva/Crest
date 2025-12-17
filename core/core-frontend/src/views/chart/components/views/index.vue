@@ -2,6 +2,7 @@
 import icon_info_outlined from '@/assets/svg/icon_info_outlined.svg'
 import icon_linkRecord_outlined from '@/assets/svg/icon_link-record_outlined.svg'
 import icon_viewinchat_outlined from '@/assets/svg/icon_viewinchat_outlined.svg'
+import { cancelRequestBatch } from '@/config/axios/service'
 import icon_drilling_outlined from '@/assets/svg/icon_drilling_outlined.svg'
 import { useI18n } from '@/hooks/web/useI18n'
 import ChartComponentG2Plot from './components/ChartComponentG2Plot.vue'
@@ -37,7 +38,7 @@ import { useFilter } from '@/hooks/web/useFilter'
 import { useCache } from '@/hooks/web/useCache'
 
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
-import { cloneDeep } from 'lodash-es'
+import { cloneDeep, debounce } from 'lodash-es'
 import ChartComponentS2 from '@/views/chart/components/views/components/ChartComponentS2.vue'
 import { ChartLibraryType } from '@/views/chart/components/js/panel/types'
 import chartViewManager from '@/views/chart/components/js/panel'
@@ -571,7 +572,13 @@ const jumpClick = param => {
   }
 }
 
-const queryData = (firstLoad = false) => {
+const queryDataFromSelect = (firstLoad = false) => {
+  cancelRequestBatch(`chartData/getData/${view.value.id}`)
+  loading.value = false
+  queryData(firstLoad)
+}
+
+const queryData = debounce((firstLoad = false) => {
   if (loading.value) {
     return
   }
@@ -581,7 +588,7 @@ const queryData = (firstLoad = false) => {
   params['chartExtRequest'] = queryFilter
   chartExtRequest.value = queryFilter
   calcData(params)
-}
+}, 300)
 
 const calcData = params => {
   dvMainStore.setLastViewRequestInfo(params.id, params.chartExtRequest)
@@ -619,7 +626,7 @@ onBeforeMount(() => {
     nextTick(() => {
       useEmitt({
         name: `query-data-${view.value.id}`,
-        callback: queryData
+        callback: queryDataFromSelect
       })
     })
   }

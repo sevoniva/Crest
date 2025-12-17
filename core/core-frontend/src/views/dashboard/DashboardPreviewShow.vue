@@ -189,15 +189,21 @@ const checkTemplate = () => {
 
 const fileDownload = (downloadType, attachParams) => {
   downloadStatus.value = true
+  const mapElementIds =
+    state.canvasDataPreview
+      ?.filter(ele => mapChartTypes.includes(ele.innerType))
+      .map(ele => ele.id) || []
+  mapElementIds.forEach(id => useEmitt().emitter.emit('l7-prepare-picture', id))
   nextTick(() => {
     const vueDom = previewCanvasContainer.value.querySelector('.canvas-container')
-    download2AppTemplate(downloadType, vueDom, state.dvInfo.name, attachParams, null, null, () => {
+    download2AppTemplate(downloadType, vueDom, state.dvInfo.name, attachParams, () => {
       downloadStatus.value = false
       const param = {
         id: state.dvInfo.id,
         type: state.dvInfo.type === 'dashboard' ? 'panel' : 'screen'
       }
       downloadType === 'app' ? exportLogApp(param) : exportLogTemplate(param)
+      mapElementIds.forEach(id => useEmitt().emitter.emit('l7-unprepare-picture', id))
     })
   })
 }

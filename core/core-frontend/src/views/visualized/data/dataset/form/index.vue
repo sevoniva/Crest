@@ -51,7 +51,7 @@ import UnionEdit from './UnionEdit.vue'
 import type { FormInstance } from 'element-plus-secondary'
 import type { BusiTreeNode } from '@/models/tree/TreeNode'
 import CreatDsGroup from './CreatDsGroup.vue'
-import { guid, getFieldName, timeTypes, type DataSource } from './util'
+import { guid, getFieldName, timeTypes, num, type DataSource } from './util'
 import { fieldType } from '@/utils/attr'
 import { cancelMap } from '@/config/axios/service'
 import { useEmbedded } from '@/store/modules/embedded'
@@ -852,14 +852,12 @@ const allfields = ref([])
 provide('allfields', allfields)
 provide('isCross', isCross)
 
-let num = +new Date()
-
 const expandedD = ref(true)
 const expandedQ = ref(true)
 const setGuid = (arr, id, datasourceId, oldArr) => {
   arr.forEach(ele => {
     if (!ele.id) {
-      ele.id = oldArr.find(itx => itx.originName === ele.originName)?.id || `${++num}`
+      ele.id = oldArr.find(itx => itx.originName === ele.originName)?.id || `${++num.value}`
       ele.datasetTableId = id
       ele.datasourceId = datasourceId
     }
@@ -969,7 +967,6 @@ const confirmEditUnion = () => {
   setGuid(parent.currentDsFields, parent.id, parent.datasourceId, parentOldCurrentDsFields)
   const top = cloneDeep(node)
   const bottom = cloneDeep(parent)
-
   let arr = []
   dfsFieldsTips(arr, datasetDrag.value.getNodeList(), [node.id, parent.id])
   arr = [...arr, ...node.currentDsFields, ...parent.currentDsFields]
@@ -1658,6 +1655,7 @@ const sourceChange = val => {
 
 const finish = res => {
   const { id, pid, name } = res
+  isUpdate = false
   datasetName.value = name
   nodeInfo = {
     id,
@@ -2214,6 +2212,12 @@ const getIconNameCalc = (deType, extField, dimension = false) => {
                       </template>
                     </el-table-column>
 
+                    <el-table-column :label="t('chart.total_sort_field')" align="center" width="90">
+                      <template #default="scope">
+                        <el-checkbox v-model="scope.row.orderChecked" />
+                      </template>
+                    </el-table-column>
+
                     <el-table-column fixed="right" :label="t('chart.dimension')">
                       <template #default="scope">
                         <el-tooltip
@@ -2410,6 +2414,12 @@ const getIconNameCalc = (deType, extField, dimension = false) => {
                             {{ fieldTypes(scope.row.deExtractType) }}
                           </span>
                         </div>
+                      </template>
+                    </el-table-column>
+
+                    <el-table-column :label="t('chart.total_sort_field')" align="center" width="90">
+                      <template #default="scope">
+                        <el-checkbox v-model="scope.row.orderChecked" />
                       </template>
                     </el-table-column>
 

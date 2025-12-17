@@ -120,6 +120,11 @@ public class ChartDataServer implements ChartDataApi {
                 TypeReference<List<ChartViewFieldDTO>> listTypeReference = new TypeReference<List<ChartViewFieldDTO>>() {
                 };
                 viewDTO.setXAxis(JsonUtil.parseList(JsonUtil.toJSONString(sourceFields).toString(), listTypeReference));
+                viewDTO.getXAxis().forEach(x -> {
+                    if (x.getOrderChecked()) {
+                        x.setSort("asc");
+                    }
+                });
             }
             int curLimit = Math.toIntExact(ExportCenterUtils.getExportLimit("view"));
             int curDsLimit = Math.toIntExact(ExportCenterUtils.getExportLimit("dataset"));
@@ -133,6 +138,8 @@ public class ChartDataServer implements ChartDataApi {
             if (CommonConstants.VIEW_DATA_FROM.TEMPLATE.equalsIgnoreCase(viewDTO.getDataFrom())) {
                 chartViewInfo = extendDataManage.getChartDataInfo(viewDTO.getId(), viewDTO);
             } else {
+                // 要走明细表的逻辑
+                viewDTO.setIsPlugin(false);
                 chartViewInfo = chartDataManage.calcData(viewDTO);
             }
             List<Object[]> tableRow = (List) chartViewInfo.getData().get("sourceData");
@@ -365,6 +372,9 @@ public class ChartDataServer implements ChartDataApi {
         List<CellRangeAddress> mergeConfig = new ArrayList<>();
         if (StringUtils.equalsAnyIgnoreCase(viewInfo.getType(), "table-normal", "table-info")) {
             for (ChartViewFieldDTO xAxi : xAxis) {
+                if (xAxi.isHide()) {
+                    continue;
+                }
                 if (xAxi.getDeType().equals(DeTypeConstants.DE_INT) || xAxi.getDeType().equals(DeTypeConstants.DE_FLOAT)) {
                     CellStyle formatterCellStyle = createCellStyle(wb, xAxi.getFormatterCfg(), null);
                     styles.add(formatterCellStyle);
@@ -748,16 +758,19 @@ public class ChartDataServer implements ChartDataApi {
             }
             switch (formatter.getUnit()) {
                 case 1000:
-                    formatStr = formatStr + "\"千\"";
+                    formatStr = formatStr + (formatter.getUnitLanguage().equalsIgnoreCase("ch") ? "\"千\"" : "\"K\"");
                     break;
                 case 10000:
                     formatStr = formatStr + "\"万\"";
                     break;
                 case 1000000:
-                    formatStr = formatStr + "\"百万\"";
+                    formatStr = formatStr + (formatter.getUnitLanguage().equalsIgnoreCase("ch") ? "\"百万\"" : "\"M\"");
                     break;
                 case 100000000:
                     formatStr = formatStr + "\"亿\"";
+                    break;
+                case 1000000000:
+                    formatStr = formatStr + "\"B\"";
                     break;
                 default:
                     break;
@@ -781,16 +794,19 @@ public class ChartDataServer implements ChartDataApi {
             }
             switch (formatter.getUnit()) {
                 case 1000:
-                    formatStr = formatStr + "\"千\"";
+                    formatStr = formatStr + (formatter.getUnitLanguage().equalsIgnoreCase("ch") ? "\"千\"" : "\"K\"");
                     break;
                 case 10000:
                     formatStr = formatStr + "\"万\"";
                     break;
                 case 1000000:
-                    formatStr = formatStr + "\"百万\"";
+                    formatStr = formatStr + (formatter.getUnitLanguage().equalsIgnoreCase("ch") ? "\"百万\"" : "\"M\"");
                     break;
                 case 100000000:
                     formatStr = formatStr + "\"亿\"";
+                    break;
+                case 1000000000:
+                    formatStr = formatStr + "\"B\"";
                     break;
                 default:
                     break;
@@ -821,7 +837,6 @@ public class ChartDataServer implements ChartDataApi {
         return cellStyle;
     }
 
-
     @Override
     public List<String> getFieldData(ChartViewDTO view, Long fieldId, String fieldType) throws Exception {
         return chartDataManage.getFieldData(view, fieldId, fieldType);
@@ -833,10 +848,12 @@ public class ChartDataServer implements ChartDataApi {
     }
 
     @DeLog(id = "#p0", ot = LogOT.EXPORT, st = LogST.PANEL)
-    public void exportPanelViewLog(Long id) {}
+    public void exportPanelViewLog(Long id) {
+    }
 
     @DeLog(id = "#p0", ot = LogOT.EXPORT, st = LogST.SCREEN)
-    public void exportScreenViewLog(Long id) {}
+    public void exportScreenViewLog(Long id) {
+    }
 
 
 }

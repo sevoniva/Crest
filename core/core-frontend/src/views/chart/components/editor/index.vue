@@ -55,7 +55,7 @@ import SortPriorityEdit from '@/views/chart/components/editor/drag-item/componen
 import { snapshotStoreWithOut } from '@/store/modules/data-visualization/snapshot'
 import CalcFieldEdit from '@/views/visualized/data/dataset/form/CalcFieldEdit.vue'
 import { getFieldName, guid } from '@/views/visualized/data/dataset/form/util'
-import { cloneDeep, forEach, get, debounce, set, concat, keys } from 'lodash-es'
+import { cloneDeep, forEach, get, debounce, set, concat, keys, merge } from 'lodash-es'
 import { deleteField, saveField } from '@/api/dataset'
 import { getWorldTree, listCustomGeoArea } from '@/api/map'
 import chartViewManager from '@/views/chart/components/js/panel'
@@ -789,6 +789,11 @@ const addAxis = (e, axis: AxisType) => {
         axis: [view.value[axis][e.newDraggableIndex]],
         editType: 'add'
       })
+      const itemNewAdd = view.value[axis][e.newDraggableIndex]
+      itemNewAdd['formatterCfg'] = merge(
+        itemNewAdd['formatterCfg'],
+        dvMainStore.canvasStyleData.component.formatterItem
+      )
     }
   } else {
     if (!dup && typeValid) {
@@ -800,6 +805,11 @@ const addAxis = (e, axis: AxisType) => {
         editType: 'add',
         ...(isGaugeOrLiquid ? { quotaData: quotaData } : {})
       })
+      const itemNewAdd = view.value[axis][e.newDraggableIndex]
+      itemNewAdd['formatterCfg'] = merge(
+        itemNewAdd['formatterCfg'],
+        dvMainStore.canvasStyleData.component.formatterItem
+      )
     }
   }
   if (view.value.type === 'line') {
@@ -1828,6 +1838,7 @@ const setActive = (ele, type = 'dimension') => {
   const deactivateChild = type === 'quota' ? activeDimension : activeQuota
   deactivateChild.value = []
   activeChild.value = activeChild.value.some(item => item.id === ele.id) ? [] : [ele]
+  mergeFormatter(activeChild.value)
 }
 
 const setActiveCtrl = (ele, type = 'dimension') => {
@@ -1841,6 +1852,7 @@ const setActiveCtrl = (ele, type = 'dimension') => {
     return
   }
   activeChild.value.push(ele)
+  mergeFormatter(activeChild.value)
 }
 
 const setActiveShift = (ele, type = 'dimension') => {
@@ -1870,6 +1882,16 @@ const setActiveShift = (ele, type = 'dimension') => {
       activeChild.value = [...activeChild.value, ...dataArr.value.slice(startItx + 1, endItx + 1)]
     }
   }
+  mergeFormatter(activeChild.value)
+}
+
+const mergeFormatter = (
+  activeChildItems: any,
+  value = dvMainStore.canvasStyleData.component.formatterItem
+) => {
+  activeChildItems.forEach(item => {
+    item['formatterCfg'] = merge(item['formatterCfg'], value)
+  })
 }
 
 const isDrag = ref(false)
@@ -1888,6 +1910,7 @@ const singleDragStartD = (e: DragEvent, ele, type) => {
   if (!activeChild.value.length) {
     activeChild.value = [unref(ele)]
   }
+  mergeFormatter(activeChild.value)
   startToMove(e, unref(activeDimension.value))
 }
 
@@ -1905,6 +1928,7 @@ const singleDragStart = (e: DragEvent, ele, type) => {
   if (!activeChild.value.length) {
     activeChild.value = [ele]
   }
+  mergeFormatter(activeChild.value)
   e.dataTransfer.setData(
     'quota',
     JSON.stringify(
@@ -1943,13 +1967,16 @@ const drop = (ev: MouseEvent, type = 'xAxis') => {
     view.value[type] ??= []
     const targetId = ev.srcElement.offsetParent?.querySelector('.node-id_private')?.dataset?.id
     const index = view.value[type].findIndex(ele => ele.id === targetId && ele.id !== obj.id)
+    let newDraggableIndex
     if (index !== -1) {
-      view.value[type].splice(index + 1, 0, obj)
+      view.value[type].splice(index + 1 + i, 0, obj)
+      newDraggableIndex = index + 1 + i
     } else {
       view.value[type].push(obj)
+      newDraggableIndex = view.value[type].length - 1
     }
 
-    const e = { newDraggableIndex: view.value[type].length - 1 }
+    const e = { newDraggableIndex }
 
     if ('drillFields' === type) {
       addDrill(e)

@@ -1176,21 +1176,27 @@ const CascadeDialog = defineAsyncComponent(() => import('./QueryCascade.vue'))
 const cascadeDialog = ref()
 const openCascadeDialog = () => {
   const cascadeMap = conditions.value
-    .filter(
-      ele =>
-        [0, 2, 5].includes(+ele.displayType) &&
-        ele.optionValueSource === 1 &&
-        !!ele.checkedFields?.length &&
-        !!Object.values(ele.checkedFieldsMap).filter(item => !!item).length
-    )
+    .filter(ele => {
+      return (
+        ([0, 2, 5].includes(+ele.displayType) &&
+          ele.optionValueSource === 1 &&
+          !!ele.checkedFields?.length &&
+          !!Object.values(ele.checkedFieldsMap).filter(item => !!item).length) ||
+        ([9].includes(+ele.displayType) && ele.treeFieldList?.length)
+      )
+    })
     .reduce((pre, next) => {
+      const isTree = [9].includes(+next.displayType)
+      const fieldId = isTree ? next.treeFieldList[0].id : next.field.id
+      const datasetId = isTree ? next.treeFieldList[0].datasetGroupId : next.dataset.id
       pre[next.id] = {
-        datasetId: next.dataset.id,
+        datasetId,
+        isTree,
         name: next.name,
         queryId: next.id,
-        fieldId: next.field.id,
+        fieldId: fieldId,
         deType: (datasetMap[next.dataset.id]?.fields?.dimensionList || next.dataset.fields).find(
-          ele => ele.id === next.field.id
+          ele => ele.id === fieldId
         )?.deType
       }
       return pre
@@ -1517,7 +1523,6 @@ const validate = () => {
         return true
       }
       if (!ele.setTimeRange) return false
-      console.log(startTime, endTime)
 
       if (
         isInRange(
@@ -1562,7 +1567,9 @@ const handleBeforeClose = () => {
   defaultConfigurationRef.value?.mult()
   defaultConfigurationRef.value?.single()
   handleDialogClick()
-  curComponent.value.id = ''
+  if (curComponent.value) {
+    curComponent.value.id = ''
+  }
   relationshipChartIndex.value = 0
   dialogVisible.value = false
 }
@@ -2269,6 +2276,7 @@ const timeGranularityMultipleChange = (val: string) => {
 watch(
   () => showError.value,
   val => {
+    if (!curComponent.value) return
     curComponent.value.showError = val
   }
 )

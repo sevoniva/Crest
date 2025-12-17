@@ -48,7 +48,7 @@ DataEase 是开源的 BI 工具，帮助用户快速分析数据并洞察业务�
 -   数据文件： Excel、CSV 等；
 -   API 数据源。
 
-如果您需要向团队介绍 DataEase，可以使用这个 [官方 PPT 材料](https://fit2cloud.com/dataease/download/introduce-dataease_202506.pdf)。
+如果您需要向团队介绍 DataEase，可以使用这个 [官方 PPT 材料](https://fit2cloud.com/dataease/download/introduce-dataease_202511.pdf)。
 
 ## 快速开始
 

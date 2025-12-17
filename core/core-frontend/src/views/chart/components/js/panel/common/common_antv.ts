@@ -1388,6 +1388,13 @@ export function calculateBounds(coordinates: number[][]): {
 export function configL7PlotZoom(chart: Chart, plot: L7Plot<PlotOptions>) {
   const { basicStyle } = parseJson(chart.customAttr)
   if (shouldHideZoom(basicStyle)) {
+    // amap
+    plot.scene.map['zoomEnable']?.disable()
+    plot.scene.map['dragEnable']?.disable()
+    // mapbox
+    plot.scene.map['dragPan']?.disable()
+    plot.scene.map['scrollZoom']?.disable()
+    plot.scene.map['doubleClickZoom']?.disable()
     return
   }
   plot.once('loaded', () => {
@@ -2346,8 +2353,8 @@ export const configEmptyDataStyle = (newData, container, newChart?, content?) =>
     }
   }
   removeEmptyDom()
-  if (newData.length > 0) return
-  if (!newData.length) {
+  if (newData?.length > 0) return
+  if (!newData?.length) {
     const emptyDom = document.createElement('div')
     emptyDom.id = container + '_empty'
     emptyDom.textContent = content || tI18n('data_set.no_data')

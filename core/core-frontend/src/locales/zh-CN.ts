@@ -690,7 +690,9 @@ export default {
     please_select_area: '请选择区域',
     delete_custom_sub_area_tip: '确定删除该自定义区域？',
     saml: {
-      title: 'SAML2 设置'
+      title: 'SAML2 设置',
+      request: '开启请求签名',
+      assertion: '开启断言签名'
     }
   },
   components: {
@@ -2797,7 +2799,7 @@ export default {
     condition_cascade_configuration: '查询条件级联配置',
     not_reverse_cascade: '(仅上级能级联下级,不可反向级联)',
     must_be_met: '基于当前查询组件的查询条件，如果需要进行级联配置，需要满足以下条件：',
-    select_data_set: '1. 展示类型：文本下拉组件和数字下拉组件；2. 选项值来源：选择数据集',
+    select_data_set: '1. 展示类型：文本下拉组件，数字下拉组件，下拉树；2. 选项值来源：选择数据集',
     add_cascade_configuration: '添加级联配置',
     add_cascade_condition: '添加级联条件',
     query_condition_level: '查询条件层级',
@@ -2868,6 +2870,9 @@ export default {
     column_name: '字段名称'
   },
   visualization: {
+    number_formatter: '数字内容格式',
+    jump_dialog_background: '弹框背景色',
+    jump_dialog_button: '弹框字体色',
     sqlbot_query_tips: '智能问数',
     cur_sq_dataset: '当前选择的数据集：',
     data_match_type: '数据匹配方式',
@@ -3735,7 +3740,8 @@ export default {
     loginLimit: '限制登录',
     loginLimitRate: '限制登录失败次数 (次)',
     loginLimitTime: '限制登录失败时间 (分)',
-    share_disable_tips: '开启后仪表板以及大屏分享无效'
+    share_disable_tips: '开启后仪表板以及大屏分享无效',
+    thresholdLimit: '告警数据限制'
   },
   resource_sort: {
     time_asc: '按创建时间升序',
@@ -4497,6 +4503,7 @@ export default {
     msg_title: '消息标题',
     msg_content: '消息正文',
     repeat_send: '是否重复发送',
+    show_field_value: '显示字段值',
     recipient: '接收人',
     choose_recipient: '选择接收人',
     trigger_alarm: '触发告警',
@@ -4506,6 +4513,7 @@ export default {
     recipient_setting: '设置接收人',
     attention_quota_tip: '您关注的指标',
     pay_attention_in_time: '。请及时关注。',
+    threshold_record: '告警数据',
     msg_preview: '消息预览',
     average: '平均值',
     next_time: '下一',
