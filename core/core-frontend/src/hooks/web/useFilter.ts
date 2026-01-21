@@ -19,12 +19,12 @@ const getDynamicRangeTime = (type: number, selectValue: any, timeGranularityMult
       +new Date(
         dayjs(selectValue[0])
           .startOf(timeType as 'month' | 'year' | 'date')
-          .format('YYYY-MM-DD HH:mm:ss')
+          .format('YYYY/MM/DD HH:mm:ss')
       ),
       +new Date(
         dayjs(selectValue[1])
           .endOf(timeType as 'month' | 'year' | 'date')
-          .format('YYYY-MM-DD HH:mm:ss')
+          .format('YYYY/MM/DD HH:mm:ss')
       )
     ]
   }
@@ -363,10 +363,35 @@ export const searchQuery = (queryComponentList, filter, curComponentId, firstLoa
             timeGranularity = 'date',
             displayType,
             displayId,
-            multiple
+            multiple,
+            optionFilter
           } = item
 
           const isTree = +displayType === 9
+          if (optionFilter) {
+            let fieldIdOption = item.checkedFieldsMap[curComponentId]
+            const optionFilterValue = isTree
+              ? optionFilter.map(itemOption => itemOption.replace(/-de-/g, ','))
+              : optionFilter
+            if (isTree) {
+              const [i, r] = getFieldId(
+                treeFieldList,
+                optionFilterValue,
+                relationshipChartIndex,
+                ids
+              )
+              fieldIdOption = i
+            }
+            filter.push({
+              filterId: id,
+              componentId: ele.id,
+              fieldId: fieldIdOption,
+              operator: 'in',
+              value: optionFilterValue,
+              parameters: [],
+              isTree
+            })
+          }
 
           if (
             timeType === 'dynamic' &&
@@ -516,8 +541,10 @@ export const searchQuery = (queryComponentList, filter, curComponentId, firstLoa
                   item.parametersArr[curComponentId].filter(e => e.id === endTimeFieldId)
                 )
                 filter.push({
+                  filterId: id,
                   componentId: ele.id,
                   fieldId: endTimeFieldId,
+                  arrayType: 'END',
                   operator,
                   value: resultEnd,
                   parameters: parametersFilterEnd,
@@ -547,8 +574,10 @@ export const searchQuery = (queryComponentList, filter, curComponentId, firstLoa
                   item.parametersArr[curComponentId].filter(e => e.id === endTimeFieldId)
                 )
                 filter.push({
+                  filterId: id,
                   componentId: ele.id,
                   fieldId: endTimeFieldId,
+                  arrayType: 'END',
                   operator,
                   value: resultEnd,
                   parameters: parametersFilterEnd,

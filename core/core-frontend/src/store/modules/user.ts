@@ -2,7 +2,9 @@ import { defineStore } from 'pinia'
 import { store } from '../index'
 import { useCache } from '@/hooks/web/useCache'
 import { useLocaleStoreWithOut } from './locale'
+import { useLocale } from '@/hooks/web/useLocale'
 const { wsCache } = useCache()
+const { changeLocale } = useLocale()
 
 interface UserState {
   token: string
@@ -65,7 +67,7 @@ export const userStore = defineStore('user', {
         wsCache.set('user.' + key, this[key])
       })
       const locale = useLocaleStoreWithOut()
-      if (locale.getCurrentLocale?.lang !== this.language) {
+      if (locale.getCurrentLocale?.lang !== this.language && !window.DataEaseBi) {
         window.location.reload()
       }
       this.setLanguage(this.language)
@@ -102,6 +104,7 @@ export const userStore = defineStore('user', {
       wsCache.set('user.language', language)
       this.language = language
       locale.setLang(language)
+      changeLocale(language as any)
     },
     clear() {
       const keys: string[] = ['token', 'uid', 'name', 'oid', 'language', 'exp', 'time']

@@ -3,7 +3,7 @@ export default {
     display_formats: 'Display Formats',
     dropdown_display: 'Drop-down Display',
     tile_display: 'Tile Display',
-    month_to_yesterday: 'From the beginning of the month to yesterday',
+    month_to_yesterday: 'From the beginning of the month to yesterday(current month)',
     to_this_month: 'From the beginning of the year to this month',
     up_to_options: 'Display up to 1000 options',
     next_week: 'Next week',
@@ -2510,7 +2510,9 @@ export default {
     serial_no: 'Serial number',
     remark: 'Remark',
     back_community: 'Revert to Community Edition',
-    confirm_tips: 'Are you sure you want to restore to the community edition? '
+    confirm_tips: 'Are you sure you want to restore to the community edition? ',
+    set_of: '',
+    count_of: 'account'
   },
   cron: {
     second: 'Seconds',
@@ -2945,6 +2947,14 @@ export default {
     column_name: 'Field name'
   },
   visualization: {
+    img_can_not_null: 'Image cannot be empty',
+    outer_params_type_tips1:
+      "When the type is 'filter', it only applies to text dropdown, text tree, and number dropdown. For text tree filtering format, separate multiple levels with '-de-'",
+    outer_params_type_tips2:
+      '["Level1","Level1-de-Level2_1","Level2-de-Level2_1","Level1-de-Level2_1-de-Level3_1","Level2"]',
+    outer_params_type: 'Type',
+    outer_params_type_self: 'Assignment',
+    outer_params_type_filter: 'Filter',
     number_formatter: 'Number Content Format',
     jump_dialog_background: 'Dialog Background Color',
     jump_dialog_button: 'Dialog Font Color',

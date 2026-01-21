@@ -25,7 +25,11 @@ import { viewFieldTimeTrans } from '@/utils/viewUtils'
 import { useAppearanceStoreWithOut } from '@/store/modules/appearance'
 import { ElMessage } from 'element-plus-secondary'
 import { useI18n } from '@/hooks/web/useI18n'
-import { filterEnumParams, filterEnumParamsReduce } from '@/utils/componentUtils'
+import {
+  filterEnumParams,
+  filterEnumParamsReduce,
+  filterParamsOptions
+} from '@/utils/componentUtils'
 import { formatterItem } from '@/views/chart/components/js/formatter'
 const { t } = useI18n()
 
@@ -1117,7 +1121,14 @@ export const dvMainStore = defineStore('dataVisualization', {
             targetInfo.defaultValue.length > 0
           ) {
             // 非必填时 用户没有填写参数 但是启用默认值且有预设默认值时
-            params[key] = JSON.parse(targetInfo.defaultValue)
+            if (paramsVersion === 'v2') {
+              params[key] = {
+                operator: 'in',
+                value: JSON.parse(targetInfo.defaultValue)
+              }
+            } else {
+              params[key] = JSON.parse(targetInfo.defaultValue)
+            }
           } else if (!userParamsIsNull) {
             params[key] = paramsPre[key]
           }
@@ -1160,15 +1171,29 @@ export const dvMainStore = defineStore('dataVisualization', {
           } else if (element.component === 'DeTabs') {
             element.propValue?.forEach(tabItem => {
               tabItem.componentData?.forEach((tabComponent, index) => {
-                this.trackOuterFilterCursor(
-                  tabComponent,
-                  params,
-                  preActiveComponentIds,
-                  trackInfo,
-                  source,
-                  paramsVersion
-                )
-                tabItem.componentData[index] = tabComponent
+                if (['UserView', 'VQuery'].includes(tabComponent.component)) {
+                  this.trackOuterFilterCursor(
+                    tabComponent,
+                    params,
+                    preActiveComponentIds,
+                    trackInfo,
+                    source,
+                    paramsVersion
+                  )
+                  tabItem.componentData[index] = tabComponent
+                } else if (tabComponent.component === 'Group') {
+                  tabComponent.propValue?.forEach((groupItem, index) => {
+                    this.trackOuterFilterCursor(
+                      groupItem,
+                      params,
+                      preActiveComponentIds,
+                      trackInfo,
+                      source,
+                      paramsVersion
+                    )
+                    tabComponent.propValue[index] = groupItem
+                  })
+                }
               })
             })
           }
@@ -1265,81 +1290,106 @@ export const dvMainStore = defineStore('dataVisualization', {
             element.propValue?.forEach(filterItem => {
               if (filterItem.id === targetViewId) {
                 let queryParams = paramValue
-                if (!['1', '7'].includes(filterItem.displayType)) {
-                  // 查询组件除了时间组件 其他入参只支持文本 这里全部转为文本
-                  queryParams = paramValue.map(number => String(number))
-                }
-                filterItem.defaultMapValue = []
-                filterItem.mapValue = []
-                filterItem.defaultValueCheck = true
-                filterItem.defaultValueFirstItem = false
-                filterItem.timeType = 'fixed'
-                if (['0', '2'].includes(filterItem.displayType)) {
-                  const { optionValueSource, field, displayId } = filterItem
-                  const queryMapFlag = optionValueSource === 1 && field.id !== displayId
-                  let queryMapParams = queryParams
-                  if (queryMapFlag) {
-                    queryParams = filterEnumParamsReduce(queryParams, field.id)
-                    queryMapParams = filterEnumParams(queryParams, field.id)
+                const targetMatchMode = targetInfoArray[2] // 目标匹配模式
+                if (targetMatchMode === 'filter') {
+                  paramValue = paramValue.map(option => {
+                    if (typeof option === 'string' && option.includes(',')) {
+                      return option.replace(/,/g, '-de-')
+                    }
+                    return option
+                  })
+                  queryParams = paramValue
+                  // do filter
+                  filterItem['optionFilter'] = queryParams
+                  if (filterItem.defaultValueCheck) {
+                    const result = filterParamsOptions(
+                      deepCopy(filterItem['selectValue']),
+                      deepCopy(queryParams)
+                    )
+                    if (result) {
+                      filterItem['selectValue'] = result
+                      filterItem['defaultValue'] = result
+                    } else if (!filterItem.defaultValueFirstItem && !filterItem.required) {
+                      filterItem.defaultValueCheck = false
+                    }
                   }
-                  // 0 文本类型 1 数字类型
-                  if (filterItem.multiple) {
-                    // multiple === true 多选
-                    filterItem['selectValue'] = queryParams
-                    filterItem['defaultValue'] = queryParams
-                  } else {
-                    // 单选
+                } else {
+                  if (!['1', '7'].includes(filterItem.displayType)) {
+                    // 查询组件除了时间组件 其他入参只支持文本 这里全部转为文本
+                    queryParams = paramValue.map(number => String(number))
+                  }
+                  filterItem.defaultMapValue = []
+                  filterItem.mapValue = []
+                  filterItem.defaultValueCheck = true
+                  filterItem.defaultValueFirstItem = false
+                  filterItem.timeType = 'fixed'
+                  if (['0', '2'].includes(filterItem.displayType)) {
+                    const { optionValueSource, field, displayId } = filterItem
+                    const queryMapFlag = optionValueSource === 1 && field.id !== displayId
+                    let queryMapParams = queryParams
+                    if (queryMapFlag) {
+                      queryParams = filterEnumParamsReduce(queryParams, field.id)
+                      queryMapParams = filterEnumParams(queryParams, field.id)
+                    }
+                    // 0 文本类型 1 数字类型
+                    if (filterItem.multiple) {
+                      // multiple === true 多选
+                      filterItem['selectValue'] = queryParams
+                      filterItem['defaultValue'] = queryParams
+                    } else {
+                      // 单选
+                      filterItem['selectValue'] = queryParams[0]
+                      filterItem['defaultValue'] = queryParams[0]
+                    }
+                    filterItem['defaultMapValue'] = queryMapParams
+                    filterItem['mapValue'] = queryMapParams
+                  } else if (filterItem.displayType === '1') {
+                    // 1 时间类型
                     filterItem['selectValue'] = queryParams[0]
                     filterItem['defaultValue'] = queryParams[0]
-                  }
-                  filterItem['defaultMapValue'] = queryMapParams
-                  filterItem['mapValue'] = queryMapParams
-                } else if (filterItem.displayType === '1') {
-                  // 1 时间类型
-                  filterItem['selectValue'] = queryParams[0]
-                  filterItem['defaultValue'] = queryParams[0]
-                } else if (filterItem.displayType === '7') {
-                  // 7 时间范围类型
-                  filterItem['selectValue'] = queryParams
-                  filterItem['defaultValue'] = queryParams
-                } else if (filterItem.displayType === '8') {
-                  // 8 文本搜索
-                  filterItem['conditionValueF'] = parmaValueSource + ''
-                  filterItem['defaultConditionValueF'] = parmaValueSource + ''
-                } else if (filterItem.displayType === '9') {
-                  // 9 下拉树
-                  if (filterItem.multiple) {
-                    // multiple === true 多选
+                  } else if (filterItem.displayType === '7') {
+                    // 7 时间范围类型
                     filterItem['selectValue'] = queryParams
                     filterItem['defaultValue'] = queryParams
-                  } else {
-                    // 单选
-                    filterItem['selectValue'] = queryParams[0]
-                    filterItem['defaultValue'] = queryParams[0]
+                  } else if (filterItem.displayType === '8') {
+                    // 8 文本搜索
+                    filterItem['conditionValueF'] = parmaValueSource + ''
+                    filterItem['defaultConditionValueF'] = parmaValueSource + ''
+                  } else if (filterItem.displayType === '9') {
+                    // 9 下拉树
+                    if (filterItem.multiple) {
+                      // multiple === true 多选
+                      filterItem['selectValue'] = queryParams
+                      filterItem['defaultValue'] = queryParams
+                    } else {
+                      // 单选
+                      filterItem['selectValue'] = queryParams[0]
+                      filterItem['defaultValue'] = queryParams[0]
+                    }
+                  } else if (filterItem.displayType === '22') {
+                    filterItem['defaultNumValueStart'] = queryParams[0]
+                    filterItem['defaultNumValueEnd'] = queryParams[1]
+                    filterItem['numValueStart'] = queryParams[0]
+                    filterItem['numValueEnd'] = queryParams[1]
                   }
-                } else if (filterItem.displayType === '22') {
-                  filterItem['defaultNumValueStart'] = queryParams[0]
-                  filterItem['defaultNumValueEnd'] = queryParams[1]
-                  filterItem['numValueStart'] = queryParams[0]
-                  filterItem['numValueEnd'] = queryParams[1]
-                }
-                if ('DE_EMPTY' === paramValueStr) {
-                  filterItem['selectValue'] = null
-                  filterItem['defaultValue'] = null
-                  filterItem['conditionValueF'] = null
-                  filterItem['defaultConditionValueF'] = null
-                }
-                if (filterItem['defaultValue']) {
-                  defaultValueMap[filterItem.id] = filterItem['defaultValue']
+                  if ('DE_EMPTY' === paramValueStr) {
+                    filterItem['selectValue'] = null
+                    filterItem['defaultValue'] = null
+                    filterItem['conditionValueF'] = null
+                    filterItem['defaultConditionValueF'] = null
+                  }
+                  if (filterItem['defaultValue']) {
+                    defaultValueMap[filterItem.id] = filterItem['defaultValue']
+                  }
                 }
               }
             })
-            const allCascadeDataset = element.cascade
-              .flat()
-              .map(item => `--${item.datasetId}`)
-              .join('')
             // 级联条件处理
             if (element.cascade?.length && Object.keys(defaultValueMap).length) {
+              const allCascadeDataset = element.cascade
+                .flat()
+                .map(item => `--${item.datasetId}`)
+                .join('')
               element.cascade.forEach(cascadeItem => {
                 Object.keys(defaultValueMap).forEach(key => {
                   const curDefaultValue = defaultValueMap[key]

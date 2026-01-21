@@ -89,7 +89,23 @@
                       </el-icon>
                     </div>
                   </div>
-                  <div style="flex: 1">{{ t('visualization.filter_component') }}</div>
+                  <div style="width: 120px">{{ t('visualization.filter_component') }}</div>
+                  <div style="width: 160px">
+                    {{ t('visualization.outer_params_type') }}
+                    <el-tooltip class="item" placement="bottom">
+                      <template #content>
+                        <div>
+                          {{ t('visualization.outer_params_type_tips1') }} <br />
+                          {{ t('visualization.outer_params_type_tips2') }}
+                        </div>
+                      </template>
+                      <el-icon class="hint-icon-type" style="display: inline-block">
+                        <Icon name="icon_info_outlined"
+                          ><icon_info_outlined class="svg-icon"
+                        /></Icon>
+                      </el-icon>
+                    </el-tooltip>
+                  </div>
                   <div style="flex: 1">{{ t('visualization.connection_condition') }}</div>
                 </div>
                 <div class="outer-filter-content">
@@ -101,11 +117,31 @@
                     :key="index"
                   >
                     <div style="width: 16px"></div>
-                    <div style="flex: 1; line-height: 32px">
+                    <div style="width: 120px; line-height: 32px">
                       <Icon name="filter-params"
                         ><filterParams style="margin-top: 4px" class="svg-icon view-type-icon"
                       /></Icon>
                       <span>{{ findFilterName(baseFilter.id) }}</span>
+                    </div>
+                    <div style="width: 152px; margin-right: 12px">
+                      <el-select
+                        v-model="baseFilter.matchMode"
+                        filterable
+                        style="width: 100%"
+                        :placeholder="t('v_query.select_query_condition')"
+                        clearable
+                        @change="matchModeChange(baseFilter)"
+                      >
+                        <el-option
+                          :label="t('visualization.outer_params_type_self')"
+                          value="self"
+                        ></el-option>
+                        <el-option
+                          :label="t('visualization.outer_params_type_filter')"
+                          value="filter"
+                        >
+                        </el-option>
+                      </el-select>
                     </div>
                     <div style="flex: 1">
                       <el-select
@@ -120,6 +156,11 @@
                           :key="item.id"
                           :label="item.name"
                           :value="item.id"
+                          :disabled="
+                            baseFilter.matchMode === 'filter'
+                              ? !['0', '9', '2'].includes(item.displayType + '')
+                              : false
+                          "
                         >
                           <span style="font-size: 12px"> {{ item.name }}</span>
                         </el-option>
@@ -357,6 +398,7 @@ const { t } = useI18n()
 const curEditDataId = ref(null)
 const snapshotStore = snapshotStoreWithOut()
 import icon_info_outlined from '@/assets/svg/icon_info_outlined.svg'
+import dvInfoSvg from '@/assets/svg/dv-info.svg'
 
 const state = reactive({
   filterExpand: true,
@@ -428,6 +470,19 @@ const state = reactive({
     numberRangeWidget: t('visualization.number_range_widget')
   }
 })
+
+const matchModeChange = baseFilter => {
+  if (
+    baseFilter.matchMode === 'filter' &&
+    baseFilter.propValue &&
+    baseFilter.propValue.length > 0
+  ) {
+    const matchedItem = baseFilter.propValue.find(item => item.id === baseFilter.filterSelected)
+    if (matchedItem && !['0', '9', '2'].includes(matchedItem.displayType.toString())) {
+      baseFilter.filterSelected = undefined
+    }
+  }
+}
 
 const argRefs = ref({})
 
@@ -513,6 +568,12 @@ const initParams = async () => {
         tabItem.componentData?.forEach(tabComponent => {
           if (tabComponent.component === 'VQuery') {
             state.baseFilterInfo.push(tabComponent)
+          } else if (tabComponent.component === 'Group') {
+            tabComponent.propValue.forEach(groupItem => {
+              if (groupItem.component === 'VQuery') {
+                state.baseFilterInfo.push(groupItem)
+              }
+            })
           }
         })
       })
@@ -567,9 +628,11 @@ const datasetInfoChange = datasetInfo => {
 
 const paramsCheckedAdaptor = (outerParamsInfo, newBaseFilterInfo, newBaseDatasetInfo) => {
   const dsFieldIdSelected = {}
+  const dsFilterMatchMode = {}
   const viewMatchIds = []
   outerParamsInfo.targetViewInfoList.forEach(targetViewInfo => {
     viewMatchIds.push(targetViewInfo.targetViewId)
+    dsFilterMatchMode[targetViewInfo.targetDsId] = targetViewInfo.matchMode || 'self'
     dsFieldIdSelected[targetViewInfo.targetDsId] =
       targetViewInfo.targetFieldId === 'empty'
         ? targetViewInfo.targetViewId
@@ -601,6 +664,7 @@ const paramsCheckedAdaptor = (outerParamsInfo, newBaseFilterInfo, newBaseDataset
   if (newBaseFilterInfo) {
     newBaseFilterInfo.forEach(filterInfo => {
       filterInfo['filterSelected'] = dsFieldIdSelected[filterInfo.id]
+      filterInfo['matchMode'] = dsFilterMatchMode[filterInfo.id] || 'self'
     })
   }
   outerParamsInfo['filterInfo'] = newBaseFilterInfo
@@ -642,6 +706,7 @@ const save = () => {
         outerParamsInfo.targetViewInfoList.push({
           targetViewId: baseFilterInfo.filterSelected,
           targetDsId: baseFilterInfo.id,
+          matchMode: baseFilterInfo.matchMode,
           targetFieldId: 'empty'
         })
       }
@@ -1128,6 +1193,13 @@ defineExpose({
   height: 10px;
   margin-bottom: 12px;
   margin-right: -80px;
+}
+
+.hint-icon-type {
+  cursor: pointer;
+  font-size: 14px;
+  color: #646a73;
+  display: inline-block;
 }
 
 .hint-icon {

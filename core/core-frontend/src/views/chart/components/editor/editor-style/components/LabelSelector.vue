@@ -292,7 +292,7 @@ const configCompat = (labelAttr: DeepPartial<ChartLabelAttr>) => {
   }
 }
 const checkLabelContent = contentProp => {
-  if (chartType.value === 'funnel') {
+  if (chartType.value === 'funnel' || chartType.value === 'liquid') {
     return false
   }
   const propIntersection = intersection(props.propertyInner, [
@@ -561,6 +561,7 @@ const isProgressBar = computed(() => {
             :predefine="COLOR_PANEL"
             @change="changeLabelAttr('color')"
             is-custom
+            show-alpha
           />
         </el-form-item>
         <el-form-item
@@ -1432,6 +1433,7 @@ const isProgressBar = computed(() => {
                     :effect="props.themes"
                     v-model="curSeriesFormatter.formatterCfg.suffix"
                     size="small"
+                    maxlength="30"
                     clearable
                     :placeholder="t('commons.input_content')"
                     @change="changeLabelAttr('seriesLabelFormatter')"

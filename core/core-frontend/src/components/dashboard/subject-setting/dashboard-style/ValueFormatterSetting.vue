@@ -99,6 +99,8 @@ getExampleValue()
           v-model="formatterCfg.decimalCount"
           :effect="themes"
           size="small"
+          :step="1"
+          :precision="0"
           :min="0"
           :max="10"
           @change="onFormatChange"
@@ -172,6 +174,7 @@ getExampleValue()
         <el-input
           v-model="formatterCfg.suffix"
           :effect="themes"
+          maxlength="30"
           size="small"
           clearable
           :placeholder="t('commons.input_content')"

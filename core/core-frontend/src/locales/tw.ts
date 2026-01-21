@@ -3,7 +3,7 @@ export default {
     display_formats: '展示形式',
     dropdown_display: '下拉展示',
     tile_display: '平铺展示',
-    month_to_yesterday: '月初至昨天',
+    month_to_yesterday: '月初至昨天（當月）',
     to_this_month: '年初至本月',
     up_to_options: '最多展示1000個選項',
     next_week: '下週',
@@ -2440,7 +2440,9 @@ export default {
     serial_no: '序號',
     remark: '備註',
     back_community: '還原至社區版',
-    confirm_tips: '确定還原至社區版？'
+    confirm_tips: '确定還原至社區版？',
+    set_of: '套',
+    count_of: '個賬號'
   },
   cron: {
     second: '秒',
@@ -2864,6 +2866,14 @@ export default {
     column_name: '欄位名稱'
   },
   visualization: {
+    img_can_not_null: '圖片不能為空',
+    outer_params_type_tips1:
+      "類型為過濾時僅對文字下拉、文字樹、數字下拉有效。文字樹的過濾格式中，多級之間使用 '-de-' 分隔",
+    outer_params_type_tips2:
+      '["Level1","Level1-de-Level2_1","Level2-de-Level2_1","Level1-de-Level2_1-de-Level3_1","Level2"]',
+    outer_params_type: '類型',
+    outer_params_type_self: '賦值',
+    outer_params_type_filter: '過濾',
     number_formatter: '數字內容格式',
     jump_dialog_background: '彈框背景色',
     jump_dialog_button: '彈框字體色',

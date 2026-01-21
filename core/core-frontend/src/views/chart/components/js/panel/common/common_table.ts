@@ -53,13 +53,9 @@ import {
   keys,
   map,
   maxBy,
-  meanBy,
   merge,
   minBy,
   repeat,
-  sumBy,
-  size,
-  sum,
   isNumber
 } from 'lodash-es'
 import { createVNode, render } from 'vue'
@@ -813,7 +809,7 @@ export function mappingColor(value, defaultColor, field, type, filedValueMap?, r
     } else {
       const fc = field.conditions[i]
       if (fc.term === 'null') {
-        if (value === null && value === undefined && value === '') {
+        if (value === null || value === undefined || value === '') {
           color = fc[type]
           flag = true
         }
@@ -1404,22 +1400,24 @@ export async function exportGridPivot(instance: PivotSheet, chart: ChartObj) {
     for (let colIndex = 0; colIndex < colLeafNodes.length; colIndex++) {
       const dataCellMeta = layoutResult.getCellMeta(rowIndex, colIndex)
       const { fieldValue } = dataCellMeta
-      if (fieldValue === 0 || fieldValue) {
-        const meta = metaMap[dataCellMeta.valueField]
-        const cell = worksheet.getCell(rowIndex + maxColHeight + 1, rowLength + colIndex + 1)
-        cell.alignment = { vertical: 'middle', horizontal: 'center' }
-        const value = meta?.formatter?.(fieldValue) || fieldValue
-        if (typeof value === 'number') {
-          cell.value = value
-        } else if (typeof value === 'string') {
-          const formatterCfg = formatterMap?.[dataCellMeta.valueField]
-          const result = extractNumber(value, formatterCfg)
-          if (typeof result === 'string') {
-            cell.value = result
-          } else {
-            cell.value = result.value
-            cell.numFmt = result.numFmt
-          }
+      const cell = worksheet.getCell(rowIndex + maxColHeight + 1, rowLength + colIndex + 1)
+      cell.alignment = { vertical: 'middle', horizontal: 'center' }
+      if (fieldValue === "-" || fieldValue === null || fieldValue === undefined) {
+        cell.value = '-'
+        continue
+      }
+      const meta = metaMap[dataCellMeta.valueField]
+      const value = meta?.formatter?.(fieldValue) || fieldValue
+      if (typeof value === 'number') {
+        cell.value = value
+      } else if (typeof value === 'string') {
+        const formatterCfg = formatterMap?.[dataCellMeta.valueField]
+        const result = extractNumber(value, formatterCfg)
+        if (typeof result === 'string') {
+          cell.value = result
+        } else {
+          cell.value = result.value
+          cell.numFmt = result.numFmt
         }
       }
     }
@@ -1592,22 +1590,24 @@ export async function exportRowQuotaGridPivot(instance: PivotSheet, chart: Chart
     for (let colIndex = 0; colIndex < colLeafNodes.length; colIndex++) {
       const dataCellMeta = layoutResult.getCellMeta(rowIndex, colIndex)
       const { fieldValue } = dataCellMeta
-      if (fieldValue === 0 || fieldValue) {
-        const meta = metaMap[dataCellMeta.valueField]
-        const cell = worksheet.getCell(rowIndex + maxColHeight + 1, rowLength + colIndex + 2)
-        const value = meta?.formatter?.(fieldValue) || fieldValue
-        cell.alignment = { vertical: 'middle', horizontal: 'center' }
-        if (typeof value === 'number') {
-          cell.value = value
-        } else if (typeof value === 'string') {
-          const formatterCfg = formatterMap?.[dataCellMeta.valueField]
-          const result = extractNumber(value, formatterCfg)
-          if (typeof result === 'string') {
-            cell.value = result
-          } else {
-            cell.value = result.value
-            cell.numFmt = result.numFmt
-          }
+      const cell = worksheet.getCell(rowIndex + maxColHeight + 1, rowLength + colIndex + 2)
+      cell.alignment = { vertical: 'middle', horizontal: 'center' }
+      if (fieldValue === "-" || fieldValue === null || fieldValue === undefined) {
+        cell.value = '-'
+        continue
+      }
+      const meta = metaMap[dataCellMeta.valueField]
+      const value = meta?.formatter?.(fieldValue) || fieldValue
+      if (typeof value === 'number') {
+        cell.value = value
+      } else if (typeof value === 'string') {
+        const formatterCfg = formatterMap?.[dataCellMeta.valueField]
+        const result = extractNumber(value, formatterCfg)
+        if (typeof result === 'string') {
+          cell.value = result
+        } else {
+          cell.value = result.value
+          cell.numFmt = result.numFmt
         }
       }
     }
@@ -1731,22 +1731,24 @@ export async function exportTreePivot(instance: PivotSheet, chart: ChartObj) {
     for (let colIndex = 0; colIndex < colLeafNodes.length; colIndex++) {
       const dataCellMeta = layoutResult.getCellMeta(rowIndex, colIndex)
       const { fieldValue } = dataCellMeta
-      if (fieldValue === 0 || fieldValue) {
-        const meta = metaMap[dataCellMeta.valueField]
-        const cell = worksheet.getCell(rowIndex + maxColHeight + 1, colIndex + 1 + 1)
-        const value = meta?.formatter?.(fieldValue) || fieldValue
-        cell.alignment = { vertical: 'middle', horizontal: 'center' }
-        if (typeof value === 'number') {
-          cell.value = value
-        } else if (typeof value === 'string') {
-          const formatterCfg = formatterMap?.[dataCellMeta.valueField]
-          const result = extractNumber(value, formatterCfg)
-          if (typeof result === 'string') {
-            cell.value = result
-          } else {
-            cell.value = result.value
-            cell.numFmt = result.numFmt
-          }
+      const cell = worksheet.getCell(rowIndex + maxColHeight + 1, colIndex + 1 + 1)
+      cell.alignment = { vertical: 'middle', horizontal: 'center' }
+      if (fieldValue === "-" || fieldValue === null || fieldValue === undefined) {
+        cell.value = '-'
+        continue
+      }
+      const meta = metaMap[dataCellMeta.valueField]
+      const value = meta?.formatter?.(fieldValue) || fieldValue
+      if (typeof value === 'number') {
+        cell.value = value
+      } else if (typeof value === 'string') {
+        const formatterCfg = formatterMap?.[dataCellMeta.valueField]
+        const result = extractNumber(value, formatterCfg)
+        if (typeof result === 'string') {
+          cell.value = result
+        } else {
+          cell.value = result.value
+          cell.numFmt = result.numFmt
         }
       }
     }
@@ -1871,22 +1873,24 @@ export async function exportRowQuotaTreePivot(instance: PivotSheet, chart: Chart
     for (let colIndex = 0; colIndex < colLeafNodes.length; colIndex++) {
       const dataCellMeta = layoutResult.getCellMeta(rowIndex, colIndex)
       const { fieldValue } = dataCellMeta
-      if (fieldValue === 0 || fieldValue) {
-        const meta = metaMap[dataCellMeta.valueField]
-        const cell = worksheet.getCell(rowIndex + maxColHeight + 1, colIndex + 2)
-        const value = meta?.formatter?.(fieldValue) || fieldValue
-        cell.alignment = { vertical: 'middle', horizontal: 'center' }
-        if (typeof value === 'number') {
-          cell.value = value
-        } else if (typeof value === 'string') {
-          const formatterCfg = formatterMap?.[dataCellMeta.valueField]
-          const result = extractNumber(value, formatterCfg)
-          if (typeof result === 'string') {
-            cell.value = result
-          } else {
-            cell.value = result.value
-            cell.numFmt = result.numFmt
-          }
+      const cell = worksheet.getCell(rowIndex + maxColHeight + 1, colIndex + 2)
+      cell.alignment = { vertical: 'middle', horizontal: 'center' }
+      if (fieldValue === "-" || fieldValue === null || fieldValue === undefined) {
+        cell.value = '-'
+        continue
+      }
+      const meta = metaMap[dataCellMeta.valueField]
+      const value = meta?.formatter?.(fieldValue) || fieldValue
+      if (typeof value === 'number') {
+        cell.value = value
+      } else if (typeof value === 'string') {
+        const formatterCfg = formatterMap?.[dataCellMeta.valueField]
+        const result = extractNumber(value, formatterCfg)
+        if (typeof result === 'string') {
+          cell.value = result
+        } else {
+          cell.value = result.value
+          cell.numFmt = result.numFmt
         }
       }
     }
@@ -2059,6 +2063,9 @@ export function configMergeCells(chart: Chart, options: S2Options, dataConfig: S
     const mergedCellsInfo = []
     const axisToMerge = dataConfig.meta.filter((_, i) => i < quotaIndex || quotaIndex === -1)
     axisToMerge.forEach((a, i) => {
+      if (mergedColInfo[i - 1]) {
+        mergedColInfo[i - 1] = []
+      }
       const preMergedColInfo = mergedColInfo[i]
       const curMergedColInfo = []
       mergedColInfo.push(curMergedColInfo)
@@ -2072,7 +2079,10 @@ export function configMergeCells(chart: Chart, options: S2Options, dataConfig: S
             const curRange = index - lastIndex
             if (curRange > 1 || (index === end && curRange === 1 && lastVal === curVal)) {
               const tmpMergeCells = []
-              const textIndex = curRange % 2 === 1 ? (curRange - 1) / 2 : curRange / 2 - 1
+              let textIndex = curRange % 2 === 1 ? (curRange - 1) / 2 : curRange / 2 - 1
+              if (index === end && lastVal === curVal) {
+                textIndex = curRange % 2 === 1 ? (curRange - 1) / 2 : curRange / 2
+              }
               for (let j = 0; j < curRange; j++) {
                 tmpMergeCells.push({
                   colIndex: showIndex ? i + 1 : i,
@@ -2242,7 +2252,8 @@ const drawTextShape = (cell, isHeader) => {
   // 单元格文本
   const { formattedValue } = cell.getFormattedFieldValue()
   // 获取文本样式
-  const textStyle = cell.getTextStyle()
+  const textStyle = cloneDeep(cell.getTextStyle())
+  textStyle.textAlign = undefined
   // 宽度能放几个字符，就放几个，放不下就换行
   let wrapText = getWrapText(
     formattedValue ? formattedValue?.toString() : emptyPlaceholder,
@@ -2298,7 +2309,8 @@ const drawTextShape = (cell, isHeader) => {
   cell.actualTextWidth = cell.spreadsheet.measureTextWidth(wrapText, textStyle)
 
   // 获取文本位置并渲染文本
-  const { x, y } = cell.getTextAndIconPosition()?.text || cell.getTextPosition()
+  const { y } = cell.getTextAndIconPosition()?.text || cell.getTextPosition()
+  const x = getTextStartX(cell, textStyle)
   // 绘制文本
   cell.textShape = renderText(cell, [cell.textShape], x, y, wrapText, textStyle, {
     fontSize: extraStyleFontSize
@@ -2306,6 +2318,33 @@ const drawTextShape = (cell, isHeader) => {
 
   // 将文本形状添加到形状数组
   cell.textShapes.push(cell.textShape)
+}
+
+/**
+ * 计算文本起始X位置
+ * @param cell
+ * @param textStyle
+ */
+function getTextStartX(cell, textStyle) {
+  // 获取单元格区域
+  const area = cell.getCellArea()
+  // 计算文本宽度,只计算第一行宽度
+  const textWidth = cell.spreadsheet.measureTextWidthRoughly(
+    cell.actualText.split('\n')[0],
+    textStyle
+  )
+  const padding = cell.theme.colCell?.cell?.padding ?? { left: 0, right: 0 }
+  const align = cell.getTextStyle()?.textAlign ?? 'left'
+  switch (align) {
+    case 'left':
+      return area.x + (padding.left || 0)
+    case 'center':
+      return area.x + (area.width - textWidth) / 2
+    case 'right':
+      return area.x + area.width - textWidth - (padding.right || 0)
+    default:
+      return area.x + (padding.left || 0)
+  }
 }
 
 /**
@@ -2778,4 +2817,8 @@ const calculateGroupHeaderMaxTextHeight = (
     textStyle.fontSize +
     10.5
   )
+}
+
+export const isNumeric = (value: any): boolean => {
+  return !isNaN(parseFloat(value)) && isFinite(value)
 }

@@ -3,7 +3,7 @@ export default {
     display_formats: '展示形式',
     dropdown_display: '下拉展示',
     tile_display: '平铺展示',
-    month_to_yesterday: '月初至昨天',
+    month_to_yesterday: '月初至昨天（当月）',
     to_this_month: '年初至本月',
     up_to_options: '最多展示1000个选项',
     next_week: '下周',
@@ -2446,7 +2446,9 @@ export default {
     serial_no: '序列号',
     remark: '备注',
     back_community: '还原至社区版',
-    confirm_tips: '确定还原至社区版？'
+    confirm_tips: '确定还原至社区版？',
+    set_of: '套',
+    count_of: '个账号'
   },
   cron: {
     second: '秒',
@@ -2870,6 +2872,14 @@ export default {
     column_name: '字段名称'
   },
   visualization: {
+    img_can_not_null: '图片不能为空',
+    outer_params_type_tips1:
+      "类型为过滤时仅对文本下拉、文本树、数字下拉，文本树的过滤格式多级之间使用'-de-' 隔离",
+    outer_params_type_tips2:
+      '["Level1","Level1-de-Level2_1","Level2-de-Level2_1","Level1-de-Level2_1-de-Level3_1","Level2"]',
+    outer_params_type: '类型',
+    outer_params_type_self: '赋值',
+    outer_params_type_filter: '过滤',
     number_formatter: '数字内容格式',
     jump_dialog_background: '弹框背景色',
     jump_dialog_button: '弹框字体色',

@@ -65,7 +65,8 @@ const { element, view, scale } = toRefs(props)
 const { t } = useI18n()
 const vQueryRef = ref()
 const dvMainStore = dvMainStoreWithOut()
-const { curComponent, canvasViewInfo, mobileInPc, firstLoadMap } = storeToRefs(dvMainStore)
+const { curComponent, canvasViewInfo, mobileInPc, firstLoadMap, editMode } =
+  storeToRefs(dvMainStore)
 const canEdit = ref(false)
 const queryConfig = ref()
 const defaultStyle = {
@@ -98,7 +99,25 @@ const defaultStyle = {
 }
 const customStyle = reactive({ ...defaultStyle })
 const snapshotStore = snapshotStoreWithOut()
+let instanceElMessage = null
+let closeTime = null
 
+const closeElMessage = requiredName => {
+  if (instanceElMessage) {
+    instanceElMessage.close()
+  }
+  instanceElMessage = ElMessage({
+    message: `【${requiredName}】${t('v_query.before_querying')}`,
+    type: 'error'
+  })
+
+  if (closeTime) {
+    clearTimeout(closeTime)
+  }
+  closeTime = setTimeout(() => {
+    instanceElMessage.close()
+  }, 2000)
+}
 const btnStyle = computed(() => {
   const style = {
     color: customStyle.labelColorBtn
@@ -300,11 +319,17 @@ watch(
   }
 )
 const list = ref([])
-
+let oldList = []
+let isResetData = false
 watch(
   () => props.element.propValue,
   () => {
     list.value = [...props.element.propValue]
+    if (isResetData) {
+      isResetData = false
+      return
+    }
+    oldList = cloneDeep(props.element.propValue)
   },
   {
     immediate: true
@@ -452,7 +477,7 @@ const queryDataForId = id => {
       return pre
     }, [])
   if (!!requiredName) {
-    ElMessage.error(`【${requiredName}】${t('v_query.before_querying')}`)
+    closeElMessage(requiredName)
     return
   }
   if (!!numName) {
@@ -522,7 +547,7 @@ const isConfirmSearchNoRequiredName = id => {
       return pre
     }, [])
   if (!!requiredName) {
-    ElMessage.error(`【${requiredName}】${t('v_query.before_querying')}`)
+    closeElMessage(requiredName)
     return
   }
   if (!!numName) {
@@ -546,6 +571,12 @@ provide('cascade-list', getCascadeList)
 provide('placeholder', getPlaceholder)
 
 onBeforeUnmount(() => {
+  if (instanceElMessage) {
+    instanceElMessage.close()
+  }
+  if (closeTime) {
+    clearTimeout(closeTime)
+  }
   emitter.off(`addQueryCriteria${element.value.id}`)
   emitter.off(`editQueryCriteria${element.value.id}`)
   emitter.off(`updateQueryCriteria${element.value.id}`)
@@ -670,43 +701,50 @@ const delQueryConfig = index => {
 }
 
 const resetData = () => {
-  ;(list.value || []).reduce((pre, next) => {
-    next.conditionValueF = next.defaultConditionValueF
-    next.conditionValueOperatorF = next.defaultConditionValueOperatorF
-    next.conditionValueS = next.defaultConditionValueS
-    next.conditionValueOperatorS = next.defaultConditionValueOperatorS
+  isResetData = true
+  element.value.propValue = []
+  nextTick(() => {
+    element.value.propValue = cloneDeep(oldList)
+    ;(element.value.propValue || []).reduce((pre, next) => {
+      next.conditionValueF = next.defaultConditionValueF
+      next.conditionValueOperatorF = next.defaultConditionValueOperatorF
+      next.conditionValueS = next.defaultConditionValueS
+      next.conditionValueOperatorS = next.defaultConditionValueOperatorS
 
-    if (next.displayType === '22') {
-      next.numValueEnd = next.defaultNumValueEnd
-      next.numValueStart = next.defaultNumValueStart
-    }
+      if (next.displayType === '22') {
+        next.numValueEnd = next.defaultNumValueEnd
+        next.numValueStart = next.defaultNumValueStart
+      }
 
-    if (!next.defaultValueCheck) {
-      next.defaultValue = next.multiple || +next.displayType === 7 ? [] : undefined
-    }
-    next.selectValue = Array.isArray(next.defaultValue) ? [...next.defaultValue] : next.defaultValue
-    if (next.optionValueSource === 1 && next.defaultMapValue?.length) {
-      next.mapValue = Array.isArray(next.defaultMapValue)
-        ? [...next.defaultMapValue]
-        : next.defaultMapValue
-    }
+      if (!next.defaultValueCheck) {
+        next.defaultValue = next.multiple || +next.displayType === 7 ? [] : undefined
+      }
+      next.selectValue = Array.isArray(next.defaultValue)
+        ? [...next.defaultValue]
+        : next.defaultValue
+      if (next.optionValueSource === 1 && next.defaultMapValue?.length) {
+        next.mapValue = Array.isArray(next.defaultMapValue)
+          ? [...next.defaultMapValue]
+          : next.defaultMapValue
+      }
 
-    ;(props.element.cascade || []).forEach(ele => {
-      ele.forEach(item => {
-        const comId = item.datasetId.split('--')[1]
-        if (next.id === comId) {
-          item.currentSelectValue = Array.isArray(next.selectValue)
-            ? next.selectValue
-            : [next.selectValue].filter(itx => ![null, undefined].includes(itx))
-          useEmitt().emitter.emit(`${item.datasetId.split('--')[1]}-select`)
-        }
+      ;(props.element.cascade || []).forEach(ele => {
+        ele.forEach(item => {
+          const comId = item.datasetId.split('--')[1]
+          if (next.id === comId) {
+            item.currentSelectValue = Array.isArray(next.selectValue)
+              ? next.selectValue
+              : [next.selectValue].filter(itx => ![null, undefined].includes(itx))
+            useEmitt().emitter.emit(`${item.datasetId.split('--')[1]}-select`)
+          }
+        })
       })
-    })
-    const keyList = getKeyList(next)
-    pre = [...new Set([...keyList, ...pre])]
-    return pre
-  }, [])
-  !componentWithSure.value && queryData()
+      const keyList = getKeyList(next)
+      pre = [...new Set([...keyList, ...pre])]
+      return pre
+    }, [])
+    !componentWithSure.value && queryData()
+  })
 }
 
 const clearData = () => {
@@ -821,7 +859,7 @@ const queryData = () => {
     return pre
   }, [])
   if (!!requiredName) {
-    ElMessage.error(`【${requiredName}】${t('v_query.before_querying')}`)
+    closeElMessage(requiredName)
     return
   }
 
@@ -943,7 +981,11 @@ const autoStyle = computed(() => {
               </div>
               <div
                 class="label-wrapper-tooltip"
-                v-if="showPosition !== 'preview' && !dvMainStore.mobileInPc"
+                v-if="
+                  !['preview', 'edit-preview'].includes(showPosition) &&
+                  !dvMainStore.mobileInPc &&
+                  editMode === 'edit'
+                "
               >
                 <el-tooltip
                   effect="dark"
