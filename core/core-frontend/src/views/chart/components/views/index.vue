@@ -17,6 +17,7 @@ import {
   CSSProperties,
   nextTick,
   onBeforeMount,
+  onBeforeUnmount,
   onMounted,
   PropType,
   provide,
@@ -241,7 +242,7 @@ const buildInnerRefreshTimer = (
     const timerRefreshTime = refreshUnit === 'second' ? refreshTime * 1000 : refreshTime * 60000
     innerRefreshTimer = setInterval(() => {
       clearViewLinkage()
-      queryData()
+      queryData(false, true)
       innerSearchCount++
     }, timerRefreshTime)
   }
@@ -260,7 +261,7 @@ watch([() => scale.value], () => {
 watch([() => searchCount.value], () => {
   // 内部计时器启动 忽略外部计时器
   if (!innerRefreshTimer) {
-    queryData()
+    queryData(false, true)
   }
 })
 // 仪表板的查询结果设置变化 图表数据需要刷新
@@ -425,14 +426,8 @@ const windowsJump = (url, jumpType, size = 'middle') => {
       dePreviewPopDialogRef.value.previewInit({ url, size })
     } else if ('_self' === jumpType) {
       newWindow = window.open(url, jumpType)
-      if (inMobile.value) {
-        window.location.reload()
-      }
     } else {
       newWindow = window.open(url, jumpType)
-      if (inMobile.value) {
-        window.location.reload()
-      }
     }
     initOpenHandler(newWindow)
   } catch (e) {
@@ -590,12 +585,15 @@ const queryDataFromSelect = (firstLoad = false) => {
   queryData(firstLoad)
 }
 
-const queryData = debounce((firstLoad = false) => {
+const queryData = debounce((firstLoad = false, autoRefresh = false) => {
   if (loading.value) {
     return
   }
   const searched = dvMainStore.firstLoadMap.includes(element.value.id)
-  const queryFilter = filter(searched ? false : firstLoad)
+  let queryFilter = filter(searched ? false : firstLoad)
+  if (showPosition.value.includes('viewDialog') || autoRefresh) {
+    queryFilter = dvMainStore.getLastViewRequestInfo(view.value.id)
+  }
   let params = cloneDeep(view.value)
   params['chartExtRequest'] = queryFilter
   chartExtRequest.value = queryFilter
@@ -875,6 +873,12 @@ onMounted(() => {
       chart.container =
         'container-' + showPosition.value + '-' + view.value.id + '-' + suffixId.value
       clearExtremum(chart)
+      // 切换到不支持下钻的图表类型时，清除下钻状态
+      const chartView = chartViewManager.getChartView(view.value.render, view.value.type)
+      if (chartView && !chartView.axis.includes('drill')) {
+        state.drillClickDimensionList = []
+        state.drillFilters = []
+      }
     }
   })
   if (showPosition.value === 'viewDialog') {
@@ -890,6 +894,13 @@ onMounted(() => {
   buildInnerRefreshTimer(refreshViewEnable, refreshUnit, refreshTime)
 
   initTitle()
+})
+
+onBeforeUnmount(() => {
+  if (innerRefreshTimer) {
+    clearInterval(innerRefreshTimer)
+    innerRefreshTimer = null
+  }
 })
 
 // 1.开启仪表板刷新 2.首次加载（searchCount =0 ）3.正在请求数据 则显示加载状态
@@ -986,6 +997,16 @@ const marginBottom = computed<string | 0>(() => {
 })
 
 const iconSize = computed<string>(() => {
+  return 16 * scale.value + 'px'
+})
+
+/**
+ * 保证标题容器高度最小高度不低于图标高度
+ */
+const titleContainerMinHeight = computed<string>(() => {
+  if (!titleShow.value) {
+    return 16 * scale.value + 4 + 'px'
+  }
   return 16 * scale.value + 'px'
 })
 /**
@@ -1123,7 +1144,11 @@ const clearG2Tooltip = () => {
   >
     <div
       class="title-container"
-      :style="{ 'justify-content': titleAlign, 'margin-bottom': marginBottom }"
+      :style="{
+        'justify-content': titleAlign,
+        'margin-bottom': marginBottom,
+        'min-height': titleContainerMinHeight
+      }"
     >
       <template v-if="!titleEditStatus">
         <p class="ellipsis" v-if="titleShow" :style="state.title_class" @dblclick="changeEditTitle">

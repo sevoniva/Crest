@@ -191,9 +191,11 @@ export class Map extends L7PlotChartView<ChoroplethOptions, Choropleth> {
     }
     let options: ChoroplethOptions = {
       preserveDrawingBuffer: true,
+      minZoom: -2,
       map: {
         type: 'mapbox',
-        style: 'blank'
+        style: 'blank',
+        minZoom: -2
       },
       geoArea: {
         type: 'geojson'
@@ -289,7 +291,7 @@ export class Map extends L7PlotChartView<ChoroplethOptions, Choropleth> {
     const { basicStyle, label, misc } = parseJson(chart.customAttr)
     const senior = parseJson(chart.senior)
     const curAreaNameMapping = senior.areaMapping?.[areaId]
-    handleGeoJson(geoJson, curAreaNameMapping)
+    handleGeoJson(geoJson, curAreaNameMapping, senior.useGlobalAreaMapping)
     options.color = {
       field: 'value',
       value: [basicStyle.colors[0]],
@@ -717,6 +719,7 @@ export class Map extends L7PlotChartView<ChoroplethOptions, Choropleth> {
 
   setupDefaultOptions(chart: ChartObj): ChartObj {
     chart.customAttr.basicStyle.areaBaseColor = '#f4f4f4'
+    chart.senior.useGlobalAreaMapping = true
     return chart
   }
 

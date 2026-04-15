@@ -814,6 +814,15 @@ const init = viewItem => {
   ) {
     checkJumpStr =
       checkAllAxisStr + JSON.stringify(chartDetails.yAxis) + JSON.stringify(chartDetails.yAxisExt)
+  } else if (chartDetails.type === 'multi-scatter') {
+    // 多维散点图跳转字段只列出维度，引用字段可选所有轴字段
+    const multiScatterExtra =
+      JSON.stringify(chartDetails.yAxis || []) +
+      JSON.stringify(chartDetails.extColor || []) +
+      JSON.stringify(chartDetails.extBubble || []) +
+      JSON.stringify(chartDetails.yAxisExt || [])
+    checkAllAxisStr = checkAllAxisStr + multiScatterExtra
+    checkJumpStr = JSON.stringify(chartDetails.extColor || [])
   } else {
     checkJumpStr = checkAllAxisStr
   }
@@ -1511,8 +1520,8 @@ span {
   color: var(--deTextDisable);
 }
 .outer-content-mirror {
-  border: 1px solid #bbbfc4;
-  border-radius: 4px;
+  border: 1px solid #d9dcdf;
+  border-radius: 6px;
   height: calc(100% - 30px);
   width: 100%;
   overflow: hidden;
@@ -1530,8 +1539,8 @@ span {
 }
 
 .outer-content-right {
-  border: 1px solid #bbbfc4;
-  border-radius: 4px;
+  border: 1px solid #d9dcdf;
+  border-radius: 6px;
   height: calc(100% - 30px);
   width: 100%;
   padding: 12px;
