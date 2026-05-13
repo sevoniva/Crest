@@ -71,6 +71,23 @@ public class CalciteProvider extends Provider {
     @Resource
     private CommonThreadPool commonThreadPool;
 
+    private boolean isOracleLike(String type) {
+        return StringUtils.equalsAnyIgnoreCase(type,
+                DatasourceConfiguration.DatasourceType.oracle.getType(),
+                DatasourceConfiguration.DatasourceType.obOracle.getType());
+    }
+
+    private boolean isObOracle(String type) {
+        return StringUtils.equalsIgnoreCase(type, DatasourceConfiguration.DatasourceType.obOracle.getType());
+    }
+
+    private DatasourceConfiguration parseOracleLikeConfiguration(String configuration, String type) {
+        if (isObOracle(type)) {
+            return JsonUtil.parseObject(configuration, ObOracle.class);
+        }
+        return JsonUtil.parseObject(configuration, Oracle.class);
+    }
+
     @PostConstruct
     public void init() throws Exception {
         try {
@@ -322,7 +339,7 @@ public class CalciteProvider extends Provider {
         if (StringUtils.isEmpty(table)) {
             ResultSet resultSet = null;
             try (Connection con = getConnectionFromPool(datasourceRequest.getDatasource().getId()); Statement statement = getStatement(con, 30)) {
-                if (DatasourceConfiguration.DatasourceType.valueOf(datasourceSchemaDTO.getType()) == DatasourceConfiguration.DatasourceType.oracle) {
+                if (isOracleLike(datasourceSchemaDTO.getType())) {
                     statement.executeUpdate("ALTER SESSION SET CURRENT_SCHEMA = " + datasourceConfiguration.getSchema());
                 }
                 resultSet = statement.executeQuery(datasourceRequest.getQuery());
@@ -425,7 +442,8 @@ public class CalciteProvider extends Provider {
                 configuration = JsonUtil.parseObject(coreDatasource.getConfiguration(), Sqlserver.class);
                 break;
             case oracle:
-                configuration = JsonUtil.parseObject(coreDatasource.getConfiguration(), Oracle.class);
+            case obOracle:
+                configuration = parseOracleLikeConfiguration(coreDatasource.getConfiguration(), coreDatasource.getType());
                 break;
             case db2:
                 configuration = JsonUtil.parseObject(coreDatasource.getConfiguration(), Db2.class);
@@ -512,7 +530,7 @@ public class CalciteProvider extends Provider {
                     try {
                         Object valueObject = datasourceRequest.getTableFieldWithValues().get(i).getValue();
 
-                        if (valueObject instanceof String && DatasourceConfiguration.DatasourceType.valueOf(value.getType()) == DatasourceConfiguration.DatasourceType.oracle) {
+                        if (valueObject instanceof String && isOracleLike(value.getType())) {
                             if (StringUtils.isNotEmpty(oracleCharset) && StringUtils.isNotEmpty(oracleTargetCharset)) {
                                 //转换为数据库的字符集
                                 valueObject = convertOracleText((String) valueObject, oracleTargetCharset, oracleCharset);
@@ -575,7 +593,7 @@ public class CalciteProvider extends Provider {
                 for (int i = 0; i < datasourceRequest.getTableFieldWithValues().size(); i++) {
                     try {
                         Object valueObject = datasourceRequest.getTableFieldWithValues().get(i).getValue();
-                        if (valueObject instanceof String && DatasourceConfiguration.DatasourceType.valueOf(value.getType()) == DatasourceConfiguration.DatasourceType.oracle) {
+                        if (valueObject instanceof String && isOracleLike(value.getType())) {
                             if (StringUtils.isNotEmpty(oracleCharset) && StringUtils.isNotEmpty(oracleTargetCharset)) {
                                 //转换为数据库的字符集
                                 valueObject = convertOracleText((String) valueObject, oracleTargetCharset, oracleCharset);
@@ -619,7 +637,7 @@ public class CalciteProvider extends Provider {
      */
     private Statement getStatement(DatasourceSchemaDTO value, Connection con, DatasourceRequest datasourceRequest, DatasourceConfiguration datasourceConfiguration, String autoIncrementPkName) throws Exception {
         Statement statement;
-        if (DatasourceConfiguration.DatasourceType.valueOf(value.getType()) == DatasourceConfiguration.DatasourceType.oracle) {
+        if (isOracleLike(value.getType())) {
             statement = getStatement(con, datasourceConfiguration.getQueryTimeout());
             statement.executeUpdate("ALTER SESSION SET CURRENT_SCHEMA = " + datasourceConfiguration.getSchema());
             statement.executeUpdate("ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS'");
@@ -654,7 +672,7 @@ public class CalciteProvider extends Provider {
                     try {
                         Object valueObject = datasourceRequest.getTableFieldWithValues().get(i).getValue();
 
-                        if (valueObject instanceof String && DatasourceConfiguration.DatasourceType.valueOf(value.getType()) == DatasourceConfiguration.DatasourceType.oracle) {
+                        if (valueObject instanceof String && isOracleLike(value.getType())) {
                             if (StringUtils.isNotEmpty(oracleCharset) && StringUtils.isNotEmpty(oracleTargetCharset)) {
                                 //转换为数据库的字符集
                                 valueObject = convertOracleText((String) valueObject, oracleTargetCharset, oracleCharset);
@@ -732,7 +750,7 @@ public class CalciteProvider extends Provider {
     private List<String[]> getData(ResultSet rs, DatasourceRequest datasourceRequest) throws Exception {
         String targetCharset = null;
         String originCharset = null;
-        if (datasourceRequest != null && datasourceRequest.getDatasource().getType().equalsIgnoreCase("oracle")) {
+        if (datasourceRequest != null && isOracleLike(datasourceRequest.getDatasource().getType())) {
             DatasourceConfiguration jdbcConfiguration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), DatasourceConfiguration.class);
 
             if (StringUtils.isNotEmpty(jdbcConfiguration.getCharset())) {
@@ -823,6 +841,22 @@ public class CalciteProvider extends Provider {
             case StarRocks:
             case doris:
                 configuration = JsonUtil.parseObject(datasourceDTO.getConfiguration(), Mysql.class);
+                if (StringUtils.isNotEmpty(configuration.getUrlType()) && configuration.getUrlType().equalsIgnoreCase("jdbcUrl")) {
+                    if (configuration.getJdbcUrl().contains("password=")) {
+                        String[] params = configuration.getJdbcUrl().split("\\?")[1].split("&");
+                        String pd = "";
+                        for (int i = 0; i < params.length; i++) {
+                            if (params[i].contains("password=")) {
+                                pd = params[i];
+                            }
+                        }
+                        configuration.setJdbcUrl(configuration.getJdbcUrl().replace(pd, "password=******"));
+                        datasourceDTO.setConfiguration(JsonUtil.toJSONString(configuration).toString());
+                    }
+                }
+                break;
+            case obOracle:
+                configuration = JsonUtil.parseObject(datasourceDTO.getConfiguration(), ObOracle.class);
                 if (StringUtils.isNotEmpty(configuration.getUrlType()) && configuration.getUrlType().equalsIgnoreCase("jdbcUrl")) {
                     if (configuration.getJdbcUrl().contains("password=")) {
                         String[] params = configuration.getJdbcUrl().split("\\?")[1].split("&");
@@ -1060,8 +1094,9 @@ public class CalciteProvider extends Provider {
                                 rootSchema.add(ds.getSchemaAlias(), schema);
                                 break;
                             case oracle:
+                            case obOracle:
                                 dataSource.setValidationQuery("SELECT 1 FROM DUAL");
-                                configuration = JsonUtil.parseObject(ds.getConfiguration(), Oracle.class);
+                                configuration = parseOracleLikeConfiguration(ds.getConfiguration(), ds.getType());
                                 if (StringUtils.isNotBlank(configuration.getUsername())) {
                                     dataSource.setUsername(configuration.getUsername());
                                 }
@@ -1266,7 +1301,8 @@ public class CalciteProvider extends Provider {
                 sql = String.format("SELECT COLUMN_NAME,DATA_TYPE,COLUMN_COMMENT,IF(COLUMN_KEY='PRI',1,0),IF(EXTRA LIKE '%%auto_increment%%',1,0) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '%s' AND TABLE_NAME = '%s'", database, datasourceRequest.getTable());
                 break;
             case oracle:
-                configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Oracle.class);
+            case obOracle:
+                configuration = parseOracleLikeConfiguration(datasourceRequest.getDatasource().getConfiguration(), datasourceRequest.getDatasource().getType());
                 if (StringUtils.isEmpty(configuration.getSchema())) {
                     DEException.throwException(Translator.get("i18n_schema_is_empty"));
                 }
@@ -1452,13 +1488,16 @@ public class CalciteProvider extends Provider {
                 tableSqls.add(String.format("SELECT TABLE_NAME,TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '%s' ;", database));
                 break;
             case oracle:
-                configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Oracle.class);
+            case obOracle:
+                configuration = parseOracleLikeConfiguration(datasourceRequest.getDatasource().getConfiguration(), datasourceRequest.getDatasource().getType());
                 if (StringUtils.isEmpty(configuration.getSchema())) {
                     DEException.throwException(Translator.get("i18n_schema_is_empty"));
                 }
                 tableSqls.add("select table_name, comments, owner  from all_tab_comments where owner='" + configuration.getSchema() + "' AND table_type = 'TABLE'");
                 tableSqls.add("select table_name, comments, owner  from all_tab_comments where owner='" + configuration.getSchema() + "' AND table_type = 'VIEW'");
-                tableSqls.add("SELECT \n" + "    m.mview_name,\n" + "    c.comments\n" + "FROM \n" + "    ALL_MVIEWS m\n" + "LEFT JOIN \n" + "    ALL_TAB_COMMENTS c \n" + "ON \n" + "    m.owner = c.owner \n" + "    AND m.mview_name = c.table_name\n" + "    AND c.table_type = 'MATERIALIZED VIEW'\n" + "WHERE m.OWNER ='DE_SCHEMA'".replace("DE_SCHEMA", configuration.getSchema()));
+                if (!isObOracle(datasourceRequest.getDatasource().getType())) {
+                    tableSqls.add("SELECT \n" + "    m.mview_name,\n" + "    c.comments\n" + "FROM \n" + "    ALL_MVIEWS m\n" + "LEFT JOIN \n" + "    ALL_TAB_COMMENTS c \n" + "ON \n" + "    m.owner = c.owner \n" + "    AND m.mview_name = c.table_name\n" + "    AND c.table_type = 'MATERIALIZED VIEW'\n" + "WHERE m.OWNER ='DE_SCHEMA'".replace("DE_SCHEMA", configuration.getSchema()));
+                }
                 break;
             case db2:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Db2.class);
@@ -1518,6 +1557,7 @@ public class CalciteProvider extends Provider {
         DatasourceConfiguration.DatasourceType datasourceType = DatasourceConfiguration.DatasourceType.valueOf(datasource.getType());
         switch (datasourceType) {
             case oracle:
+            case obOracle:
                 return "select * from all_users";
             case sqlServer:
                 return "select name from sys.schemas;";

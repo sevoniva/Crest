@@ -244,6 +244,7 @@ public abstract class Provider {
                 sqlDialect = new MssqlSqlDialect(MssqlSqlDialect.DEFAULT_CONTEXT, coreDatasource.getDsVersion());
                 break;
             case oracle:
+            case obOracle:
                 sqlDialect = new OracleSqlDialect(OracleSqlDialect.DEFAULT_CONTEXT, coreDatasource.getDsVersion());
                 break;
             case db2:

@@ -43,6 +43,11 @@
             <artifactId>mysql-connector-j</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.oceanbase</groupId>
+            <artifactId>oceanbase-client</artifactId>
+            <version>${oceanbase-client.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-dbcp2</artifactId>
             <version>${commons-dbcp2.version}</version>

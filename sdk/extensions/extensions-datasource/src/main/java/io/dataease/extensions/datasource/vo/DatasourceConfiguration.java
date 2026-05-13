@@ -23,6 +23,7 @@ public class DatasourceConfiguration extends Configuration {
         doris("doris", "Apache Doris", "OLAP", "`", "`", 26),
         TiDB("TiDB", "TiDB", "OLTP", "`", "`", 3),
         oracle("oracle", "ORACLE", "OLTP", "\"", "\"", 1),
+        obOracle("obOracle", "OceanBase Oracle", "OLTP", "\"", "\"", 31),
         pg("pg", "PostgreSQL", "OLTP", "\"", "\"", 9),
         redshift("redshift", "AWS Redshift", "OLTP", "\"", "\"", 13),
         db2("db2", "Db2", "OLTP", "", "", 12),

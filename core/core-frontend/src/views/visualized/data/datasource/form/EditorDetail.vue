@@ -379,7 +379,7 @@ const setRules = () => {
     'configuration.sshPassword': [{ validator: validateSshPassword, trigger: 'blur' }],
     'configuration.sshKey': [{ validator: validateSshkey, trigger: 'blur' }]
   }
-  if (['oracle', 'sqlServer', 'pg', 'redshift', 'db2'].includes(form.value.type)) {
+  if (['oracle', 'obOracle', 'sqlServer', 'pg', 'redshift', 'db2'].includes(form.value.type)) {
     configRules['configuration.schema'] = [
       {
         required: true,
@@ -1193,7 +1193,7 @@ defineExpose({
             </el-radio>
           </el-form-item>
           <el-form-item
-            v-if="['oracle', 'sqlServer', 'pg', 'redshift', 'db2'].includes(form.type)"
+            v-if="['oracle', 'obOracle', 'sqlServer', 'pg', 'redshift', 'db2'].includes(form.type)"
             class="schema-label"
             :prop="showSchema ? '' : 'configuration.schema'"
           >
@@ -1218,7 +1218,10 @@ defineExpose({
               @blur="validatorSchema"
             />
           </el-form-item>
-          <el-form-item v-if="form.type == 'oracle'" :label="$t('datasource.charset')">
+          <el-form-item
+            v-if="['oracle', 'obOracle'].includes(form.type)"
+            :label="$t('datasource.charset')"
+          >
             <el-select
               v-model="form.configuration.charset"
               filterable
@@ -1228,7 +1231,10 @@ defineExpose({
               <el-option v-for="item in charset" :key="item" :label="item" :value="item" />
             </el-select>
           </el-form-item>
-          <el-form-item v-if="form.type == 'oracle'" :label="$t('datasource.targetCharset')">
+          <el-form-item
+            v-if="['oracle', 'obOracle'].includes(form.type)"
+            :label="$t('datasource.targetCharset')"
+          >
             <el-select
               v-model="form.configuration.targetCharset"
               filterable

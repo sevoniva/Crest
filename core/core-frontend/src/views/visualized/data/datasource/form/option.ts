@@ -87,6 +87,25 @@ export const dsTypes = [
     targetCharset: ['Default', 'GBK', 'UTF-8']
   },
   {
+    type: 'obOracle',
+    name: 'OceanBase Oracle',
+    catalog: 'OLTP',
+    extraParams: '',
+    charset: [
+      'Default',
+      'US7ASCII',
+      'GBK',
+      'BIG5',
+      'ISO-8859-1',
+      'UTF-8',
+      'UTF-16',
+      'CP850',
+      'EUC_JP',
+      'EUC_KR'
+    ],
+    targetCharset: ['Default', 'GBK', 'UTF-8']
+  },
+  {
     type: 'mongo',
     name: 'Mongodb-BI',
     catalog: 'OLTP',
@@ -149,6 +168,8 @@ export interface Configuration {
   minPoolSize: string
   maxPoolSize: string
   queryTimeout: string
+  charset: string
+  targetCharset: string
   useSSH: boolean
   sshHost: string
   sshPort: string

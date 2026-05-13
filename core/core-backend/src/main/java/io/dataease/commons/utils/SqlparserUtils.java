@@ -288,7 +288,7 @@ public class SqlparserUtils {
             PlainSelect selectBody = ((ParenthesedSelect) fromItem).getSelect().getPlainSelect();
             Select subSelectTmp = (Select) CCJSqlParserUtil.parse(removeVariables(selectBody.toString(), dsType));
             ((ParenthesedSelect) fromItem).setSelect(subSelectTmp.getSelectBody());
-            if (dsType.equals(DatasourceConfiguration.DatasourceType.oracle.getType())) {
+            if (isOracleLike(dsType)) {
                 if (fromItem.getAlias() != null) {
                     fromItem.setAlias(new Alias(fromItem.getAlias().toString(), false));
                 }
@@ -346,7 +346,7 @@ public class SqlparserUtils {
                         }
                         ((ParenthesedSelect) rightItem).setSelect(setOperationList);
                     }
-                    if (dsType.equals(DatasourceConfiguration.DatasourceType.oracle.getType())) {
+                    if (isOracleLike(dsType)) {
                         rightItem.setAlias(new Alias(rightItem.getAlias().toString(), false));
                     } else {
                         if (rightItem.getAlias() == null) {
@@ -360,6 +360,12 @@ public class SqlparserUtils {
             }
             plainSelect.setJoins(joinsList);
         }
+    }
+
+    private boolean isOracleLike(String dsType) {
+        return StringUtils.equalsAnyIgnoreCase(dsType,
+                DatasourceConfiguration.DatasourceType.oracle.getType(),
+                DatasourceConfiguration.DatasourceType.obOracle.getType());
     }
 
     private void handleHaving(PlainSelect plainSelect) throws Exception {
@@ -780,6 +786,5 @@ public class SqlparserUtils {
         }
     }
 }
-
 
 

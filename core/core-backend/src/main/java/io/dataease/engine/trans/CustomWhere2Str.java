@@ -143,7 +143,7 @@ public class CustomWhere2Str {
                 }
                 // 此处获取标准格式的日期
                 if (StringUtils.equalsIgnoreCase(field.getType(), "date")
-                        || (StringUtils.equalsIgnoreCase(dsMap.entrySet().iterator().next().getValue().getType(), "oracle") && StringUtils.equalsIgnoreCase(field.getType(), "timestamp"))) {
+                        || (isOracleLike(dsMap.entrySet().iterator().next().getValue().getType()) && StringUtils.equalsIgnoreCase(field.getType(), "timestamp"))) {
                     whereName = String.format(SQLConstants.DE_CAST_DATE_FORMAT, originName,
                             SQLConstants.DEFAULT_DATE_FORMAT,
                             SQLConstants.DEFAULT_DATE_FORMAT);
@@ -278,6 +278,12 @@ public class CustomWhere2Str {
             res = build.getWhereField() + " " + build.getWhereTermAndValue();
         }
         return res;
+    }
+
+    private static boolean isOracleLike(String dsType) {
+        return StringUtils.equalsAnyIgnoreCase(dsType,
+                DatasourceConfiguration.DatasourceType.oracle.getType(),
+                DatasourceConfiguration.DatasourceType.obOracle.getType());
     }
 
     private static String sanitizeSqlLiteral(String value) {

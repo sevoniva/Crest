@@ -166,6 +166,7 @@ public class DatasourceServer implements DatasourceApi {
                 case "sqlServer":
                 case "db2":
                 case "oracle":
+                case "obOracle":
                 case "pg":
                 case "redshift":
                     if (configuration.getHost().equalsIgnoreCase(compare.getHost()) && Objects.equals(configuration.getPort(), compare.getPort()) && configuration.getDataBase().equalsIgnoreCase(compare.getDataBase()) && configuration.getSchema().equalsIgnoreCase(compare.getSchema())) {
@@ -761,7 +762,7 @@ public class DatasourceServer implements DatasourceApi {
         }
         Provider provider = ProviderFactory.getProvider(datasourceDTO.getType());
         List<DatasetTableDTO> tables = provider.getTables(datasourceRequest);
-        if (StringUtils.equalsIgnoreCase(coreDatasource.getType(), DatasourceConfiguration.DatasourceType.oracle.name())) {
+        if (StringUtils.endsWithIgnoreCase(coreDatasource.getType(), DatasourceConfiguration.DatasourceType.oracle.name())) {
             return tables.stream().filter(table -> !isOracleRecycleBinTable(table)).collect(Collectors.toList());
         }
         return tables;

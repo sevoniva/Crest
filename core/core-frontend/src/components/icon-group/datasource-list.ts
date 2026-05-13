@@ -18,6 +18,7 @@ import esDs from '@/assets/svg/es-ds.svg'
 const iconDatasourceMap = {
   mysql: mysqlDs,
   oracle: oracleDs,
+  obOracle: oracleDs,
   sqlServer: sqlServerDs,
   TiDB: TiDBDs,
   impala: impalaDs,
