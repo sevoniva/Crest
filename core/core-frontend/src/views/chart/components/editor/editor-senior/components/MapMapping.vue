@@ -1,0 +1,315 @@
+<script lang="ts" setup>
+import { computed, nextTick, onMounted, PropType, reactive, ref, watch } from 'vue'
+import { getGeoJsonFile, parseJson } from '../../../js/util'
+import { forEach, debounce } from 'lodash-es'
+import { toRefs } from 'vue'
+import { getCustomGeoArea } from '@/api/map'
+
+const props = defineProps({
+  chart: {
+    type: Object as PropType<ChartObj>,
+    required: true
+  },
+  themes: {
+    type: String,
+    default: 'dark'
+  }
+})
+
+const emit = defineEmits(['onMapMappingChange'])
+const { chart, themes } = toRefs(props)
+const state = reactive({
+  mappingForm: {},
+  currentData: [],
+  useGlobalAreaMapping: false
+})
+watch(
+  [
+    () => chart.value?.senior.areaMapping,
+    () => chart.value?.customAttr.map.id,
+    state.useGlobalAreaMapping
+  ],
+  () => {
+    init()
+  },
+  { deep: true }
+)
+const editAreaId = ref('body')
+const curMappedName = ref('')
+const curOriginName = ref('')
+const isEdit = ref(false)
+const search = ref('')
+const areaNameInput = ref(null)
+const areaData = reactive([])
+const dynamicAreaId = computed(() => {
+  return chart.value?.customAttr.map.id
+})
+const pageInfo = reactive({
+  pageSize: 10,
+  total: 100,
+  currentPage: 1
+})
+const init = async () => {
+  const chartObj = JSON.parse(JSON.stringify(chart.value))
+  if (chartObj?.senior) {
+    let senior = parseJson(chartObj.senior)
+    const useGlobalAreaMapping = senior.useGlobalAreaMapping
+    state.useGlobalAreaMapping = useGlobalAreaMapping
+    let curAreaMapping = null
+    if (useGlobalAreaMapping) {
+      curAreaMapping = await getAreaMapping(dynamicAreaId.value, useGlobalAreaMapping)
+    } else {
+      state.mappingForm = senior.areaMapping
+      curAreaMapping = state.mappingForm?.[dynamicAreaId.value]
+      if (!curAreaMapping) {
+        curAreaMapping = await getAreaMapping(dynamicAreaId.value)
+      }
+    }
+    curAreaMapping = curAreaMapping || {}
+    const tmp = []
+    forEach(curAreaMapping, (val, key) => {
+      tmp.push({
+        originName: key,
+        mappedName: val
+      })
+    })
+    state.currentData.splice(0, state.currentData.length, ...tmp)
+    pageInfo.total = state.currentData.length
+    updateAreaData()
+  }
+}
+
+const getAreaMapping = async (areaId, useGlobalAreaMapping = false) => {
+  if (!areaId) {
+    return {}
+  }
+  if (areaId.startsWith('custom_')) {
+    const areaList = (await getCustomGeoArea(areaId)).data
+    return areaList.reduce((p, n) => {
+      p[n.name] = n.name
+      return p
+    }, {})
+  }
+  const geoJson = await getGeoJsonFile(areaId, useGlobalAreaMapping)
+  if (useGlobalAreaMapping && geoJson?.['deMapping']) {
+    return geoJson?.['deMapping']
+  }
+  const names = Object.keys(geoJson?.features[0]?.properties).filter(key => key.startsWith('NAME_'))
+  const nameKey = names[names.length - 1]
+  return geoJson.features.reduce((p, n) => {
+    if (n.properties.name) {
+      p[n.properties.name] = n.properties.name
+    } else {
+      p[n.properties[nameKey]] = n.properties[nameKey]
+    }
+    return p
+  }, {})
+}
+const triggerEdit = scope => {
+  if (state.useGlobalAreaMapping) {
+    return
+  }
+  editAreaId.value = `#area-${scope.$index}-input`
+  curOriginName.value = scope.row.originName
+  curMappedName.value = scope.row.mappedName
+  isEdit.value = true
+  nextTick(areaNameInput.value?.focus)
+}
+const finishEdit = () => {
+  editAreaId.value = 'body'
+  isEdit.value = false
+  let areaNameMap = state.mappingForm[dynamicAreaId.value]
+  if (!areaNameMap) {
+    areaNameMap = state.currentData.reduce((p, n) => {
+      p[n.originName] = n.mappedName
+      return p
+    }, {})
+  }
+  const oldMappedName = areaNameMap[curOriginName.value]
+  if (!curMappedName.value || oldMappedName === curMappedName.value) {
+    curMappedName.value = oldMappedName
+    return
+  }
+  areaNameMap[curOriginName.value] = curMappedName.value
+  if (!state.mappingForm[dynamicAreaId.value]) {
+    state.mappingForm[dynamicAreaId.value] = areaNameMap
+  }
+  onMapMappingChange()
+}
+const updateAreaData = debounce(() => {
+  const filteredData = state.currentData.filter(item => {
+    if (!search.value?.trim()) {
+      return item.originName
+    }
+    return item.mappedName?.includes(search.value)
+  })
+  const start = (pageInfo.currentPage - 1) * pageInfo.pageSize
+  const end = start + pageInfo.pageSize
+  areaData.splice(0, areaData.length, ...filteredData.slice(start, end))
+  pageInfo.total = filteredData.length
+}, 300)
+const onMapMappingChange = () => {
+  const global = state.useGlobalAreaMapping
+  emit('onMapMappingChange', global ? {} : state.mappingForm, global)
+  if (global) {
+    init()
+  }
+}
+onMounted(() => {
+  init()
+})
+</script>
+<template>
+  <div style="width: 100%">
+    <div style="padding-bottom: 8px">
+      <el-checkbox
+        size="small"
+        :effect="themes"
+        v-model="state.useGlobalAreaMapping"
+        @change="onMapMappingChange"
+      >
+        {{ $t('chart.used_global_map_mapping') }}
+      </el-checkbox>
+    </div>
+    <el-table
+      size="mini"
+      class="area-map-table"
+      :class="'area-map-table-' + themes"
+      :header-cell-class-name="'area-map-table-header-cell-' + themes"
+      :header-row-class-name="'area-map-table-header-row-' + themes"
+      :cell-class-name="'area-map-table-cell-' + themes"
+      :row-class-name="'area-map-table-row-' + themes"
+      :data="areaData"
+    >
+      <el-table-column label="图形" prop="originName" width="80" show-overflow-tooltip />
+      <el-table-column width="140">
+        <template #header>
+          <span>属性</span>
+          <el-input
+            v-model="search"
+            size="small"
+            class="area-filter"
+            :effect="themes"
+            @input="updateAreaData"
+          />
+        </template>
+        <template #default="scope">
+          <div :id="`area-${scope.$index}-input`"></div>
+          <el-button
+            v-show="!isEdit || editAreaId !== `#area-${scope.$index}-input`"
+            class="area-edit-btn"
+            size="small"
+            :class="'area-edit-btn-' + themes"
+            @click="triggerEdit(scope)"
+          >
+            <span :title="scope.row.mappedName">{{ scope.row.mappedName }}</span>
+            <el-icon v-if="!state.useGlobalAreaMapping"><Edit /></el-icon>
+          </el-button>
+        </template>
+      </el-table-column>
+      <template #empty> 暂无数据 </template>
+    </el-table>
+    <el-pagination
+      small
+      hide-on-single-page
+      layout="prev, pager, next"
+      class="area-page"
+      v-model:current-page="pageInfo.currentPage"
+      :total="pageInfo.total"
+      :page-size="pageInfo.pageSize"
+      :pager-count="5"
+      @currentChange="updateAreaData"
+    />
+    <teleport :to="editAreaId" :disabled="!isEdit">
+      <div v-show="isEdit">
+        <el-input
+          v-model="curMappedName"
+          size="small"
+          ref="areaNameInput"
+          :effect="themes"
+          @blur="finishEdit()"
+          @keyup.enter="$event.target.blur()"
+        />
+      </div>
+    </teleport>
+  </div>
+</template>
+<style lang="less" scoped>
+.area-filter {
+  display: inline-block;
+  width: 80px;
+  margin-left: 8px;
+}
+.area-edit-btn {
+  width: 116px;
+  padding: 0 4px;
+  :deep(> span) {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    span {
+      max-width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+  &-dark {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    background-color: transparent;
+  }
+}
+:deep(.area-page) {
+  button,
+  button[disabled] {
+    color: grey;
+    background: transparent !important;
+    &:active,
+    &:hover {
+      background: transparent !important;
+    }
+  }
+  ul li {
+    &:not(.is-active) {
+      color: grey;
+    }
+    background: transparent !important;
+  }
+}
+.area-map-table {
+  width: 100%;
+  font-size: 12px;
+  :deep(.area-map-table-header-cell-light) {
+    background-color: #f5f6f7;
+  }
+  :deep(.area-map-table-header-cell-dark) {
+    background-color: #1a1a1a;
+    color: @canvas-main-font-color-dark;
+    &:hover {
+      background-color: #1a1a1a;
+    }
+  }
+  :deep(.area-map-table-row-dark) {
+    .area-map-table-cell-dark {
+      background-color: @side-content-background;
+      color: @canvas-main-font-color-dark;
+      border-bottom: 1px solid #373737;
+    }
+    &:hover {
+      .area-map-table-cell-dark {
+        background-color: #434343;
+      }
+    }
+  }
+  &-dark {
+    :deep(.ed-table__empty-block) {
+      background-color: @side-content-background;
+    }
+    :deep(.ed-table__header-wrapper) {
+      border-top: unset;
+    }
+  }
+}
+</style>
