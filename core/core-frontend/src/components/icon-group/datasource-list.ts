@@ -1,5 +1,6 @@
 import mysqlDs from '@/assets/svg/mysql-ds.svg'
 import oracleDs from '@/assets/svg/oracle-ds.svg'
+import oceanbaseOracleDs from '@/assets/svg/oceanbase-oracle-ds.svg'
 import sqlServerDs from '@/assets/svg/sqlServer-ds.svg'
 import TiDBDs from '@/assets/svg/TiDB-ds.svg'
 import impalaDs from '@/assets/svg/impala-ds.svg'
@@ -18,7 +19,7 @@ import esDs from '@/assets/svg/es-ds.svg'
 const iconDatasourceMap = {
   mysql: mysqlDs,
   oracle: oracleDs,
-  obOracle: oracleDs,
+  obOracle: oceanbaseOracleDs,
   sqlServer: sqlServerDs,
   TiDB: TiDBDs,
   impala: impalaDs,
