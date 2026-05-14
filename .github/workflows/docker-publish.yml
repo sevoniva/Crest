@@ -1,0 +1,103 @@
+name: Build and Publish Docker Images
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_TAG: v2.10.22-ob
+  SOURCE_DATAEASE_TAG: v2.10.22
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/sevoniva/dataease-2.10.22
+
+jobs:
+  publish:
+    name: Build and publish GHCR images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            core/core-frontend/package-lock.json
+            core/core-frontend/flushbonading/package-lock.json
+
+      - name: Install skopeo
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y skopeo
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mirror runtime images to GHCR
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.GITHUB_TOKEN }}" | skopeo login "${REGISTRY}" -u "${{ github.actor }}" --password-stdin
+
+          mirror() {
+            src="$1"
+            dst="$2"
+            skopeo copy --all "docker://${src}" "docker://${dst}"
+          }
+
+          mirror registry.cn-qingdao.aliyuncs.com/dataease/alpine-openjdk21-jre:latest "${IMAGE_PREFIX}-openjdk21-jre:latest"
+          mirror registry.cn-qingdao.aliyuncs.com/dataease/mysql:8.4.5 "${IMAGE_PREFIX}-mysql:8.4.5"
+          mirror registry.cn-qingdao.aliyuncs.com/dataease/dataease-sync-task:${SOURCE_DATAEASE_TAG} "${IMAGE_PREFIX}-sync-task:${IMAGE_TAG}"
+          mirror registry.cn-qingdao.aliyuncs.com/dataease/de-playwright-api:v1.58.2-noble-0421 "${IMAGE_PREFIX}-playwright-api:v1.58.2-noble-0421"
+          mirror registry.cn-qingdao.aliyuncs.com/dataease/apisix-dashboard:3.0.1-alpine "${IMAGE_PREFIX}-apisix-dashboard:3.0.1-alpine"
+          mirror registry.cn-qingdao.aliyuncs.com/dataease/apisix:3.14.1-debian "${IMAGE_PREFIX}-apisix:3.14.1-debian"
+          mirror registry.cn-qingdao.aliyuncs.com/dataease/etcd:3.5.10 "${IMAGE_PREFIX}-etcd:3.5.10"
+
+      - name: Build frontend
+        working-directory: core/core-frontend
+        run: |
+          npm ci
+          npm run build:base
+
+      - name: Build backend
+        run: |
+          mvn clean install -DskipTests -Dmaven.test.skip=true
+          cd core
+          mvn clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push DataEase image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          labels: |
+            org.opencontainers.image.source=https://github.com/sevoniva/dataease-2.10.22
+            org.opencontainers.image.description=DataEase 2.10.22 fork with OceanBase Oracle support
+            org.opencontainers.image.licenses=GPL-3.0
+          tags: |
+            ${{ env.IMAGE_PREFIX }}:${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE_PREFIX }}:main
+            ${{ env.IMAGE_PREFIX }}:sha-${{ github.sha }}
