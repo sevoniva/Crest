@@ -106,8 +106,7 @@ jobs:
       - name: Build backend
         run: |
           mvn clean install -DskipTests -Dmaven.test.skip=true
-          cd core
-          mvn clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
+          mvn -f core/pom.xml clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
 
       - name: Log in to GHCR
         uses: docker/login-action@v3

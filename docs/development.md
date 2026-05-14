@@ -47,8 +47,7 @@ Build the backend package:
 
 ```bash
 mvn clean install -DskipTests -Dmaven.test.skip=true
-cd core
-mvn clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
+mvn -f core/pom.xml clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
 ```
 
 Build the Docker image locally after backend packaging:
