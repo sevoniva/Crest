@@ -161,11 +161,4 @@
         </plugins>
     </build>
 
-    <distributionManagement>
-        <repository>
-            <id>fit2cloud-public</id>
-            <url>https://repository.fit2cloud.com/repository/fit2cloud-public/</url>
-        </repository>
-    </distributionManagement>
-
 </project>
