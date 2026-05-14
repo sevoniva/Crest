@@ -165,6 +165,20 @@
         </dependency>
     </dependencies>
 
+    <repositories>
+        <repository>
+            <id>dataease-third-party</id>
+            <name>DataEase fork third-party Maven repository</name>
+            <url>file://${maven.multiModuleProjectDirectory}/third-party/maven</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <build>
         <pluginManagement>
             <plugins>

@@ -12,6 +12,7 @@
 
 # Package Files #
 *.jar
+!/third-party/maven/**/*.jar
 *.war
 *.nar
 *.ear

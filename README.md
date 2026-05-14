@@ -64,7 +64,7 @@
 
 如需在未登录 GitHub 的环境直接拉取镜像，请在 GHCR 中将对应 package 设置为 public；如保持 private，则目标服务器需要先执行 `docker login ghcr.io`。
 
-前端依赖保留 npm 公网生态，`core/core-frontend/.npmrc` 使用 `registry.npmmirror.com`，并跟踪 `package-lock.json` 以保证构建依赖可复现。Maven 依赖保留原项目公开仓库配置。
+前端依赖保留 npm 公网生态，`core/core-frontend/.npmrc` 使用 `registry.npmmirror.com`，并跟踪 `package-lock.json` 以保证构建依赖可复现。Maven 公共依赖默认通过仓库内 `.mvn/settings.xml` 使用阿里云公共 Maven 镜像；少量不在公共仓库中的上游制品放在 `third-party/maven` 静态 Maven 仓库中，避免常规构建依赖 `repository.fit2cloud.com`。
 
 ## 什么是 DataEase？
 
