@@ -44,6 +44,8 @@
     -   OBProxy/ODP：`username@tenant#cluster`
 -   数据源列表与编辑页增加 OceanBase Oracle 图标与配置入口。
 
+二次开发请先阅读 [开发说明](./docs/development.md)。其中记录了本 fork 的目录约定、依赖源、常用构建命令、OceanBase Oracle 适配点和本地工作区清理规则。
+
 ## OceanBase Oracle 适配说明
 
 本 fork 适配的是 OceanBase 数据库 Oracle 模式租户，连接信息与 DataEase 其他 JDBC 数据源保持一致：

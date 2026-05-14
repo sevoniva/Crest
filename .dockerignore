@@ -1,0 +1,33 @@
+# Keep Docker build context small and reproducible.
+
+.git
+.github
+.idea
+.vscode
+.DS_Store
+
+node_modules
+**/node_modules
+runtime
+extensions
+**/.flattened-pom.xml
+**/.stylelintcache
+**/components.d.ts
+
+# Build output is ignored by default; the final backend jar is copied into the image.
+**/target
+!core/core-backend/target
+!core/core-backend/target/CoreApplication.jar
+
+# Only the fork-managed OceanBase driver is packaged from this repository.
+drivers/*.jar
+!drivers/oceanbase-client-2.4.17.jar
+
+*.log
+*.pid
+*.tmp
+*.bak
+*.tar
+*.tar.gz
+*.zip
+*.rar

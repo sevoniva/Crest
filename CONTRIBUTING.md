@@ -1,5 +1,17 @@
 # Contributing
 
+## Fork development notes
+
+This repository is a DataEase 2.10.22 fork with OceanBase Oracle datasource support. Before starting development, read [docs/development.md](./docs/development.md) for the repository layout, dependency sources, common build commands, Docker image notes, and workspace cleanup rules.
+
+For this fork:
+
+* Keep changes small and focused.
+* Preserve the upstream GPLv3 license and copyright notices.
+* Do not commit local runtime data, `node_modules`, Maven `target` directories, logs, IDE files, or generated flattened POM files.
+* Use the repository Maven settings and checked-in frontend lock files; do not add private company repositories unless there is a reviewed reason.
+* When touching OceanBase Oracle behavior, verify both `username@tenant` and `username@tenant#cluster` connection styles when an environment is available.
+
 As a contributor, you should agree that:
 
 a. The producer can adjust the open-source agreement to be more strict or relaxed as deemed necessary.
