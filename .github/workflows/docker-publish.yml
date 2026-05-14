@@ -10,6 +10,10 @@ permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: docker-publish-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   IMAGE_TAG: v2.10.22-ob
   SOURCE_DATAEASE_TAG: v2.10.22
