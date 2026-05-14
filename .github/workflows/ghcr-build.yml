@@ -6,7 +6,7 @@ on:
       tag:
         description: 'Image tag to publish'
         required: true
-        default: '2.10.22-ob'
+        default: 'v2.10.22-ob'
 
 permissions:
   contents: read

@@ -3,10 +3,14 @@ name: Mirror Runtime Images to GHCR
 on:
   workflow_dispatch:
     inputs:
-      dataease_tag:
-        description: 'DataEase release tag to mirror for dataease-sync-task'
+      source_dataease_tag:
+        description: 'Source DataEase release tag for dataease-sync-task'
         required: true
         default: 'v2.10.22'
+      target_tag:
+        description: 'Target tag to publish for images using DE_TAG'
+        required: true
+        default: 'v2.10.22-ob'
 
 permissions:
   contents: read
@@ -35,7 +39,7 @@ jobs:
 
           mirror registry.cn-qingdao.aliyuncs.com/dataease/alpine-openjdk21-jre:latest ghcr.io/sevoniva/dataease-2.10.22-openjdk21-jre:latest
           mirror registry.cn-qingdao.aliyuncs.com/dataease/mysql:8.4.5 ghcr.io/sevoniva/dataease-2.10.22-mysql:8.4.5
-          mirror registry.cn-qingdao.aliyuncs.com/dataease/dataease-sync-task:${{ github.event.inputs.dataease_tag }} ghcr.io/sevoniva/dataease-2.10.22-sync-task:${{ github.event.inputs.dataease_tag }}
+          mirror registry.cn-qingdao.aliyuncs.com/dataease/dataease-sync-task:${{ github.event.inputs.source_dataease_tag }} ghcr.io/sevoniva/dataease-2.10.22-sync-task:${{ github.event.inputs.target_tag }}
           mirror registry.cn-qingdao.aliyuncs.com/dataease/de-playwright-api:v1.58.2-noble-0421 ghcr.io/sevoniva/dataease-2.10.22-playwright-api:v1.58.2-noble-0421
           mirror registry.cn-qingdao.aliyuncs.com/dataease/apisix-dashboard:3.0.1-alpine ghcr.io/sevoniva/dataease-2.10.22-apisix-dashboard:3.0.1-alpine
           mirror registry.cn-qingdao.aliyuncs.com/dataease/apisix:3.14.1-debian ghcr.io/sevoniva/dataease-2.10.22-apisix:3.14.1-debian
