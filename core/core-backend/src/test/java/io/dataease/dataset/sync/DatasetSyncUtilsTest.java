@@ -2,6 +2,7 @@ package io.dataease.dataset.sync;
 
 import io.dataease.engine.constant.ExtFieldConstant;
 import io.dataease.api.dataset.union.DatasetGroupInfoDTO;
+import io.dataease.commons.constants.TaskStatus;
 import io.dataease.dataset.dao.auto.entity.CoreDatasetSyncTask;
 import io.dataease.extensions.datasource.dto.DatasetTableFieldDTO;
 import io.dataease.extensions.datasource.dto.DatasourceSchemaDTO;
@@ -144,6 +145,22 @@ public class DatasetSyncUtilsTest {
         task.setSchemaHash("schema-v1");
         assertTrue(DatasetSyncUtils.isCacheReady(task, "schema-v1"));
         assertFalse(DatasetSyncUtils.isCacheReady(task, "schema-v2"));
+    }
+
+    @Test
+    public void taskRunnableRequiresExistingActiveTask() {
+        CoreDatasetSyncTask task = new CoreDatasetSyncTask();
+
+        assertFalse(DatasetSyncUtils.isTaskRunnable(null));
+
+        task.setTaskStatus(TaskStatus.UnderExecution.name());
+        assertTrue(DatasetSyncUtils.isTaskRunnable(task));
+
+        task.setTaskStatus(TaskStatus.Stopped.name());
+        assertFalse(DatasetSyncUtils.isTaskRunnable(task));
+
+        task.setTaskStatus(TaskStatus.Suspend.name());
+        assertFalse(DatasetSyncUtils.isTaskRunnable(task));
     }
 
     @Test

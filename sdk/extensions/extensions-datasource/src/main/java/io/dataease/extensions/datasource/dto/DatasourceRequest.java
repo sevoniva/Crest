@@ -28,6 +28,7 @@ public class DatasourceRequest implements Serializable {
     private List<TableFieldWithValue> tableFieldWithValues;
     private  String token;
     private Boolean isCross;
+    private Boolean readOnly;
 
     public DatasourceRequest() {
     }

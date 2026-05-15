@@ -197,6 +197,7 @@ public class DatasetSyncManage {
     }
 
     private SyncResult syncFull(SyncContext context, CoreDatasetSyncTask task, long syncStartTime) throws Exception {
+        assertTaskRunnable(task, syncStartTime);
         String tableName = DatasetSyncUtils.cacheTableName(context.dataset.getId());
         createEngineTable(context, tableName);
         dropEngineTable(context, DatasetSyncUtils.tmpCacheTableName(context.dataset.getId()));
@@ -219,6 +220,7 @@ public class DatasetSyncManage {
                 }
                 offset += PAGE_SIZE;
             }
+            assertTaskRunnable(task, syncStartTime);
             replaceTable(context, tableName);
             result.fullSync = true;
             reconcile(context, tableName, incrementalField, task, result);
@@ -230,6 +232,7 @@ public class DatasetSyncManage {
     }
 
     private SyncResult syncIncremental(SyncContext context, CoreDatasetSyncTask task, long syncStartTime) throws Exception {
+        assertTaskRunnable(task, syncStartTime);
         DatasetTableFieldDTO incrementalField = incrementalField(context.dataset, task);
         if (incrementalField == null) {
             return syncFull(context, task, syncStartTime);
@@ -267,6 +270,7 @@ public class DatasetSyncManage {
                 }
                 offset += PAGE_SIZE;
             }
+            assertTaskRunnable(task, syncStartTime);
             replaceTable(context, tableName);
             result.fullSync = false;
             reconcile(context, tableName, incrementalField, task, result);
@@ -286,6 +290,7 @@ public class DatasetSyncManage {
                 DatasourceRequest request = new DatasourceRequest();
                 request.setDsList(context.dsMap);
                 request.setIsCross(false);
+                request.setReadOnly(true);
                 request.setQuery(pageSql);
                 Map<String, Object> data = context.sourceProvider.fetchResultField(request);
                 return (List<String[]>) data.get("data");
@@ -403,6 +408,7 @@ public class DatasetSyncManage {
         DatasourceRequest request = new DatasourceRequest();
         request.setDsList(context.dsMap);
         request.setIsCross(false);
+        request.setReadOnly(true);
         request.setQuery(sql);
         Map<String, Object> data = context.sourceProvider.fetchResultField(request);
         return firstCell((List<String[]>) data.get("data"));
@@ -505,8 +511,8 @@ public class DatasetSyncManage {
             DEException.throwException("数据集同步任务超过 " + timeoutMinutes + " 分钟未完成，已自动终止");
         }
         CoreDatasetSyncTask latest = taskManage.selectById(task.getId());
-        if (latest != null && StringUtils.equalsAnyIgnoreCase(latest.getTaskStatus(), TaskStatus.Stopped.name(), TaskStatus.Suspend.name())) {
-            DEException.throwException("数据集同步任务已停止");
+        if (!DatasetSyncUtils.isTaskRunnable(latest)) {
+            DEException.throwException("数据集同步任务已停止或已删除");
         }
     }
 

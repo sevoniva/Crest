@@ -1,6 +1,7 @@
 package io.dataease.dataset.sync;
 
 import io.dataease.api.dataset.union.DatasetGroupInfoDTO;
+import io.dataease.commons.constants.TaskStatus;
 import io.dataease.dataset.dao.auto.entity.CoreDatasetSyncTask;
 import io.dataease.engine.constant.ExtFieldConstant;
 import io.dataease.extensions.datasource.dto.DatasetTableFieldDTO;
@@ -106,6 +107,11 @@ public class DatasetSyncUtils {
         int failures = Objects.requireNonNullElse(task.getConsecutiveFailures(), 0);
         int threshold = Objects.requireNonNullElse(task.getFailureWarnThreshold(), DEFAULT_FAILURE_WARN_THRESHOLD);
         return threshold > 0 && failures >= threshold;
+    }
+
+    public static boolean isTaskRunnable(CoreDatasetSyncTask task) {
+        return task != null
+                && !StringUtils.equalsAnyIgnoreCase(task.getTaskStatus(), TaskStatus.Stopped.name(), TaskStatus.Suspend.name());
     }
 
     public static ReconcileResult reconcile(Long sourceRowCount, Long cacheRowCount, String sourceWatermark, String cacheWatermark) {

@@ -81,6 +81,32 @@ public class CalciteProvider extends Provider {
         return StringUtils.equalsIgnoreCase(type, DatasourceConfiguration.DatasourceType.obOracle.getType());
     }
 
+    private boolean isReadOnlyRequest(DatasourceRequest datasourceRequest) {
+        return Boolean.TRUE.equals(datasourceRequest.getReadOnly());
+    }
+
+    private void setConnectionReadOnly(Connection connection, boolean readOnly) {
+        if (!readOnly || connection == null) {
+            return;
+        }
+        try {
+            connection.setReadOnly(true);
+        } catch (SQLException e) {
+            DEException.throwException("Set datasource connection read-only failed: " + e.getMessage());
+        }
+    }
+
+    private void resetConnectionReadOnly(Connection connection, boolean readOnly) {
+        if (!readOnly || connection == null) {
+            return;
+        }
+        try {
+            connection.setReadOnly(false);
+        } catch (SQLException e) {
+            LogUtil.warn("Reset datasource connection read-only failed: " + e.getMessage());
+        }
+    }
+
     private DatasourceConfiguration parseOracleLikeConfiguration(String configuration, String type) {
         if (isObOracle(type)) {
             return JsonUtil.parseObject(configuration, ObOracle.class);
@@ -534,38 +560,43 @@ public class CalciteProvider extends Provider {
         try (Connection con = getConnectionFromPool(datasourceRequest.getDatasource().getId())) {
 
             Statement statement = getStatement(value, con, datasourceRequest, datasourceConfiguration, null);
+            boolean readOnly = isReadOnlyRequest(datasourceRequest);
+            setConnectionReadOnly(con, readOnly);
+            try {
+                if (CollectionUtils.isNotEmpty(datasourceRequest.getTableFieldWithValues())) {
+                    LogUtil.info("execWithPreparedStatement sql: " + datasourceRequest.getQuery());
+                    for (int i = 0; i < datasourceRequest.getTableFieldWithValues().size(); i++) {
+                        try {
+                            Object valueObject = datasourceRequest.getTableFieldWithValues().get(i).getValue();
 
-            if (CollectionUtils.isNotEmpty(datasourceRequest.getTableFieldWithValues())) {
-                LogUtil.info("execWithPreparedStatement sql: " + datasourceRequest.getQuery());
-                for (int i = 0; i < datasourceRequest.getTableFieldWithValues().size(); i++) {
-                    try {
-                        Object valueObject = datasourceRequest.getTableFieldWithValues().get(i).getValue();
-
-                        if (valueObject instanceof String && isOracleLike(value.getType())) {
-                            if (StringUtils.isNotEmpty(oracleCharset) && StringUtils.isNotEmpty(oracleTargetCharset)) {
-                                //转换为数据库的字符集
-                                valueObject = convertOracleText((String) valueObject, oracleTargetCharset, oracleCharset);
-                            }
-                            if (datasourceRequest.getTableFieldWithValues().get(i).getType().equals(Types.CLOB)) {
-                                Reader reader = new StringReader((String) valueObject);
-                                ((PreparedStatement) statement).setCharacterStream(i + 1, reader, ((String) valueObject).length());
+                            if (valueObject instanceof String && isOracleLike(value.getType())) {
+                                if (StringUtils.isNotEmpty(oracleCharset) && StringUtils.isNotEmpty(oracleTargetCharset)) {
+                                    //转换为数据库的字符集
+                                    valueObject = convertOracleText((String) valueObject, oracleTargetCharset, oracleCharset);
+                                }
+                                if (datasourceRequest.getTableFieldWithValues().get(i).getType().equals(Types.CLOB)) {
+                                    Reader reader = new StringReader((String) valueObject);
+                                    ((PreparedStatement) statement).setCharacterStream(i + 1, reader, ((String) valueObject).length());
+                                } else {
+                                    ((PreparedStatement) statement).setObject(i + 1, valueObject, datasourceRequest.getTableFieldWithValues().get(i).getType());
+                                }
                             } else {
                                 ((PreparedStatement) statement).setObject(i + 1, valueObject, datasourceRequest.getTableFieldWithValues().get(i).getType());
                             }
-                        } else {
-                            ((PreparedStatement) statement).setObject(i + 1, valueObject, datasourceRequest.getTableFieldWithValues().get(i).getType());
+                            LogUtil.info("execWithPreparedStatement param[" + (i + 1) + "](" + datasourceRequest.getTableFieldWithValues().get(i).getColumnTypeName() + "): " + datasourceRequest.getTableFieldWithValues().get(i).getValue());
+                        } catch (SQLException e) {
+                            throw new SQLException(e.getMessage() + ". VALUE: " + datasourceRequest.getTableFieldWithValues().get(i).getValue().toString() + " , TARGET TYPE: " + datasourceRequest.getTableFieldWithValues().get(i).getColumnTypeName());
                         }
-                        LogUtil.info("execWithPreparedStatement param[" + (i + 1) + "](" + datasourceRequest.getTableFieldWithValues().get(i).getColumnTypeName() + "): " + datasourceRequest.getTableFieldWithValues().get(i).getValue());
-                    } catch (SQLException e) {
-                        throw new SQLException(e.getMessage() + ". VALUE: " + datasourceRequest.getTableFieldWithValues().get(i).getValue().toString() + " , TARGET TYPE: " + datasourceRequest.getTableFieldWithValues().get(i).getColumnTypeName());
                     }
+                    resultSet = ((PreparedStatement) statement).executeQuery();
+                } else {
+                    resultSet = statement.executeQuery(datasourceRequest.getQuery());
                 }
-                resultSet = ((PreparedStatement) statement).executeQuery();
-            } else {
-                resultSet = statement.executeQuery(datasourceRequest.getQuery());
+                fieldList = getField(resultSet, datasourceRequest);
+                dataList = getData(resultSet, datasourceRequest);
+            } finally {
+                resetConnectionReadOnly(con, readOnly);
             }
-            fieldList = getField(resultSet, datasourceRequest);
-            dataList = getData(resultSet, datasourceRequest);
         } catch (SQLException e) {
             DEException.throwException("SQL ERROR: " + e.getMessage());
         } catch (Exception e) {

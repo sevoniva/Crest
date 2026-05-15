@@ -235,6 +235,12 @@ public class DatasetSyncTaskManage {
     public void deleteByDatasetGroupId(Long datasetGroupId) {
         CoreDatasetSyncTask task = selectByDatasetGroupId(datasetGroupId);
         if (task != null) {
+            CoreDatasetSyncTask record = new CoreDatasetSyncTask();
+            record.setTaskStatus(TaskStatus.Stopped.name());
+            record.setUpdateTime(System.currentTimeMillis());
+            UpdateWrapper<CoreDatasetSyncTask> wrapper = new UpdateWrapper<>();
+            wrapper.eq("id", task.getId());
+            taskMapper.update(record, wrapper);
             deleteSchedule(task);
         }
         QueryWrapper<CoreDatasetSyncTask> taskWrapper = new QueryWrapper<>();
