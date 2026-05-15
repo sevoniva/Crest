@@ -28,6 +28,7 @@ import io.dataease.extensions.datasource.factory.ProviderFactory;
 import io.dataease.extensions.datasource.provider.Provider;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import io.dataease.datasource.provider.CalciteProvider;
+import io.dataease.utils.CommonThreadPool;
 import io.dataease.utils.LogUtil;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +36,8 @@ import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +47,7 @@ import java.util.stream.Collectors;
 public class DatasetSyncManage {
 
     private static final int PAGE_SIZE = 1000;
+    private static final int FETCH_RETRY_TIMES = 3;
 
     @Resource
     private DatasetSyncTaskManage taskManage;
@@ -57,8 +61,10 @@ public class DatasetSyncManage {
     private CalciteProvider calciteProvider;
     @Resource
     private CoreDatasetGroupMapper datasetGroupMapper;
+    @Resource
+    private CommonThreadPool commonThreadPool;
 
-    public DatasetSyncTaskDTO executeNow(Long datasetGroupId) throws Exception {
+    public DatasetSyncTaskDTO executeNow(Long datasetGroupId) {
         CoreDatasetSyncTask task = taskManage.selectByDatasetGroupId(datasetGroupId);
         if (task == null) {
             DatasetSyncTaskDTO dto = new DatasetSyncTaskDTO();
@@ -67,7 +73,14 @@ public class DatasetSyncManage {
             dto.setSyncRate(DatasourceTaskServer.ScheduleType.RIGHTNOW.name());
             task = taskManage.selectById(taskManage.save(dto).getId());
         }
-        execute(task.getDatasetGroupId(), task.getId(), DatasourceTaskServer.ScheduleType.MANUAL.name(), null, true);
+        Long taskId = task.getId();
+        commonThreadPool.addTask(() -> {
+            try {
+                execute(datasetGroupId, taskId, DatasourceTaskServer.ScheduleType.MANUAL.name(), null, true);
+            } catch (Exception e) {
+                LogUtil.error(e.getMessage(), e);
+            }
+        });
         return taskManage.task(datasetGroupId);
     }
 
@@ -104,14 +117,19 @@ public class DatasetSyncManage {
         SyncResult result = new SyncResult();
         try {
             SyncContext syncContext = prepareContext(datasetGroupId);
+            String schemaHash = DatasetSyncUtils.schemaHash(syncContext.checkedFields);
+            result.schemaHash = schemaHash;
             DatasourceServer.UpdateType updateType = DatasourceServer.UpdateType.valueOf(
                     StringUtils.defaultIfBlank(task.getUpdateType(), DatasetSyncTaskManage.DEFAULT_UPDATE_TYPE)
             );
-            if (updateType == DatasourceServer.UpdateType.add_scope && StringUtils.isNotBlank(task.getIncrementalLastValue())) {
+            if (updateType == DatasourceServer.UpdateType.add_scope
+                    && DatasetSyncUtils.canRunIncremental(task, schemaHash)
+                    && cacheTableExists(syncContext, DatasetSyncUtils.cacheTableName(datasetGroupId))) {
                 result = syncIncremental(syncContext, task);
             } else {
                 result = syncFull(syncContext, task);
             }
+            result.schemaHash = schemaHash;
             log.setInfo("同步完成");
             updateDatasetSyncStatus(datasetGroupId, TaskStatus.Completed, context);
         } catch (Exception e) {
@@ -126,7 +144,7 @@ public class DatasetSyncManage {
             log.setEndTime(System.currentTimeMillis());
             log.setRowCount(result.rowCount);
             taskManage.updateLog(log);
-            taskManage.finishTask(task, status, result.incrementalLastValue);
+            taskManage.finishTask(task, status, result.incrementalLastValue, result.schemaHash);
         }
     }
 
@@ -179,6 +197,8 @@ public class DatasetSyncManage {
         int offset = 0;
         try {
             while (true) {
+                assertTaskRunnable(task.getId());
+                taskManage.touchHeartbeat(task.getId());
                 List<String[]> rows = fetchSourcePage(context, context.sourceSql, offset);
                 insertRows(context, tableName, DatasourceServer.UpdateType.all_scope, rows);
                 result.rowCount += rows.size();
@@ -208,39 +228,74 @@ public class DatasetSyncManage {
 
         String tableName = DatasetSyncUtils.cacheTableName(context.dataset.getId());
         createEngineTable(context, tableName);
+        dropEngineTable(context, DatasetSyncUtils.tmpCacheTableName(context.dataset.getId()));
+        createEngineTable(context, DatasetSyncUtils.tmpCacheTableName(context.dataset.getId()));
         DatasourceSchemaDTO datasource = context.dsMap.entrySet().iterator().next().getValue();
         DatasourceConfiguration.DatasourceType datasourceType = DatasourceConfiguration.DatasourceType.valueOf(datasource.getType());
         String fieldName = StringUtils.defaultIfBlank(incrementalField.getDataeaseName(), incrementalField.getFieldShortName());
-        String predicate = DatasetSyncUtils.buildIncrementalPredicate(incrementalField, task.getIncrementalLastValue(), datasourceType.getPrefix(), datasourceType.getSuffix());
+        copyRetainedCacheRows(context, tableName, incrementalField, task.getIncrementalLastValue());
+        String predicate = DatasetSyncUtils.buildIncrementalPredicate(incrementalField, task.getIncrementalLastValue(), datasourceType.getPrefix(), datasourceType.getSuffix(), true);
         String incrementalSql = "SELECT * FROM (" + context.sourceSql + ") de_sync_src WHERE " + predicate
-                + " ORDER BY " + DatasetSyncUtils.quote(fieldName, datasourceType.getPrefix(), datasourceType.getSuffix());
+                + " ORDER BY " + incrementalOrderBy(context.checkedFields, fieldName, datasourceType);
 
         SyncResult result = new SyncResult();
         result.incrementalLastValue = task.getIncrementalLastValue();
         int offset = 0;
-        while (true) {
-            List<String[]> rows = fetchSourcePage(context, incrementalSql, offset);
-            insertRows(context, tableName, DatasourceServer.UpdateType.add_scope, rows);
-            result.rowCount += rows.size();
-            result.incrementalLastValue = maxWatermark(result.incrementalLastValue, rows, incrementalIndex, incrementalField);
-            if (rows.size() < PAGE_SIZE) {
-                break;
+        try {
+            while (true) {
+                assertTaskRunnable(task.getId());
+                taskManage.touchHeartbeat(task.getId());
+                List<String[]> rows = fetchSourcePage(context, incrementalSql, offset);
+                insertRows(context, tableName, DatasourceServer.UpdateType.all_scope, rows);
+                result.rowCount += rows.size();
+                result.incrementalLastValue = maxWatermark(result.incrementalLastValue, rows, incrementalIndex, incrementalField);
+                if (rows.size() < PAGE_SIZE) {
+                    break;
+                }
+                offset += PAGE_SIZE;
             }
-            offset += PAGE_SIZE;
+            replaceTable(context, tableName);
+            return result;
+        } catch (Exception e) {
+            dropEngineTable(context, DatasetSyncUtils.tmpCacheTableName(context.dataset.getId()));
+            throw e;
         }
-        return result;
     }
 
     private List<String[]> fetchSourcePage(SyncContext context, String sql, int offset) {
-        DatasourceSchemaDTO datasource = context.dsMap.entrySet().iterator().next().getValue();
-        DatasourceConfiguration.DatasourceType datasourceType = DatasourceConfiguration.DatasourceType.valueOf(datasource.getType());
-        String pageSql = DatasetSyncUtils.buildOraclePageSql(sql, PAGE_SIZE, offset, context.checkedFields, datasourceType.getPrefix(), datasourceType.getSuffix());
-        DatasourceRequest request = new DatasourceRequest();
-        request.setDsList(context.dsMap);
-        request.setIsCross(false);
-        request.setQuery(pageSql);
-        Map<String, Object> data = context.sourceProvider.fetchResultField(request);
-        return (List<String[]>) data.get("data");
+        for (int attempt = 1; attempt <= FETCH_RETRY_TIMES; attempt++) {
+            try {
+                DatasourceSchemaDTO datasource = context.dsMap.entrySet().iterator().next().getValue();
+                DatasourceConfiguration.DatasourceType datasourceType = DatasourceConfiguration.DatasourceType.valueOf(datasource.getType());
+                String pageSql = DatasetSyncUtils.buildOraclePageSql(sql, PAGE_SIZE, offset, context.checkedFields, datasourceType.getPrefix(), datasourceType.getSuffix());
+                DatasourceRequest request = new DatasourceRequest();
+                request.setDsList(context.dsMap);
+                request.setIsCross(false);
+                request.setQuery(pageSql);
+                Map<String, Object> data = context.sourceProvider.fetchResultField(request);
+                return (List<String[]>) data.get("data");
+            } catch (DEException e) {
+                if (attempt >= FETCH_RETRY_TIMES || !isTransientDatasourceConnection(e)) {
+                    throw e;
+                }
+                LogUtil.warn("Retry dataset sync source fetch after datasource connection exception, attempt " + attempt + ": " + e.getMessage());
+                sleepBeforeRetry(attempt);
+            }
+        }
+        return List.of();
+    }
+
+    private boolean isTransientDatasourceConnection(DEException e) {
+        return StringUtils.containsIgnoreCase(e.getMessage(), "Datasource connection exception");
+    }
+
+    private void sleepBeforeRetry(int attempt) {
+        try {
+            Thread.sleep(attempt * 1000L);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            DEException.throwException("数据集同步重试被中断");
+        }
     }
 
     private void insertRows(SyncContext context, String tableName, DatasourceServer.UpdateType updateType, List<String[]> rows) throws Exception {
@@ -261,11 +316,41 @@ public class DatasetSyncManage {
         calciteProvider.exec(request);
     }
 
+    private void copyRetainedCacheRows(SyncContext context, String tableName, DatasetTableFieldDTO incrementalField, String lastValue) throws Exception {
+        DatasourceConfiguration.DatasourceType engineType = DatasourceConfiguration.DatasourceType.valueOf(context.engine.getType());
+        String predicate = DatasetSyncUtils.buildCacheWatermarkPredicate(
+                incrementalField,
+                lastValue,
+                engineType.getPrefix(),
+                engineType.getSuffix(),
+                "<"
+        );
+        EngineRequest request = new EngineRequest();
+        request.setEngine(context.engine);
+        request.setQuery("INSERT INTO " + DatasetSyncUtils.quote(DatasetSyncUtils.tmpCacheTableName(context.dataset.getId()), engineType.getPrefix(), engineType.getSuffix())
+                + " SELECT * FROM " + DatasetSyncUtils.quote(tableName, engineType.getPrefix(), engineType.getSuffix()) + " WHERE " + predicate);
+        calciteProvider.exec(request);
+    }
+
     private void createEngineTable(SyncContext context, String tableName) throws Exception {
         EngineRequest request = new EngineRequest();
         request.setEngine(context.engine);
         request.setQuery(context.engineProvider.createTableSql(tableName, context.tableFields, context.engine));
         calciteProvider.exec(request);
+    }
+
+    private boolean cacheTableExists(SyncContext context, String tableName) {
+        try {
+            DatasourceConfiguration.DatasourceType engineType = DatasourceConfiguration.DatasourceType.valueOf(context.engine.getType());
+            EngineRequest request = new EngineRequest();
+            request.setEngine(context.engine);
+            request.setQuery("SELECT 1 FROM " + DatasetSyncUtils.quote(tableName, engineType.getPrefix(), engineType.getSuffix()) + " WHERE 1 = 0");
+            calciteProvider.exec(request);
+            return true;
+        } catch (Exception e) {
+            LogUtil.warn("Dataset sync cache table is not available, fallback to full sync: " + tableName + ", " + e.getMessage());
+            return false;
+        }
     }
 
     private void dropEngineTable(SyncContext context, String tableName) throws Exception {
@@ -310,6 +395,29 @@ public class DatasetSyncManage {
             }
         }
         return -1;
+    }
+
+    private String incrementalOrderBy(List<DatasetTableFieldDTO> fields, String firstFieldName, DatasourceConfiguration.DatasourceType datasourceType) {
+        LinkedHashSet<String> orderFields = new LinkedHashSet<>();
+        orderFields.add(firstFieldName);
+        for (DatasetTableFieldDTO field : fields) {
+            String fieldName = StringUtils.defaultIfBlank(field.getDataeaseName(), field.getFieldShortName());
+            if (StringUtils.isNotBlank(fieldName)) {
+                orderFields.add(fieldName);
+            }
+        }
+        List<String> quotedFields = new ArrayList<>();
+        for (String field : orderFields) {
+            quotedFields.add(DatasetSyncUtils.quote(field, datasourceType.getPrefix(), datasourceType.getSuffix()));
+        }
+        return StringUtils.join(quotedFields, ",");
+    }
+
+    private void assertTaskRunnable(Long taskId) {
+        CoreDatasetSyncTask latest = taskManage.selectById(taskId);
+        if (latest != null && StringUtils.equalsAnyIgnoreCase(latest.getTaskStatus(), TaskStatus.Stopped.name(), TaskStatus.Suspend.name())) {
+            DEException.throwException("数据集同步任务已停止");
+        }
     }
 
     private String maxWatermark(String current, List<String[]> rows, int index, DatasetTableFieldDTO field) {
@@ -379,5 +487,6 @@ public class DatasetSyncManage {
     private static class SyncResult {
         private long rowCount = 0L;
         private String incrementalLastValue;
+        private String schemaHash;
     }
 }

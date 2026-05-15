@@ -35,7 +35,10 @@ public class DatasetSyncQueryManage {
             return sqlMap;
         }
         CoreDatasetSyncTask task = taskManage.selectByDatasetGroupId(dataset.getId());
-        if (!DatasetSyncUtils.isCacheReady(task)) {
+        if (!DatasetSyncUtils.isCacheReady(task, DatasetSyncUtils.schemaHash(fields))) {
+            return sqlMap;
+        }
+        if (!taskManage.cacheTableExists(dataset.getId())) {
             return sqlMap;
         }
 

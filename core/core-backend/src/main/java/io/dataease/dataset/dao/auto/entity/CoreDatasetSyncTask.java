@@ -42,9 +42,13 @@ public class CoreDatasetSyncTask implements Serializable {
 
     private Long lastExecTime;
 
+    private Long heartbeatTime;
+
     private String lastExecStatus;
 
     private String taskStatus;
 
     private Integer cacheReady;
+
+    private String schemaHash;
 }

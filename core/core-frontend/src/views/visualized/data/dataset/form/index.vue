@@ -66,9 +66,10 @@ import {
   getDatasetSyncTask,
   saveDatasetSyncTask,
   executeDatasetSync,
-  stopDatasetSync
+  stopDatasetSync,
+  getDatasetSyncLogs
 } from '@/api/dataset'
-import type { DatasetSyncTask, Table } from '@/api/dataset'
+import type { DatasetSyncLog, DatasetSyncTask, Table } from '@/api/dataset'
 import DatasetUnion from './DatasetUnion.vue'
 import { cloneDeep, debounce } from 'lodash-es'
 import { XpackComponent } from '@/components/plugin'
@@ -138,6 +139,9 @@ const defaultSyncTask = (): DatasetSyncTask => ({
   cron: '0 0/30 * * * ? *'
 })
 const syncTask = reactive<DatasetSyncTask>(defaultSyncTask())
+const syncLogs = ref<DatasetSyncLog[]>([])
+const syncSubmitting = ref(false)
+let syncPollTimer: number | null = null
 
 const fieldTypes = index => {
   return [
@@ -774,6 +778,7 @@ const initEdite = async () => {
       await loadDatasetSyncTask(res.id)
     } else {
       Object.assign(syncTask, defaultSyncTask())
+      syncLogs.value = []
     }
     dfsUnion(arr, res.union || [])
     const [fir] = res.union as { currentDs: { datasourceId: string } }[]
@@ -900,6 +905,16 @@ const datasetMode = computed(() => (obOracleDataset.value && syncMode.value === 
 const incrementalFieldOptions = computed(() =>
   allfields.value.filter(ele => ele.extField === 0 && ele.checked !== false)
 )
+const syncRunning = computed(() => syncTask.taskStatus === 'UnderExecution')
+const syncStatusText = computed(() => {
+  if (syncTask.taskStatus === 'UnderExecution') return '同步中'
+  if (syncTask.lastExecStatus === 'Completed')
+    return syncTask.cacheReady === 1 ? '缓存可用' : '已完成'
+  if (syncTask.lastExecStatus === 'Error') return '同步失败'
+  if (syncTask.taskStatus === 'Stopped') return '已停止'
+  return '未同步'
+})
+const latestSyncLog = computed(() => syncLogs.value[0])
 
 const refreshSimpleCron = () => {
   const value = Number(syncTask.simpleCronValue || 30)
@@ -943,6 +958,43 @@ const loadDatasetSyncTask = async id => {
   if (task) {
     Object.assign(syncTask, task)
   }
+  syncLogs.value = await getDatasetSyncLogs(id)
+  if (syncRunning.value) {
+    startSyncPolling()
+  } else {
+    stopSyncPolling()
+  }
+}
+
+const refreshDatasetSyncState = async () => {
+  if (!currentDatasetId.value) {
+    return
+  }
+  const task = await getDatasetSyncTask(currentDatasetId.value)
+  if (task) {
+    Object.assign(syncTask, task)
+  }
+  syncLogs.value = await getDatasetSyncLogs(currentDatasetId.value)
+  if (!syncRunning.value) {
+    stopSyncPolling()
+  }
+}
+
+const startSyncPolling = () => {
+  if (syncPollTimer) {
+    return
+  }
+  syncPollTimer = window.setInterval(() => {
+    refreshDatasetSyncState().catch(() => stopSyncPolling())
+  }, 3000)
+}
+
+const stopSyncPolling = () => {
+  if (!syncPollTimer) {
+    return
+  }
+  window.clearInterval(syncPollTimer)
+  syncPollTimer = null
 }
 
 const persistDatasetSync = async id => {
@@ -951,6 +1003,7 @@ const persistDatasetSync = async id => {
   }
   if (datasetMode.value !== 1) {
     await stopDatasetSync(id)
+    stopSyncPolling()
     return
   }
   if (!validateSyncSetting()) {
@@ -972,9 +1025,23 @@ const executeDatasetSyncNow = async () => {
     ElMessage.warning('请先保存数据集')
     return
   }
-  await persistDatasetSync(currentDatasetId.value)
-  await executeDatasetSync(currentDatasetId.value)
-  ElMessage.success('同步完成')
+  if (syncRunning.value) {
+    ElMessage.warning('已有同步任务正在执行')
+    return
+  }
+  syncSubmitting.value = true
+  try {
+    await persistDatasetSync(currentDatasetId.value)
+    const task = await executeDatasetSync(currentDatasetId.value)
+    if (task) {
+      Object.assign(syncTask, task)
+    }
+    syncLogs.value = await getDatasetSyncLogs(currentDatasetId.value)
+    startSyncPolling()
+    ElMessage.success('同步任务已提交')
+  } finally {
+    syncSubmitting.value = false
+  }
 }
 
 const expandedD = ref(true)
@@ -1479,6 +1546,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  stopSyncPolling()
   window.removeEventListener('resize', handleResize)
 })
 const getSqlResultHeight = () => {
@@ -2020,11 +2088,26 @@ const getIconNameCalc = (deType, extField, dimension = false) => {
               <el-button
                 class="sync-now"
                 secondary
-                :disabled="!currentDatasetId"
+                :loading="syncSubmitting"
+                :disabled="!currentDatasetId || syncRunning"
                 @click="executeDatasetSyncNow"
               >
-                立即同步
+                {{ syncRunning ? '同步中' : '立即同步' }}
               </el-button>
+              <div class="sync-status">
+                <span>{{ syncStatusText }}</span>
+                <span v-if="syncTask.lastExecTime">{{
+                  dayjs(syncTask.lastExecTime).format('YYYY-MM-DD HH:mm:ss')
+                }}</span>
+              </div>
+              <div v-if="syncTask.incrementalLastValue" class="sync-watermark">
+                水位：{{ syncTask.incrementalLastValue }}
+              </div>
+              <div v-if="latestSyncLog" class="sync-log">
+                <span>{{ latestSyncLog.taskStatus }}</span>
+                <span>{{ latestSyncLog.rowCount || 0 }} 行</span>
+                <span v-if="latestSyncLog.info">{{ latestSyncLog.info }}</span>
+              </div>
             </template>
           </div>
           <p class="select-ds table-num">
@@ -3320,6 +3403,29 @@ const getIconNameCalc = (deType, extField, dimension = false) => {
         .sync-now {
           width: 100%;
           margin-top: 8px;
+        }
+
+        .sync-status,
+        .sync-log,
+        .sync-watermark {
+          display: flex;
+          gap: 8px;
+          margin-top: 8px;
+          font-size: 12px;
+          line-height: 18px;
+          color: #646a73;
+        }
+
+        .sync-status,
+        .sync-log {
+          justify-content: space-between;
+        }
+
+        .sync-log,
+        .sync-watermark {
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
         }
 
         .sync-cron {

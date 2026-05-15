@@ -74,6 +74,7 @@ public class DataSourceInitStartListener implements ApplicationListener<Applicat
 
         List<CoreDatasetSyncTask> datasetSyncTasks = List.of();
         try {
+            datasetSyncTaskManage.recoverInterruptedTasks();
             datasetSyncTasks = datasetSyncTaskManage.listAll();
         } catch (Exception e) {
             e.printStackTrace();

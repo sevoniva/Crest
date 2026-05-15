@@ -53,6 +53,36 @@ public class DatasetSyncUtilsTest {
     }
 
     @Test
+    public void buildIncrementalPredicateCanReplayLastWatermarkBucket() {
+        DatasetTableFieldDTO timeField = field(3L, "UPDATED_AT", "更新时间", "f_updated_at", 1, ExtFieldConstant.EXT_NORMAL);
+
+        assertEquals(
+                "\"f_updated_at\" >= TO_TIMESTAMP('2026-05-14 12:30:01.0', 'YYYY-MM-DD HH24:MI:SS.FF')",
+                DatasetSyncUtils.buildIncrementalPredicate(timeField, "2026-05-14 12:30:01.0", "\"", "\"", true)
+        );
+        assertEquals(
+                "`f_updated_at` >= '2026-05-14 12:30:01.0'",
+                DatasetSyncUtils.buildCacheWatermarkPredicate(timeField, "2026-05-14 12:30:01.0", "`", "`", ">=")
+        );
+        assertEquals(
+                "`f_updated_at` < '2026-05-14 12:30:01.0'",
+                DatasetSyncUtils.buildCacheWatermarkPredicate(timeField, "2026-05-14 12:30:01.0", "`", "`", "<")
+        );
+    }
+
+    @Test
+    public void schemaHashChangesWhenSelectedFieldShapeChanges() {
+        DatasetTableFieldDTO id = field(1L, "ID", "ID", "f_id", 2, ExtFieldConstant.EXT_NORMAL);
+        DatasetTableFieldDTO name = field(2L, "NAME", "名称", "f_name", 0, ExtFieldConstant.EXT_NORMAL);
+        DatasetTableFieldDTO renamed = field(2L, "NAME", "名称", "f_user_name", 0, ExtFieldConstant.EXT_NORMAL);
+
+        String schemaHash = DatasetSyncUtils.schemaHash(List.of(id, name));
+
+        assertEquals(schemaHash, DatasetSyncUtils.schemaHash(List.of(id, name)));
+        assertFalse(schemaHash.equals(DatasetSyncUtils.schemaHash(List.of(id, renamed))));
+    }
+
+    @Test
     public void buildCacheSelectSqlReadsDataeaseColumnsFromCacheTable() {
         DatasetTableFieldDTO id = field(1L, "ID", "ID", "f_id", 2, ExtFieldConstant.EXT_NORMAL);
         DatasetTableFieldDTO name = field(2L, "NAME", "名称", "f_name", 0, ExtFieldConstant.EXT_NORMAL);
@@ -110,6 +140,36 @@ public class DatasetSyncUtilsTest {
 
         task.setCacheReady(1);
         assertTrue(DatasetSyncUtils.isCacheReady(task));
+
+        task.setSchemaHash("schema-v1");
+        assertTrue(DatasetSyncUtils.isCacheReady(task, "schema-v1"));
+        assertFalse(DatasetSyncUtils.isCacheReady(task, "schema-v2"));
+    }
+
+    @Test
+    public void incrementalRequiresWatermarkReadyCacheAndMatchingSchema() {
+        CoreDatasetSyncTask task = new CoreDatasetSyncTask();
+        task.setUpdateType("add_scope");
+        task.setIncrementalLastValue("2026-05-14 10:50:00.0");
+        task.setCacheReady(1);
+        task.setSchemaHash("schema-v1");
+
+        assertTrue(DatasetSyncUtils.canRunIncremental(task, "schema-v1"));
+
+        task.setSchemaHash("schema-v0");
+        assertFalse(DatasetSyncUtils.canRunIncremental(task, "schema-v1"));
+
+        task.setSchemaHash("schema-v1");
+        task.setCacheReady(0);
+        assertFalse(DatasetSyncUtils.canRunIncremental(task, "schema-v1"));
+
+        task.setCacheReady(1);
+        task.setIncrementalLastValue(null);
+        assertFalse(DatasetSyncUtils.canRunIncremental(task, "schema-v1"));
+
+        task.setIncrementalLastValue("2026-05-14 10:50:00.0");
+        task.setUpdateType("all_scope");
+        assertFalse(DatasetSyncUtils.canRunIncremental(task, "schema-v1"));
     }
 
     private DatasetTableFieldDTO field(Long id, String originName, String name, String dataeaseName, Integer deExtractType, Integer extField) {

@@ -93,8 +93,26 @@ export interface DatasetSyncTask {
   simpleCronType?: 'minute' | 'hour' | 'day'
   endTime?: number
   lastExecTime?: number
+  heartbeatTime?: number
   lastExecStatus?: string
   taskStatus?: string
+  cacheReady?: number
+  schemaHash?: string
+}
+
+export interface DatasetSyncLog {
+  id?: string | number
+  datasetGroupId?: string | number
+  taskId?: string | number
+  updateType?: string
+  tableName?: string
+  startTime?: number
+  endTime?: number
+  taskStatus?: string
+  rowCount?: number
+  info?: string
+  createTime?: number
+  triggerType?: string
 }
 // 获取权限路
 // edit
@@ -300,6 +318,11 @@ export const executeDatasetSync = async (datasetGroupId): Promise<DatasetSyncTas
 export const stopDatasetSync = async (datasetGroupId): Promise<void> => {
   return request.post({ url: `/datasetSync/stop/${datasetGroupId}`, data: {} }).then(res => {
     return res?.data
+  })
+}
+export const getDatasetSyncLogs = async (datasetGroupId): Promise<DatasetSyncLog[]> => {
+  return request.get({ url: `/datasetSync/logs/${datasetGroupId}` }).then(res => {
+    return res?.data || []
   })
 }
 export const rowPermissionList = (page: number, limit: number, datasetId: number) =>

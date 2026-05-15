@@ -9,6 +9,9 @@ import io.dataease.extensions.datasource.dto.TableField;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import org.apache.commons.lang3.StringUtils;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,17 @@ public class DatasetSyncUtils {
         return task != null && Objects.equals(task.getCacheReady(), 1);
     }
 
+    public static boolean isCacheReady(CoreDatasetSyncTask task, String schemaHash) {
+        return isCacheReady(task) && StringUtils.equals(task.getSchemaHash(), schemaHash);
+    }
+
+    public static boolean canRunIncremental(CoreDatasetSyncTask task, String schemaHash) {
+        return task != null
+                && StringUtils.equalsIgnoreCase(task.getUpdateType(), "add_scope")
+                && StringUtils.isNotBlank(task.getIncrementalLastValue())
+                && isCacheReady(task, schemaHash);
+    }
+
     public static List<TableField> toEngineTableFields(List<DatasetTableFieldDTO> fields) {
         List<TableField> tableFields = new ArrayList<>();
         if (fields == null) {
@@ -80,15 +94,30 @@ public class DatasetSyncUtils {
     }
 
     public static String buildIncrementalPredicate(DatasetTableFieldDTO field, String lastValue, String prefix, String suffix) {
+        return buildIncrementalPredicate(field, lastValue, prefix, suffix, false);
+    }
+
+    public static String buildIncrementalPredicate(DatasetTableFieldDTO field, String lastValue, String prefix, String suffix, boolean inclusive) {
         String column = prefix + StringUtils.defaultIfBlank(field.getDataeaseName(), field.getFieldShortName()) + suffix;
+        String operator = inclusive ? " >= " : " > ";
         if (Objects.equals(field.getDeExtractType(), 1) || Objects.equals(field.getDeType(), 1)) {
-            return column + " > TO_TIMESTAMP('" + escapeSqlLiteral(lastValue) + "', 'YYYY-MM-DD HH24:MI:SS.FF')";
+            return column + operator + "TO_TIMESTAMP('" + escapeSqlLiteral(lastValue) + "', 'YYYY-MM-DD HH24:MI:SS.FF')";
         }
         if (Objects.equals(field.getDeExtractType(), 2) || Objects.equals(field.getDeExtractType(), 3)
                 || Objects.equals(field.getDeType(), 2) || Objects.equals(field.getDeType(), 3)) {
-            return column + " > " + lastValue;
+            return column + operator + lastValue;
         }
-        return column + " > '" + escapeSqlLiteral(lastValue) + "'";
+        return column + operator + "'" + escapeSqlLiteral(lastValue) + "'";
+    }
+
+    public static String buildCacheWatermarkPredicate(DatasetTableFieldDTO field, String lastValue, String prefix, String suffix, String operator) {
+        String column = prefix + StringUtils.defaultIfBlank(field.getDataeaseName(), field.getFieldShortName()) + suffix;
+        String safeOperator = StringUtils.defaultIfBlank(operator, ">").trim();
+        if (Objects.equals(field.getDeExtractType(), 2) || Objects.equals(field.getDeExtractType(), 3)
+                || Objects.equals(field.getDeType(), 2) || Objects.equals(field.getDeType(), 3)) {
+            return column + " " + safeOperator + " " + lastValue;
+        }
+        return column + " " + safeOperator + " '" + escapeSqlLiteral(lastValue) + "'";
     }
 
     public static String buildCacheSelectSql(Long datasetGroupId, List<DatasetTableFieldDTO> fields, String prefix, String suffix, String schemaAlias) {
@@ -121,6 +150,32 @@ public class DatasetSyncUtils {
 
     public static String quote(String value, String prefix, String suffix) {
         return prefix + value + suffix;
+    }
+
+    public static String schemaHash(List<DatasetTableFieldDTO> fields) {
+        String signature = fields.stream()
+                .filter(field -> Objects.equals(field.getChecked(), true))
+                .filter(field -> Objects.equals(field.getExtField(), ExtFieldConstant.EXT_NORMAL))
+                .map(field -> String.join("|",
+                        StringUtils.defaultString(field.getDataeaseName()),
+                        StringUtils.defaultString(field.getFieldShortName()),
+                        StringUtils.defaultString(field.getName()),
+                        StringUtils.defaultString(field.getOriginName()),
+                        String.valueOf(field.getDeExtractType()),
+                        String.valueOf(field.getDeType())
+                ))
+                .collect(Collectors.joining("\n"));
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = digest.digest(signature.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(bytes.length * 2);
+            for (byte value : bytes) {
+                hex.append(String.format("%02x", value));
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is not available", e);
+        }
     }
 
     public static String escapeSqlLiteral(String value) {

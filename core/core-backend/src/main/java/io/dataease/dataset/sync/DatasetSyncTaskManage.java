@@ -17,6 +17,7 @@ import io.dataease.datasource.provider.CalciteProvider;
 import io.dataease.datasource.request.EngineRequest;
 import io.dataease.datasource.server.DatasourceTaskServer;
 import io.dataease.exception.DEException;
+import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import io.dataease.job.schedule.DatasetSyncJob;
 import io.dataease.job.schedule.ScheduleManager;
 import io.dataease.utils.BeanUtils;
@@ -37,6 +38,7 @@ import java.util.Objects;
 public class DatasetSyncTaskManage {
 
     public static final String DEFAULT_UPDATE_TYPE = "all_scope";
+    private static final long RUNNING_TASK_STALE_MILLIS = 12 * 60 * 60 * 1000L;
     private static final String JOB_GROUP_PREFIX = "dataset_sync_";
 
     @Resource
@@ -107,13 +109,25 @@ public class DatasetSyncTaskManage {
     }
 
     public synchronized boolean markUnderExecution(CoreDatasetSyncTask task) {
+        recoverIfStale(task);
         UpdateWrapper<CoreDatasetSyncTask> wrapper = new UpdateWrapper<>();
         wrapper.eq("id", task.getId());
         wrapper.ne("task_status", TaskStatus.UnderExecution.name());
+        long now = System.currentTimeMillis();
         CoreDatasetSyncTask record = new CoreDatasetSyncTask();
         record.setTaskStatus(TaskStatus.UnderExecution.name());
-        record.setLastExecTime(System.currentTimeMillis());
+        record.setLastExecTime(now);
+        record.setHeartbeatTime(now);
         return taskMapper.update(record, wrapper) == 0;
+    }
+
+    public void touchHeartbeat(Long taskId) {
+        CoreDatasetSyncTask record = new CoreDatasetSyncTask();
+        record.setHeartbeatTime(System.currentTimeMillis());
+        UpdateWrapper<CoreDatasetSyncTask> wrapper = new UpdateWrapper<>();
+        wrapper.eq("id", taskId);
+        wrapper.eq("task_status", TaskStatus.UnderExecution.name());
+        taskMapper.update(record, wrapper);
     }
 
     public CoreDatasetSyncTaskLog initLog(CoreDatasetSyncTask task, String triggerType) {
@@ -138,7 +152,7 @@ public class DatasetSyncTaskManage {
         logMapper.updateById(log);
     }
 
-    public void finishTask(CoreDatasetSyncTask task, TaskStatus status, String incrementalLastValue) {
+    public void finishTask(CoreDatasetSyncTask task, TaskStatus status, String incrementalLastValue, String schemaHash) {
         CoreDatasetSyncTask record = new CoreDatasetSyncTask();
         record.setLastExecStatus(status.name());
         record.setUpdateTime(System.currentTimeMillis());
@@ -148,7 +162,13 @@ public class DatasetSyncTaskManage {
         if (StringUtils.isNotBlank(incrementalLastValue)) {
             record.setIncrementalLastValue(incrementalLastValue);
         }
-        if (StringUtils.equalsIgnoreCase(task.getSyncRate(), DatasourceTaskServer.ScheduleType.RIGHTNOW.name())) {
+        if (StringUtils.isNotBlank(schemaHash)) {
+            record.setSchemaHash(schemaHash);
+        }
+        CoreDatasetSyncTask latest = selectById(task.getId());
+        if (latest != null && StringUtils.equalsAnyIgnoreCase(latest.getTaskStatus(), TaskStatus.Stopped.name(), TaskStatus.Suspend.name())) {
+            record.setTaskStatus(latest.getTaskStatus());
+        } else if (StringUtils.equalsIgnoreCase(task.getSyncRate(), DatasourceTaskServer.ScheduleType.RIGHTNOW.name())) {
             record.setTaskStatus(TaskStatus.Stopped.name());
         } else {
             record.setTaskStatus(TaskStatus.WaitingForExecution.name());
@@ -156,6 +176,15 @@ public class DatasetSyncTaskManage {
         UpdateWrapper<CoreDatasetSyncTask> wrapper = new UpdateWrapper<>();
         wrapper.eq("id", task.getId());
         taskMapper.update(record, wrapper);
+    }
+
+    public void recoverInterruptedTasks() {
+        QueryWrapper<CoreDatasetSyncTask> wrapper = new QueryWrapper<>();
+        wrapper.eq("task_status", TaskStatus.UnderExecution.name());
+        List<CoreDatasetSyncTask> tasks = taskMapper.selectList(wrapper);
+        for (CoreDatasetSyncTask task : tasks) {
+            markRecovered(task, "应用重启后恢复未完成的数据集同步任务");
+        }
     }
 
     public void stop(Long datasetGroupId) {
@@ -227,6 +256,25 @@ public class DatasetSyncTaskManage {
         scheduleManager.removeJob(jobKey, new TriggerKey(taskId, jobGroup(datasetGroupId)));
     }
 
+    public boolean cacheTableExists(Long datasetGroupId) {
+        try {
+            CoreDeEngine engine = engineManage.info();
+            DatasourceConfiguration.DatasourceType engineType = DatasourceConfiguration.DatasourceType.valueOf(engine.getType());
+            EngineRequest request = new EngineRequest();
+            request.setEngine(engine);
+            request.setQuery("SELECT 1 FROM " + DatasetSyncUtils.quote(
+                    DatasetSyncUtils.cacheTableName(datasetGroupId),
+                    engineType.getPrefix(),
+                    engineType.getSuffix()
+            ) + " WHERE 1 = 0");
+            calciteProvider.exec(request);
+            return true;
+        } catch (Exception e) {
+            LogUtil.warn("Dataset sync cache table is not available: " + datasetGroupId + ", " + e.getMessage());
+            return false;
+        }
+    }
+
     private CoreDatasetSyncTask normalize(DatasetSyncTaskDTO task) {
         CoreDatasetSyncTask record = new CoreDatasetSyncTask();
         BeanUtils.copyBean(record, task);
@@ -287,6 +335,39 @@ public class DatasetSyncTaskManage {
 
     private String jobGroup(String datasetGroupId) {
         return JOB_GROUP_PREFIX + datasetGroupId;
+    }
+
+    private void recoverIfStale(CoreDatasetSyncTask task) {
+        CoreDatasetSyncTask latest = selectById(task.getId());
+        if (latest == null || !StringUtils.equalsIgnoreCase(latest.getTaskStatus(), TaskStatus.UnderExecution.name())) {
+            return;
+        }
+        Long runningTime = latest.getHeartbeatTime() != null ? latest.getHeartbeatTime() : latest.getLastExecTime();
+        long runningAt = runningTime == null ? 0L : runningTime;
+        if (runningAt == 0 || System.currentTimeMillis() - runningAt <= RUNNING_TASK_STALE_MILLIS) {
+            return;
+        }
+        markRecovered(latest, "数据集同步任务超过运行心跳阈值，已自动恢复");
+    }
+
+    private void markRecovered(CoreDatasetSyncTask task, String message) {
+        CoreDatasetSyncTask record = new CoreDatasetSyncTask();
+        record.setTaskStatus(TaskStatus.WaitingForExecution.name());
+        record.setLastExecStatus(TaskStatus.Error.name());
+        record.setUpdateTime(System.currentTimeMillis());
+        UpdateWrapper<CoreDatasetSyncTask> wrapper = new UpdateWrapper<>();
+        wrapper.eq("id", task.getId());
+        wrapper.eq("task_status", TaskStatus.UnderExecution.name());
+        taskMapper.update(record, wrapper);
+
+        CoreDatasetSyncTaskLog logRecord = new CoreDatasetSyncTaskLog();
+        logRecord.setTaskStatus(TaskStatus.Error.name());
+        logRecord.setEndTime(System.currentTimeMillis());
+        logRecord.setInfo(message);
+        UpdateWrapper<CoreDatasetSyncTaskLog> logWrapper = new UpdateWrapper<>();
+        logWrapper.eq("task_id", task.getId());
+        logWrapper.eq("task_status", TaskStatus.UnderExecution.name());
+        logMapper.update(logRecord, logWrapper);
     }
 
     private void dropCacheTable(String tableName) {
