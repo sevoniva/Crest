@@ -51,4 +51,32 @@ public class DatasetSyncTaskDTO implements Serializable {
     private Integer cacheReady;
 
     private String schemaHash;
+
+    private Integer fullSyncIntervalHours;
+
+    private Long lastFullSyncTime;
+
+    private Integer verifyEnabled;
+
+    private Long lastVerifyTime;
+
+    private String lastVerifyStatus;
+
+    private String lastVerifyMessage;
+
+    private Long lastSourceRowCount;
+
+    private Long lastCacheRowCount;
+
+    private Integer cacheExpireHours;
+
+    private Integer taskTimeoutMinutes;
+
+    private Integer consecutiveFailures;
+
+    private Integer failureWarnThreshold;
+
+    private Boolean cacheExpired;
+
+    private Boolean failureWarned;
 }

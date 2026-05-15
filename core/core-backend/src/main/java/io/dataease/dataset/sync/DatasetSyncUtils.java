@@ -21,6 +21,10 @@ import java.util.stream.Collectors;
 public class DatasetSyncUtils {
 
     public static final String CACHE_TABLE_PREFIX = "de_sync_dataset_";
+    public static final int DEFAULT_FULL_SYNC_INTERVAL_HOURS = 24;
+    public static final int DEFAULT_CACHE_EXPIRE_HOURS = 26;
+    public static final int DEFAULT_TASK_TIMEOUT_MINUTES = 360;
+    public static final int DEFAULT_FAILURE_WARN_THRESHOLD = 1;
 
     private DatasetSyncUtils() {
     }
@@ -62,6 +66,61 @@ public class DatasetSyncUtils {
                 && StringUtils.equalsIgnoreCase(task.getUpdateType(), "add_scope")
                 && StringUtils.isNotBlank(task.getIncrementalLastValue())
                 && isCacheReady(task, schemaHash);
+    }
+
+    public static boolean shouldRunFullCalibration(CoreDatasetSyncTask task, long now) {
+        if (task == null || !StringUtils.equalsIgnoreCase(task.getUpdateType(), "add_scope")) {
+            return false;
+        }
+        int intervalHours = Objects.requireNonNullElse(task.getFullSyncIntervalHours(), DEFAULT_FULL_SYNC_INTERVAL_HOURS);
+        if (intervalHours <= 0) {
+            return false;
+        }
+        Long lastFullSyncTime = task.getLastFullSyncTime();
+        if (lastFullSyncTime == null || lastFullSyncTime <= 0) {
+            return true;
+        }
+        return now - lastFullSyncTime >= intervalHours * 60L * 60L * 1000L;
+    }
+
+    public static boolean isCacheExpired(CoreDatasetSyncTask task, long now) {
+        if (!isCacheReady(task) || task.getLastExecTime() == null || task.getLastExecTime() <= 0) {
+            return false;
+        }
+        int expireHours = Objects.requireNonNullElse(task.getCacheExpireHours(), DEFAULT_CACHE_EXPIRE_HOURS);
+        if (expireHours <= 0) {
+            return false;
+        }
+        return now - task.getLastExecTime() > expireHours * 60L * 60L * 1000L;
+    }
+
+    public static boolean isTaskTimedOut(CoreDatasetSyncTask task, long startTime, long now) {
+        int timeoutMinutes = Objects.requireNonNullElse(task == null ? null : task.getTaskTimeoutMinutes(), DEFAULT_TASK_TIMEOUT_MINUTES);
+        return timeoutMinutes > 0 && now - startTime > timeoutMinutes * 60L * 1000L;
+    }
+
+    public static boolean isFailureWarned(CoreDatasetSyncTask task) {
+        if (task == null) {
+            return false;
+        }
+        int failures = Objects.requireNonNullElse(task.getConsecutiveFailures(), 0);
+        int threshold = Objects.requireNonNullElse(task.getFailureWarnThreshold(), DEFAULT_FAILURE_WARN_THRESHOLD);
+        return threshold > 0 && failures >= threshold;
+    }
+
+    public static ReconcileResult reconcile(Long sourceRowCount, Long cacheRowCount, String sourceWatermark, String cacheWatermark) {
+        if (!Objects.equals(sourceRowCount, cacheRowCount)) {
+            return new ReconcileResult("WARNING", "源端行数 " + sourceRowCount + " 与缓存行数 " + cacheRowCount + " 不一致");
+        }
+        if (StringUtils.isNotBlank(sourceWatermark) || StringUtils.isNotBlank(cacheWatermark)) {
+            if (!StringUtils.equals(StringUtils.defaultString(sourceWatermark), StringUtils.defaultString(cacheWatermark))) {
+                return new ReconcileResult(
+                        "WARNING",
+                        "源端最大水位 " + sourceWatermark + " 与缓存最大水位 " + cacheWatermark + " 不一致"
+                );
+            }
+        }
+        return new ReconcileResult("PASSED", "对账通过");
     }
 
     public static List<TableField> toEngineTableFields(List<DatasetTableFieldDTO> fields) {
@@ -180,5 +239,8 @@ public class DatasetSyncUtils {
 
     public static String escapeSqlLiteral(String value) {
         return StringUtils.defaultString(value).replace("'", "''");
+    }
+
+    public record ReconcileResult(String status, String message) {
     }
 }

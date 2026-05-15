@@ -98,6 +98,20 @@ export interface DatasetSyncTask {
   taskStatus?: string
   cacheReady?: number
   schemaHash?: string
+  fullSyncIntervalHours?: number
+  lastFullSyncTime?: number
+  verifyEnabled?: number
+  lastVerifyTime?: number
+  lastVerifyStatus?: string
+  lastVerifyMessage?: string
+  lastSourceRowCount?: number
+  lastCacheRowCount?: number
+  cacheExpireHours?: number
+  taskTimeoutMinutes?: number
+  consecutiveFailures?: number
+  failureWarnThreshold?: number
+  cacheExpired?: boolean
+  failureWarned?: boolean
 }
 
 export interface DatasetSyncLog {

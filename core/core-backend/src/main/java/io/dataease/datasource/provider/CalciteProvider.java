@@ -1839,6 +1839,23 @@ public class CalciteProvider extends Provider {
         return null;
     }
 
+    public Map<String, Object> fetchResultField(EngineRequest engineRequest) throws Exception {
+        DatasourceConfiguration configuration = JsonUtil.parseObject(engineRequest.getEngine().getConfiguration(), DatasourceConfiguration.class);
+        int queryTimeout = configuration.getQueryTimeout();
+        DatasourceDTO datasource = new DatasourceDTO();
+        BeanUtils.copyBean(datasource, engineRequest.getEngine());
+        try (Connection connection = getConnectionFromPool(datasource.getId());
+             PreparedStatement preparedStatement = connection.prepareStatement(engineRequest.getQuery())) {
+            preparedStatement.setQueryTimeout(queryTimeout);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                Map<String, Object> map = new LinkedHashMap<>();
+                map.put("fields", fetchResultField(resultSet));
+                map.put("data", getDataResult(resultSet));
+                return map;
+            }
+        }
+    }
+
     public void exec(EngineRequest engineRequest) throws Exception {
         DatasourceConfiguration configuration = JsonUtil.parseObject(engineRequest.getEngine().getConfiguration(), DatasourceConfiguration.class);
         int queryTimeout = configuration.getQueryTimeout();

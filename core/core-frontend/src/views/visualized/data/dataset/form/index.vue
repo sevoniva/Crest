@@ -136,7 +136,12 @@ const defaultSyncTask = (): DatasetSyncTask => ({
   syncRate: 'RIGHTNOW',
   simpleCronValue: 30,
   simpleCronType: 'minute',
-  cron: '0 0/30 * * * ? *'
+  cron: '0 0/30 * * * ? *',
+  fullSyncIntervalHours: 24,
+  verifyEnabled: 1,
+  cacheExpireHours: 26,
+  taskTimeoutMinutes: 360,
+  failureWarnThreshold: 1
 })
 const syncTask = reactive<DatasetSyncTask>(defaultSyncTask())
 const syncLogs = ref<DatasetSyncLog[]>([])
@@ -908,6 +913,9 @@ const incrementalFieldOptions = computed(() =>
 const syncRunning = computed(() => syncTask.taskStatus === 'UnderExecution')
 const syncStatusText = computed(() => {
   if (syncTask.taskStatus === 'UnderExecution') return '同步中'
+  if (syncTask.failureWarned) return '连续失败'
+  if (syncTask.lastVerifyStatus === 'WARNING') return '校验异常'
+  if (syncTask.cacheExpired) return '缓存过期'
   if (syncTask.lastExecStatus === 'Completed')
     return syncTask.cacheReady === 1 ? '缓存可用' : '已完成'
   if (syncTask.lastExecStatus === 'Error') return '同步失败'
@@ -915,6 +923,11 @@ const syncStatusText = computed(() => {
   return '未同步'
 })
 const latestSyncLog = computed(() => syncLogs.value[0])
+const syncVerifyText = computed(() => {
+  if (syncTask.lastVerifyStatus === 'PASSED') return '对账通过'
+  if (syncTask.lastVerifyStatus === 'WARNING') return syncTask.lastVerifyMessage || '对账异常'
+  return ''
+})
 
 const refreshSimpleCron = () => {
   const value = Number(syncTask.simpleCronValue || 30)
@@ -2085,6 +2098,54 @@ const getIconNameCalc = (deType, extField, dimension = false) => {
                 class="sync-control"
                 placeholder="Cron 表达式"
               />
+              <div v-if="syncTask.updateType === 'add_scope'" class="sync-options">
+                <div class="sync-option">
+                  <span>全量校准(小时)</span>
+                  <el-input-number
+                    v-model="syncTask.fullSyncIntervalHours"
+                    :min="0"
+                    :max="720"
+                    controls-position="right"
+                  />
+                </div>
+                <div class="sync-option">
+                  <span>任务超时(分钟)</span>
+                  <el-input-number
+                    v-model="syncTask.taskTimeoutMinutes"
+                    :min="0"
+                    :max="1440"
+                    controls-position="right"
+                  />
+                </div>
+              </div>
+              <div class="sync-options">
+                <div class="sync-option">
+                  <span>缓存过期(小时)</span>
+                  <el-input-number
+                    v-model="syncTask.cacheExpireHours"
+                    :min="0"
+                    :max="720"
+                    controls-position="right"
+                  />
+                </div>
+                <div class="sync-option">
+                  <span>失败告警</span>
+                  <el-input-number
+                    v-model="syncTask.failureWarnThreshold"
+                    :min="0"
+                    :max="20"
+                    controls-position="right"
+                  />
+                </div>
+              </div>
+              <el-checkbox
+                v-model="syncTask.verifyEnabled"
+                class="sync-check"
+                :true-label="1"
+                :false-label="0"
+              >
+                同步后对账
+              </el-checkbox>
               <el-button
                 class="sync-now"
                 secondary
@@ -2102,6 +2163,17 @@ const getIconNameCalc = (deType, extField, dimension = false) => {
               </div>
               <div v-if="syncTask.incrementalLastValue" class="sync-watermark">
                 水位：{{ syncTask.incrementalLastValue }}
+              </div>
+              <div v-if="syncVerifyText" class="sync-watermark">
+                {{ syncVerifyText }}
+              </div>
+              <div v-if="syncTask.lastSourceRowCount !== undefined" class="sync-watermark">
+                源端：{{ syncTask.lastSourceRowCount || 0 }}，缓存：{{
+                  syncTask.lastCacheRowCount || 0
+                }}
+              </div>
+              <div v-if="syncTask.consecutiveFailures" class="sync-watermark">
+                连续失败：{{ syncTask.consecutiveFailures }}
               </div>
               <div v-if="latestSyncLog" class="sync-log">
                 <span>{{ latestSyncLog.taskStatus }}</span>
@@ -3402,6 +3474,32 @@ const getIconNameCalc = (deType, extField, dimension = false) => {
         .sync-control,
         .sync-now {
           width: 100%;
+          margin-top: 8px;
+        }
+
+        .sync-options {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin-top: 8px;
+        }
+
+        .sync-option {
+          min-width: 0;
+
+          > span {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+            color: #646a73;
+          }
+
+          .ed-input-number {
+            width: 100%;
+          }
+        }
+
+        .sync-check {
           margin-top: 8px;
         }
 

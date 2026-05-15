@@ -85,6 +85,23 @@ public class DatasetSyncTaskManage {
             record.setCreateTime(exists.getCreateTime());
             record.setUpdateTime(now);
             record.setCacheReady(exists.getCacheReady());
+            record.setLastExecTime(Objects.requireNonNullElse(task.getLastExecTime(), exists.getLastExecTime()));
+            record.setHeartbeatTime(Objects.requireNonNullElse(task.getHeartbeatTime(), exists.getHeartbeatTime()));
+            record.setLastExecStatus(StringUtils.defaultIfBlank(task.getLastExecStatus(), exists.getLastExecStatus()));
+            record.setTaskStatus(StringUtils.defaultIfBlank(task.getTaskStatus(), exists.getTaskStatus()));
+            record.setSchemaHash(StringUtils.defaultIfBlank(task.getSchemaHash(), exists.getSchemaHash()));
+            record.setLastFullSyncTime(Objects.requireNonNullElse(task.getLastFullSyncTime(), exists.getLastFullSyncTime()));
+            record.setLastVerifyTime(Objects.requireNonNullElse(task.getLastVerifyTime(), exists.getLastVerifyTime()));
+            record.setLastVerifyStatus(StringUtils.defaultIfBlank(task.getLastVerifyStatus(), exists.getLastVerifyStatus()));
+            record.setLastVerifyMessage(StringUtils.defaultIfBlank(task.getLastVerifyMessage(), exists.getLastVerifyMessage()));
+            record.setLastSourceRowCount(Objects.requireNonNullElse(task.getLastSourceRowCount(), exists.getLastSourceRowCount()));
+            record.setLastCacheRowCount(Objects.requireNonNullElse(task.getLastCacheRowCount(), exists.getLastCacheRowCount()));
+            record.setConsecutiveFailures(Objects.requireNonNullElse(task.getConsecutiveFailures(), exists.getConsecutiveFailures()));
+            record.setFullSyncIntervalHours(Objects.requireNonNullElse(task.getFullSyncIntervalHours(), exists.getFullSyncIntervalHours()));
+            record.setVerifyEnabled(Objects.requireNonNullElse(task.getVerifyEnabled(), exists.getVerifyEnabled()));
+            record.setCacheExpireHours(Objects.requireNonNullElse(task.getCacheExpireHours(), exists.getCacheExpireHours()));
+            record.setTaskTimeoutMinutes(Objects.requireNonNullElse(task.getTaskTimeoutMinutes(), exists.getTaskTimeoutMinutes()));
+            record.setFailureWarnThreshold(Objects.requireNonNullElse(task.getFailureWarnThreshold(), exists.getFailureWarnThreshold()));
             if (StringUtils.isBlank(record.getIncrementalLastValue())) {
                 record.setIncrementalLastValue(exists.getIncrementalLastValue());
             }
@@ -152,12 +169,20 @@ public class DatasetSyncTaskManage {
         logMapper.updateById(log);
     }
 
-    public void finishTask(CoreDatasetSyncTask task, TaskStatus status, String incrementalLastValue, String schemaHash) {
+    public void finishTask(CoreDatasetSyncTask task, TaskStatus status, String incrementalLastValue, String schemaHash,
+                           boolean fullSync, DatasetSyncUtils.ReconcileResult reconcileResult, Long sourceRowCount, Long cacheRowCount) {
         CoreDatasetSyncTask record = new CoreDatasetSyncTask();
         record.setLastExecStatus(status.name());
         record.setUpdateTime(System.currentTimeMillis());
+        CoreDatasetSyncTask latest = selectById(task.getId());
         if (status == TaskStatus.Completed) {
             record.setCacheReady(1);
+            record.setConsecutiveFailures(0);
+            if (fullSync) {
+                record.setLastFullSyncTime(System.currentTimeMillis());
+            }
+        } else {
+            record.setConsecutiveFailures(Objects.requireNonNullElse(latest == null ? null : latest.getConsecutiveFailures(), 0) + 1);
         }
         if (StringUtils.isNotBlank(incrementalLastValue)) {
             record.setIncrementalLastValue(incrementalLastValue);
@@ -165,7 +190,13 @@ public class DatasetSyncTaskManage {
         if (StringUtils.isNotBlank(schemaHash)) {
             record.setSchemaHash(schemaHash);
         }
-        CoreDatasetSyncTask latest = selectById(task.getId());
+        if (reconcileResult != null) {
+            record.setLastVerifyTime(System.currentTimeMillis());
+            record.setLastVerifyStatus(reconcileResult.status());
+            record.setLastVerifyMessage(reconcileResult.message());
+            record.setLastSourceRowCount(sourceRowCount);
+            record.setLastCacheRowCount(cacheRowCount);
+        }
         if (latest != null && StringUtils.equalsAnyIgnoreCase(latest.getTaskStatus(), TaskStatus.Stopped.name(), TaskStatus.Suspend.name())) {
             record.setTaskStatus(latest.getTaskStatus());
         } else if (StringUtils.equalsIgnoreCase(task.getSyncRate(), DatasourceTaskServer.ScheduleType.RIGHTNOW.name())) {
@@ -303,6 +334,24 @@ public class DatasetSyncTaskManage {
         if (record.getCacheReady() == null) {
             record.setCacheReady(0);
         }
+        if (record.getFullSyncIntervalHours() == null) {
+            record.setFullSyncIntervalHours(DatasetSyncUtils.DEFAULT_FULL_SYNC_INTERVAL_HOURS);
+        }
+        if (record.getVerifyEnabled() == null) {
+            record.setVerifyEnabled(1);
+        }
+        if (record.getCacheExpireHours() == null) {
+            record.setCacheExpireHours(DatasetSyncUtils.DEFAULT_CACHE_EXPIRE_HOURS);
+        }
+        if (record.getTaskTimeoutMinutes() == null) {
+            record.setTaskTimeoutMinutes(DatasetSyncUtils.DEFAULT_TASK_TIMEOUT_MINUTES);
+        }
+        if (record.getConsecutiveFailures() == null) {
+            record.setConsecutiveFailures(0);
+        }
+        if (record.getFailureWarnThreshold() == null) {
+            record.setFailureWarnThreshold(DatasetSyncUtils.DEFAULT_FAILURE_WARN_THRESHOLD);
+        }
         return record;
     }
 
@@ -324,6 +373,9 @@ public class DatasetSyncTaskManage {
     private DatasetSyncTaskDTO toDTO(CoreDatasetSyncTask task) {
         DatasetSyncTaskDTO dto = new DatasetSyncTaskDTO();
         BeanUtils.copyBean(dto, task);
+        long now = System.currentTimeMillis();
+        dto.setCacheExpired(DatasetSyncUtils.isCacheExpired(task, now));
+        dto.setFailureWarned(DatasetSyncUtils.isFailureWarned(task));
         return dto;
     }
 
@@ -354,6 +406,7 @@ public class DatasetSyncTaskManage {
         CoreDatasetSyncTask record = new CoreDatasetSyncTask();
         record.setTaskStatus(TaskStatus.WaitingForExecution.name());
         record.setLastExecStatus(TaskStatus.Error.name());
+        record.setConsecutiveFailures(Objects.requireNonNullElse(task.getConsecutiveFailures(), 0) + 1);
         record.setUpdateTime(System.currentTimeMillis());
         UpdateWrapper<CoreDatasetSyncTask> wrapper = new UpdateWrapper<>();
         wrapper.eq("id", task.getId());
