@@ -6,6 +6,7 @@ import io.dataease.api.template.response.MarketPreviewBaseResponse;
 import io.dataease.api.template.vo.MarketMetaDataVO;
 import io.dataease.template.manage.TemplateCenterManage;
 import jakarta.annotation.Resource;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,6 +18,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/templateMarket")
+@ConditionalOnProperty(prefix = "dataease.internal-lite", name = "enabled", havingValue = "false", matchIfMissing = true)
 public class TemplateMarketService implements TemplateMarketApi {
 
     @Resource

@@ -11,6 +11,7 @@ import io.dataease.share.dao.auto.entity.XpackShare;
 import io.dataease.share.manage.XpackShareManage;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 @RequestMapping("/share")
 @RestController
+@ConditionalOnProperty(prefix = "dataease.internal-lite", name = "enabled", havingValue = "false", matchIfMissing = true)
 public class XpackShareServer implements XpackShareApi {
 
     @Resource(name = "xpackShareManage")

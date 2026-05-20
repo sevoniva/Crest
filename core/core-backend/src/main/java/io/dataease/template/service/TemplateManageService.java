@@ -20,6 +20,7 @@ import io.dataease.utils.BeanUtils;
 import io.dataease.visualization.server.StaticResourceServer;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -36,6 +37,7 @@ import static io.dataease.constant.StaticResourceConstants.UPLOAD_URL_PREFIX;
  */
 @RestController
 @RequestMapping("/templateManage")
+@ConditionalOnProperty(prefix = "dataease.internal-lite", name = "enabled", havingValue = "false", matchIfMissing = true)
 public class TemplateManageService implements TemplateManageApi {
 
     @Resource
@@ -323,5 +325,4 @@ public class TemplateManageService implements TemplateManageApi {
         });
     }
 }
-
 

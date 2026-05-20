@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import dvDashboardSpineMobile from '@/assets/svg/dv-dashboard-spine-mobile.svg'
-import dvDashboardSpineMobileDisabled from '@/assets/svg/dv-dashboard-spine-mobile-disabled.svg'
 import icon_add_outlined from '@/assets/svg/icon_add_outlined.svg'
 import dvCopyDark from '@/assets/svg/dv-copy-dark.svg'
 import dvDelete from '@/assets/svg/dv-delete.svg'
@@ -725,15 +723,9 @@ defineExpose({
               <Icon name="dv-folder"><dvFolder class="svg-icon" /></Icon>
             </el-icon>
             <el-icon style="font-size: 18px" v-else-if="curCanvasType === 'dashboard'">
-              <Icon v-if="data.extraFlag1"
-                ><component
-                  :is="data.extraFlag ? dvDashboardSpineMobile : dvDashboardSpine"
-                ></component
-              ></Icon>
+              <Icon v-if="data.extraFlag1"><component :is="dvDashboardSpine"></component></Icon>
               <Icon v-if="!data.extraFlag1"
-                ><component
-                  :is="data.extraFlag ? dvDashboardSpineMobileDisabled : dvDashboardSpineDisabled"
-                ></component
+                ><component :is="dvDashboardSpineDisabled"></component
               ></Icon>
             </el-icon>
             <el-icon

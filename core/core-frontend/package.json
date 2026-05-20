@@ -13,6 +13,7 @@
     "build:base:strict": "NODE_OPTIONS=--max_old_space_size=4096 vite build --logLevel warn --mode base && npm run build:flush",
     "build:distributed": "DE_SKIP_VITE_LINT=true NODE_OPTIONS=--max_old_space_size=5020 vite build --logLevel warn --mode distributed && npm run build:flush",
     "build:distributed:gzip": "DE_SKIP_VITE_LINT=true DE_ENABLE_VITE_GZIP=true NODE_OPTIONS=--max_old_space_size=5020 vite build --logLevel warn --mode distributed && npm run build:flush",
+    "build:lite:check": "node ./scripts/check-lite-build.mjs",
     "build:lib": "vite build --mode lib",
     "lint": "eslint . --ext .vue,.js,.ts,.jsx,.tsx --fix",
     "lint:check": "eslint . --ext .vue,.js,.ts,.jsx,.tsx",

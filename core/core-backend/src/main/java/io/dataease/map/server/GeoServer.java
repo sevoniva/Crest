@@ -4,6 +4,7 @@ import io.dataease.api.map.GeoApi;
 import io.dataease.api.map.dto.GeometryNodeCreator;
 import io.dataease.map.manage.MapManage;
 import jakarta.annotation.Resource;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,6 +13,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/geometry")
+@ConditionalOnProperty(prefix = "dataease.internal-lite", name = "enabled", havingValue = "false", matchIfMissing = true)
 public class GeoServer implements GeoApi {
 
     @Resource

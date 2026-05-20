@@ -6,9 +6,7 @@ import icon_app_outlined from '@/assets/svg/icon_app_outlined.svg'
 import icon_dashboard_outlined from '@/assets/svg/icon_dashboard_outlined.svg'
 import icon_database_outlined from '@/assets/svg/icon_database_outlined.svg'
 import icon_operationAnalysis_outlined from '@/assets/svg/icon_operation-analysis_outlined.svg'
-import dvDashboardSpineMobile from '@/assets/svg/dv-dashboard-spine-mobile.svg'
 import icon_pc_outlined from '@/assets/svg/icon_pc_outlined.svg'
-import dvDashboardSpineMobileDisabled from '@/assets/svg/dv-dashboard-spine-mobile-disabled.svg'
 import { useI18n } from '@/hooks/web/useI18n'
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import type { TabsPaneContext } from 'element-plus-secondary'
@@ -51,10 +49,10 @@ const state = reactive({
 const busiDataMap = computed(() => interactiveStore.getData)
 const iconMap = {
   panel: icon_dashboard_outlined,
-  panelMobile: dvDashboardSpineMobile,
+  panelMobile: icon_dashboard_outlined,
   dashboard: icon_dashboard_outlined,
-  dashboardMobile: dvDashboardSpineMobile,
-  dashboardMobileDisabled: dvDashboardSpineMobileDisabled,
+  dashboardMobile: icon_dashboard_outlined,
+  dashboardMobileDisabled: icon_dashboard_outlined,
   screen: icon_operationAnalysis_outlined,
   dataV: icon_operationAnalysis_outlined,
   dataset: icon_app_outlined,

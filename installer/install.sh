@@ -76,7 +76,6 @@ function check_and_prepare_env_params() {
    fi
    set +a
    DE_INTERNAL_LITE=${DE_INTERNAL_LITE:-true}
-   DE_INSTALL_MAPS=${DE_INSTALL_MAPS:-false}
 
    read available_disk <<< $(df -H --output=avail "${DE_BASE}" | tail -1)
    disk_num=${available_disk%[KMGTP]}
@@ -113,10 +112,6 @@ function prepare_de_run_base() {
    mkdir -p ${DE_RUN_BASE}/{cache,logs,conf}
    mkdir -p ${DE_RUN_BASE}/data/{mysql,static-resource,appearance,exportData,font,i18n}
 
-   if [[ "${DE_INSTALL_MAPS}" == "true" ]]; then
-      mkdir -p ${DE_RUN_BASE}/data/{map,geo}
-   fi
-
    if [[ "${DE_INTERNAL_LITE}" != "true" ]]; then
       mkdir -p ${DE_RUN_BASE}/data/{etcd_data,plugin}
       mkdir -p ${DE_RUN_BASE}/apisix/logs
@@ -144,12 +139,6 @@ function prepare_de_run_base() {
       fi
    done
 
-   if [[ "${DE_INSTALL_MAPS}" == "true" ]] && [ -d ${DE_RUN_BASE}/mapFiles ] && compgen -G "${DE_RUN_BASE}/mapFiles/*" >/dev/null; then
-      log_content "复制地图文件"
-      mv ${DE_RUN_BASE}/mapFiles/* ${DE_RUN_BASE}/data/map/
-   else
-      log_content "跳过地图文件复制"
-   fi
 }
 
 function update_dectl() {

@@ -10,11 +10,13 @@ import io.dataease.api.xpack.share.vo.TicketVO;
 import io.dataease.commons.utils.CodingUtil;
 import io.dataease.share.manage.ShareTicketManage;
 import jakarta.annotation.Resource;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/ticket")
+@ConditionalOnProperty(prefix = "dataease.internal-lite", name = "enabled", havingValue = "false", matchIfMissing = true)
 public class ShareTicketServer implements ShareTicketApi {
 
     @Resource

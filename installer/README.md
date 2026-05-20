@@ -6,7 +6,7 @@
 
 ## 内部轻量安装
 
-本 fork 默认启用 `DE_INTERNAL_LITE=true`，离线包安装后只启动 DataEase 与 MySQL。APISIX、Playwright、同步任务服务和离线地图资源默认不安装，适合内部报表和数据分析场景。
+本 fork 默认启用 `DE_INTERNAL_LITE=true`，离线包安装后只启动 DataEase 与 MySQL。APISIX、Playwright 和同步任务服务默认不安装，适合内部报表和数据分析场景。
 
 如需恢复完整服务，可在 `install.conf` 中调整以下配置后重新制作安装包：
 
@@ -15,7 +15,4 @@ DE_INTERNAL_LITE=false
 DE_EXTERNAL_APISIX=false
 DE_EXTERNAL_PLAYWRIGHT=false
 DE_EXTERNAL_SYNC_TASK=false
-DE_INSTALL_MAPS=true
 ```
-
-地图文件不再作为默认安装内容。如需使用省市级地图，请将地图资源放回安装包的 `dataease/mapFiles` 目录，并设置 `DE_INSTALL_MAPS=true`。

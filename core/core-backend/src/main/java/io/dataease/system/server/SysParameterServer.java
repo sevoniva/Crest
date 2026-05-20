@@ -8,12 +8,14 @@ import io.dataease.api.system.vo.SettingItemVO;
 import io.dataease.api.system.vo.ShareBaseVO;
 import io.dataease.constant.StaticResourceConstants;
 import io.dataease.constant.XpackSettingConstants;
+import io.dataease.exception.DEException;
 import io.dataease.system.dao.auto.entity.CoreSysSetting;
 import io.dataease.system.manage.SysParameterManage;
 import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,6 +32,9 @@ public class SysParameterServer implements SysParameterApi {
     @Resource
     private SysParameterManage sysParameterManage;
 
+    @Value("${dataease.internal-lite.enabled:false}")
+    private boolean internalLiteEnabled;
+
     @Override
     public String singleVal(String key) {
         return sysParameterManage.singleVal(key);
@@ -37,16 +42,19 @@ public class SysParameterServer implements SysParameterApi {
 
     @Override
     public void saveOnlineMap(OnlineMapEditor editor) {
+        assertFullModeFeature();
         sysParameterManage.saveOnlineMap(editor);
     }
 
     @Override
     public OnlineMapEditor queryOnlineMap() {
+        assertFullModeFeature();
         return sysParameterManage.queryOnlineMap(null);
     }
 
     @Override
     public OnlineMapEditor queryOnlineMapByMapType(String type) {
+        assertFullModeFeature();
         return sysParameterManage.queryOnlineMap(type);
     }
 
@@ -127,6 +135,7 @@ public class SysParameterServer implements SysParameterApi {
 
     @Override
     public SQLBotConfigVO sqlBotConfig() {
+        assertFullModeFeature();
         String key = "sqlbot.";
         List<CoreSysSetting> coreSysSettings = sysParameterManage.groupList(key);
         if (CollectionUtils.isNotEmpty(coreSysSettings)) {
@@ -149,6 +158,13 @@ public class SysParameterServer implements SysParameterApi {
 
     @Override
     public void saveSqlBotConfig(SQLBotConfigCreator creator) {
+        assertFullModeFeature();
         sysParameterManage.saveSqlBotConfig(creator);
+    }
+
+    private void assertFullModeFeature() {
+        if (internalLiteEnabled) {
+            DEException.throwException("当前版本未启用该功能");
+        }
     }
 }

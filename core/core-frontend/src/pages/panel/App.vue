@@ -23,8 +23,6 @@ const DashboardPanel = defineAsyncComponent(
   () => import('@/views/dashboard/DashboardPreviewShow.vue')
 )
 
-const TemplateManage = defineAsyncComponent(() => import('@/views/template/indexInject.vue'))
-
 const Preview = defineAsyncComponent(() => import('@/views/data-visualization/PreviewCanvas.vue'))
 const XpackComponent = defineAsyncComponent(() => import('@/components/plugin/src/index.vue'))
 
@@ -44,8 +42,7 @@ const componentMap = {
   Datasource,
   ScreenPanel,
   DashboardPanel,
-  DatasetEditor,
-  TemplateManage
+  DatasetEditor
 }
 
 const isDataFilling = ref(false)

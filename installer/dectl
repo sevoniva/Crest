@@ -16,7 +16,6 @@ source ${DE_RUNNING_BASE}/.env
 set +a
 export COMPOSE_HTTP_TIMEOUT=180
 DE_INTERNAL_LITE=${DE_INTERNAL_LITE:-true}
-DE_INSTALL_MAPS=${DE_INSTALL_MAPS:-false}
 
 docker-compose version >/dev/null 2>&1
 if [ $? -ne 0 ]; then

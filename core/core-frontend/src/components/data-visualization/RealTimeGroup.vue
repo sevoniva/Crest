@@ -22,19 +22,15 @@ import barRangeOrigin from '@/assets/svg/bar-range-origin.svg'
 import barStackHorizontalOrigin from '@/assets/svg/bar-stack-horizontal-origin.svg'
 import barStackOrigin from '@/assets/svg/bar-stack-origin.svg'
 import bidirectionalBarOrigin from '@/assets/svg/bidirectional-bar-origin.svg'
-import bubbleMapOrigin from '@/assets/svg/bubble-map-origin.svg'
 import chartMixGroupOrigin from '@/assets/svg/chart-mix-group-origin.svg'
 import chartMixOrigin from '@/assets/svg/chart-mix-origin.svg'
 import chartMixStackOrigin from '@/assets/svg/chart-mix-stack-origin.svg'
 import chartMixDualLineOrigin from '@/assets/svg/chart-mix-dual-line-origin.svg'
-import flowMapOrigin from '@/assets/svg/flow-map-origin.svg'
 import funnelOrigin from '@/assets/svg/funnel-origin.svg'
 import gaugeOrigin from '@/assets/svg/gauge-origin.svg'
-import heatMapOrigin from '@/assets/svg/heat-map-origin.svg'
 import indicatorOrigin from '@/assets/svg/indicator-origin.svg'
 import lineOrigin from '@/assets/svg/line-origin.svg'
 import liquidOrigin from '@/assets/svg/liquid-origin.svg'
-import mapOrigin from '@/assets/svg/map-origin.svg'
 import percentageBarStackHorizontalOrigin from '@/assets/svg/percentage-bar-stack-horizontal-origin.svg'
 import percentageBarStackOrigin from '@/assets/svg/percentage-bar-stack-origin.svg'
 import pieDonutOrigin from '@/assets/svg/pie-donut-origin.svg'
@@ -48,7 +44,6 @@ import richTextOrigin from '@/assets/svg/rich-text-origin.svg'
 import sankeyOrigin from '@/assets/svg/sankey-origin.svg'
 import scatterOrigin from '@/assets/svg/scatter-origin.svg'
 import stockLineOrigin from '@/assets/svg/stock-line-origin.svg'
-import symbolicMapOrigin from '@/assets/svg/symbolic-map-origin.svg'
 import tableInfoOrigin from '@/assets/svg/table-info-origin.svg'
 import tableNormalOrigin from '@/assets/svg/table-normal-origin.svg'
 import tablePivotOrigin from '@/assets/svg/table-pivot-origin.svg'
@@ -216,19 +211,15 @@ const iconMap = {
   'bar-stack-horizontal-origin': barStackHorizontalOrigin,
   'bar-stack-origin': barStackOrigin,
   'bidirectional-bar-origin': bidirectionalBarOrigin,
-  'bubble-map-origin': bubbleMapOrigin,
   'chart-mix-group-origin': chartMixGroupOrigin,
   'chart-mix-origin': chartMixOrigin,
   'chart-mix-stack-origin': chartMixStackOrigin,
   'chart-mix-dual-line': chartMixDualLineOrigin,
-  'flow-map-origin': flowMapOrigin,
   'funnel-origin': funnelOrigin,
   'gauge-origin': gaugeOrigin,
-  'heat-map-origin': heatMapOrigin,
   'indicator-origin': indicatorOrigin,
   'line-origin': lineOrigin,
   'liquid-origin': liquidOrigin,
-  'map-origin': mapOrigin,
   'percentage-bar-stack-horizontal-origin': percentageBarStackHorizontalOrigin,
   'percentage-bar-stack-origin': percentageBarStackOrigin,
   'pie-donut-origin': pieDonutOrigin,
@@ -242,7 +233,6 @@ const iconMap = {
   'sankey-origin': sankeyOrigin,
   'scatter-origin': scatterOrigin,
   'stock-line-origin': stockLineOrigin,
-  'symbolic-map-origin': symbolicMapOrigin,
   'table-info-origin': tableInfoOrigin,
   'table-normal-origin': tableNormalOrigin,
   'table-pivot-origin': tablePivotOrigin,

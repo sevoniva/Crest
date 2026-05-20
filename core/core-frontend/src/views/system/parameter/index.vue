@@ -4,11 +4,7 @@
     <el-tab-pane v-for="item in tabArray" :key="item.name" :label="item.label" :name="item.name" />
   </el-tabs>
   <div class="sys-setting-p">
-    <div
-      class="container-sys-param"
-      :class="{ 'setting-max-h': activeName === 'map', 'basic-info_bg': activeName === 'basic' }"
-    >
-      <map-setting v-if="activeName === 'map'" />
+    <div class="container-sys-param" :class="{ 'basic-info_bg': activeName === 'basic' }">
       <basic-info v-if="activeName === 'basic'" />
       <engine-info v-if="activeName === 'engine'" />
     </div>
@@ -18,14 +14,12 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
-import MapSetting from './map/MapSetting.vue'
 import BasicInfo from './basic/BasicInfo.vue'
 import EngineInfo from '@/views/system/parameter/engine/EngineInfo.vue'
 const { t } = useI18n()
 
 const tabArray = ref([
   { label: t('system.basic_settings'), name: 'basic' },
-  { label: t('system.map_settings'), name: 'map' },
   { label: t('system.engine_settings'), name: 'engine' }
 ])
 
