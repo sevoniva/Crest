@@ -37,11 +37,6 @@ import { defaults, find } from 'lodash-es'
 import { useI18n } from '@/hooks/web/useI18n'
 import { isMobile } from '@/utils/utils'
 import { GaodeMap, TMap, TencentMap } from '@antv/l7-maps'
-import {
-  gaodeMapStyleOptions,
-  qqMapStyleOptions,
-  tdtMapStyleOptions
-} from '@/views/chart/components/js/panel/charts/map/common'
 import ChartCarouselTooltip, {
   isPie,
   isColumn,
@@ -50,6 +45,28 @@ import ChartCarouselTooltip, {
 } from '@/views/chart/components/js/g2plot_tooltip_carousel'
 
 const { t: tI18n } = useI18n()
+
+const gaodeMapStyleOptions = [
+  { name: tI18n('chart.map_style_normal'), value: 'normal' },
+  { name: tI18n('chart.map_style_darkblue'), value: 'darkblue' },
+  { name: tI18n('chart.map_style_light'), value: 'light' },
+  { name: tI18n('chart.map_style_dark'), value: 'dark' },
+  { name: tI18n('chart.map_style_fresh'), value: 'fresh' },
+  { name: tI18n('chart.map_style_grey'), value: 'grey' },
+  { name: tI18n('chart.map_style_blue'), value: 'blue' },
+  { name: tI18n('commons.custom'), value: 'custom' }
+]
+
+const tdtMapStyleOptions = [
+  { name: tI18n('chart.map_style_normal'), value: 'normal' },
+  { name: tI18n('chart.map_style_dark'), value: 'black' },
+  { name: tI18n('chart.map_style_darkblue'), value: 'indigo' }
+]
+
+const qqMapStyleOptions = [
+  { name: tI18n('chart.map_style_normal'), value: 'normal' },
+  { name: tI18n('commons.custom'), value: 'custom' }
+]
 
 export function getPadding(chart: Chart): number[] {
   if (chart.drill) {
