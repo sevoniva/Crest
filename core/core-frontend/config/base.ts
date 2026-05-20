@@ -1,18 +1,23 @@
 import pkg from '../package.json'
 import viteCompression from 'vite-plugin-compression'
 
+const enableGzip = process.env.DE_ENABLE_VITE_GZIP === 'true'
+
 export default {
-  plugins: [
-    viteCompression({
-      // gzip静态资源压缩配置
-      verbose: true, // 是否在控制台输出压缩结果
-      disable: false, // 是否禁用压缩
-      threshold: 10240, // 启用压缩的文件大小限制
-      algorithm: 'gzip', // 采用的压缩算法
-      ext: '.gz' // 生成的压缩包后缀
-    })
-  ],
+  plugins: enableGzip
+    ? [
+        viteCompression({
+          // gzip静态资源压缩配置
+          verbose: false, // 是否在控制台输出压缩结果
+          disable: false, // 是否禁用压缩
+          threshold: 10240, // 启用压缩的文件大小限制
+          algorithm: 'gzip', // 采用的压缩算法
+          ext: '.gz' // 生成的压缩包后缀
+        })
+      ]
+    : [],
   build: {
+    reportCompressedSize: false,
     rollupOptions: {
       output: {
         // 用于命名代码拆分时创建的共享块的输出命名

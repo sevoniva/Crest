@@ -15,6 +15,7 @@ import Components from 'unplugin-vue-components-secondary/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components-secondary/resolvers'
 const root = process.cwd()
 const skipViteLint = process.env.DE_SKIP_VITE_LINT === 'true'
+const mapStub = pathResolve('src/internal-lite/map-stub.ts')
 const lintPlugins = skipViteLint
   ? []
   : [
@@ -86,6 +87,26 @@ export default {
       {
         find: '@',
         replacement: `${pathResolve('src')}`
+      },
+      {
+        find: /^@antv\/l7$/,
+        replacement: mapStub
+      },
+      {
+        find: /^@antv\/l7-.*/,
+        replacement: mapStub
+      },
+      {
+        find: /^@antv\/l7plot($|\/.*)/,
+        replacement: mapStub
+      },
+      {
+        find: /^@antv\/l7plot-component($|\/.*)/,
+        replacement: mapStub
+      },
+      {
+        find: /^@turf\/centroid$/,
+        replacement: mapStub
       }
     ]
   },

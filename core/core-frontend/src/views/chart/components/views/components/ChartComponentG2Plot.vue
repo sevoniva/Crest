@@ -13,7 +13,7 @@ import {
 import { getData } from '@/api/chart'
 import { ChartLibraryType } from '@/views/chart/components/js/panel/types'
 import { G2PlotChartView } from '@/views/chart/components/js/panel/types/impl/g2plot'
-import { L7PlotChartView } from '@/views/chart/components/js/panel/types/impl/l7plot'
+import type { L7PlotChartView } from '@/views/chart/components/js/panel/types/impl/l7plot'
 import chartViewManager from '@/views/chart/components/js/panel'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import ViewTrackBar from '@/components/visualization/ViewTrackBar.vue'
@@ -26,9 +26,8 @@ import { customAttrTrans, customStyleTrans, recursionTransObj } from '@/utils/ca
 import { deepCopy, isMobile } from '@/utils/utils'
 import { isDashboard, trackBarStyleCheck } from '@/utils/canvasUtils'
 import { useEmitt } from '@/hooks/web/useEmitt'
-import { L7ChartView } from '@/views/chart/components/js/panel/types/impl/l7'
+import type { L7ChartView } from '@/views/chart/components/js/panel/types/impl/l7'
 import { useI18n } from '@/hooks/web/useI18n'
-import { ExportImage } from '@antv/l7'
 import { configEmptyDataStyle } from '@/views/chart/components/js/panel/common/common_antv'
 const { t } = useI18n()
 const dvMainStore = dvMainStoreWithOut()
@@ -711,7 +710,7 @@ const canvas2Picture = (pictureData, online) => {
   imgDom.src = pictureData
   mapDom?.appendChild(imgDom)
 }
-const preparePicture = id => {
+const preparePicture = async id => {
   if (id !== curView?.id) {
     return
   }
@@ -723,6 +722,7 @@ const preparePicture = id => {
       .then(res => canvas2Picture(res, false))
   } else if (chartView.library === ChartLibraryType.L7) {
     const scene = myChart.getScene()
+    const { ExportImage } = await import('@antv/l7')
     const zoom = new ExportImage({
       onExport: (base64: string) => {
         canvas2Picture(base64, true)
