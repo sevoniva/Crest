@@ -3,7 +3,6 @@ import { refreshApi } from '@/api/login'
 import { useUserStoreWithOut } from '@/store/modules/user'
 import { useRequestStoreWithOut } from '@/store/modules/request'
 
-import { isLink } from '@/utils/utils'
 const { wsCache } = useCache()
 const userStore = useUserStoreWithOut()
 const requestStore = useRequestStoreWithOut()
@@ -47,9 +46,6 @@ const cacheRequest = cb => {
 export const configHandler = config => {
   const desktop = wsCache.get('app.desktop')
   if (desktop) {
-    return config
-  }
-  if (isLink()) {
     return config
   }
   if (wsCache.get('user.token')) {

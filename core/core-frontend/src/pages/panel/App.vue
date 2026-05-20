@@ -26,8 +26,6 @@ const DashboardPanel = defineAsyncComponent(
 const TemplateManage = defineAsyncComponent(() => import('@/views/template/indexInject.vue'))
 
 const Preview = defineAsyncComponent(() => import('@/views/data-visualization/PreviewCanvas.vue'))
-const DashboardEmpty = defineAsyncComponent(() => import('@/views/mobile/panel/DashboardEmpty.vue'))
-
 const XpackComponent = defineAsyncComponent(() => import('@/components/plugin/src/index.vue'))
 
 const props = defineProps({
@@ -47,7 +45,6 @@ const componentMap = {
   ScreenPanel,
   DashboardPanel,
   DatasetEditor,
-  DashboardEmpty,
   TemplateManage
 }
 

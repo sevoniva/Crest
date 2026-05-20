@@ -16,15 +16,11 @@ import DvDetailInfo from '@/views/common/DvDetailInfo.vue'
 import { useEmbedded } from '@/store/modules/embedded'
 import { storeApi, storeStatusApi } from '@/api/visualization/dataVisualization'
 import { ref, watch, computed } from 'vue'
-import ShareVisualHead from '@/views/share/share/ShareVisualHead.vue'
 import { XpackComponent } from '@/components/plugin'
 import { useEmitt } from '@/hooks/web/useEmitt'
-import { useShareStoreWithOut } from '@/store/modules/share'
 import { exportPermission } from '@/utils/utils'
 import { useCache } from '@/hooks/web/useCache'
-import { isDesktop } from '@/utils/ModelUtil'
 
-const shareStore = useShareStoreWithOut()
 const { wsCache } = useCache('localStorage')
 const dvMainStore = dvMainStoreWithOut()
 const appStore = useAppStoreWithOut()
@@ -48,7 +44,6 @@ const preview = () => {
 }
 const isDataEaseBi = computed(() => appStore.getIsDataEaseBi)
 const isIframe = computed(() => appStore.getIsIframe)
-const shareDisable = computed(() => shareStore.getShareDisable || isDesktop())
 const exportPermissions = computed(() =>
   exportPermission(dvInfo.value['weight'], dvInfo.value['ext'])
 )
@@ -174,13 +169,6 @@ const initOpenHandler = newWindow => {
         </template>
         {{ t('template_manage.preview') }}
       </el-button>
-      <ShareVisualHead
-        v-if="!shareDisable"
-        :disabled="dvInfo.status === 0"
-        :resource-id="dvInfo.id"
-        :weight="dvInfo.weight"
-        :resource-type="dvInfo.type"
-      />
       <el-button class="custom-button" v-if="dvInfo.weight > 6" type="primary" @click="dvEdit()">
         <template #icon>
           <icon name="icon_edit_outlined"><icon_edit_outlined class="svg-icon" /></icon>

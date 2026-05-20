@@ -1533,48 +1533,6 @@ export const CHART_TYPE_CONFIGS = [
     ]
   },
   {
-    category: 'map',
-    title: t('chart.chart_type_space'),
-    display: 'show',
-    details: [
-      {
-        render: 'antv',
-        category: 'map',
-        value: 'map',
-        title: t('chart.chart_map'),
-        icon: 'map'
-      },
-      {
-        render: 'antv',
-        category: 'map',
-        value: 'bubble-map',
-        title: t('chart.chart_bubble_map'),
-        icon: 'bubble-map'
-      },
-      {
-        render: 'antv',
-        category: 'map',
-        value: 'flow-map',
-        title: t('chart.chart_flow_map'),
-        icon: 'flow-map'
-      },
-      {
-        render: 'antv',
-        category: 'map',
-        value: 'heat-map',
-        title: t('chart.chart_heat_map'),
-        icon: 'heat-map'
-      },
-      {
-        render: 'antv',
-        category: 'map',
-        value: 'symbolic-map',
-        title: t('chart.chart_symbolic_map'),
-        icon: 'symbolic-map'
-      }
-    ]
-  },
-  {
     category: 'relation',
     title: t('chart.chart_type_relation'),
     display: 'show',

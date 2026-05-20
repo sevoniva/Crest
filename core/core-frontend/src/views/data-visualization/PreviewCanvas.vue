@@ -14,7 +14,7 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { XpackComponent } from '@/components/plugin'
 import { propTypes } from '@/utils/propTypes'
 import { downloadCanvas2 } from '@/utils/imgUtils'
-import { isLink, setTitle } from '@/utils/utils'
+import { setTitle } from '@/utils/utils'
 import EmptyBackground from '../../components/empty-background/src/EmptyBackground.vue'
 import { useRoute } from 'vue-router_2'
 import { filterEnumMapSync } from '@/utils/componentUtils'
@@ -113,16 +113,6 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
     }
   }
 
-  const initBrowserTimer = () => {
-    if (state.canvasStylePreview.refreshBrowserEnable && isLink()) {
-      const gap = state.canvasStylePreview.refreshBrowserUnit === 'minute' ? 60 : 1
-      const browserRefreshTime = state.canvasStylePreview.refreshBrowserTime * gap * 1000
-      setTimeout(() => {
-        window.location.reload()
-      }, browserRefreshTime)
-    }
-  }
-
   await initCanvasData(
     dvId,
     {
@@ -166,7 +156,6 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
         document.title = dvInfo.name
         setTitle(dvInfo.name)
       }
-      initBrowserTimer()
       await nextTick(() => {
         onInitReady({ resourceId: dvId })
       })

@@ -73,16 +73,8 @@ const isIframe = computed(() => appStore.getIsIframe)
 
 const emit = defineEmits(['onPointClick', 'onComponentEvent'])
 
-const {
-  nowPanelJumpInfo,
-  publicLinkStatus,
-  dvInfo,
-  curComponent,
-  canvasStyleData,
-  mobileInPc,
-  inMobile,
-  editMode
-} = storeToRefs(dvMainStore)
+const { nowPanelJumpInfo, dvInfo, curComponent, canvasStyleData, mobileInPc, inMobile, editMode } =
+  storeToRefs(dvMainStore)
 
 const props = defineProps({
   // 公共参数集
@@ -523,39 +515,21 @@ const jumpClick = param => {
           attachParamsInfo =
             '&attachParams=' + encodeURIComponent(Base64.encode(JSON.stringify(filterOuterParams)))
         }
-        // 携带外部参数
-        if (publicLinkStatus.value) {
-          // 判断是否有公共链接ID
-          if (jumpInfo.publicJumpId) {
-            let url = `${embeddedBaseUrl}#/de-link/${jumpInfo.publicJumpId}?fromLink=true&dvType=${jumpInfo.targetDvType}`
-            if (attachParamsInfo) {
-              url = url + attachParamsInfo + jumpInfoParam + editPreviewParams
-            } else {
-              url = url + '&ignoreParams=true' + jumpInfoParam + editPreviewParams
-            }
-            const currentUrl = window.location.href
-            localStorage.setItem('beforeJumpUrl', currentUrl)
-            windowsJump(url, jumpInfo.jumpType, jumpInfo.windowSize)
-          } else {
-            ElMessage.warning(t('visualization.public_link_tips'))
-          }
+        let url = `${embeddedBaseUrl}#/preview?dvId=${jumpInfo.targetDvId}&fromLink=true&dvType=${jumpInfo.targetDvType}`
+        if (attachParamsInfo) {
+          url = url + attachParamsInfo + jumpInfoParam + editPreviewParams
         } else {
-          let url = `${embeddedBaseUrl}#/preview?dvId=${jumpInfo.targetDvId}&fromLink=true&dvType=${jumpInfo.targetDvType}`
-          if (attachParamsInfo) {
-            url = url + attachParamsInfo + jumpInfoParam + editPreviewParams
-          } else {
-            url = url + '&ignoreParams=true' + jumpInfoParam + editPreviewParams
-          }
-          const currentUrl = window.location.href
-          localStorage.setItem('beforeJumpUrl', currentUrl)
-          if (divSelf || iframeSelf) {
-            embeddedStore.setDvId(jumpInfo.targetDvId)
-            embeddedStore.setJumpInfoParam(encodeURIComponent(Base64.encode(JSON.stringify(param))))
-            divEmbedded('Preview')
-            return
-          }
-          windowsJump(url, jumpInfo.jumpType, jumpInfo.windowSize)
+          url = url + '&ignoreParams=true' + jumpInfoParam + editPreviewParams
         }
+        const currentUrl = window.location.href
+        localStorage.setItem('beforeJumpUrl', currentUrl)
+        if (divSelf || iframeSelf) {
+          embeddedStore.setDvId(jumpInfo.targetDvId)
+          embeddedStore.setJumpInfoParam(encodeURIComponent(Base64.encode(JSON.stringify(param))))
+          divEmbedded('Preview')
+          return
+        }
+        windowsJump(url, jumpInfo.jumpType, jumpInfo.windowSize)
       } else {
         ElMessage.warning('未指定跳转仪表板')
       }

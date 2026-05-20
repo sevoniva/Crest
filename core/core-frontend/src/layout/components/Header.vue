@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import logo from '@/assets/svg/logo.svg'
-import msgNotice from '@/assets/svg/icon_notification_outlined.svg'
 import dvAi from '@/assets/svg/dv-ai.svg'
 import dvPreviewDownload from '@/assets/svg/icon_download_outlined.svg'
 import { computed, onMounted, ref } from 'vue'
@@ -11,7 +10,6 @@ import HeaderMenuItem from './HeaderMenuItem.vue'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import { Icon } from '@/components/icon-custom'
 import SystemCfg from './SystemCfg.vue'
-import ToolboxCfg from './ToolboxCfg.vue'
 import { useRouter, useRoute } from 'vue-router_2'
 import TopDoc from '@/layout/components/TopDoc.vue'
 import AccountOperator from '@/layout/components/AccountOperator.vue'
@@ -27,7 +25,6 @@ const { push } = useRouter()
 const route = useRoute()
 import { useCache } from '@/hooks/web/useCache'
 import { useI18n } from '@/hooks/web/useI18n'
-import { msgCountApi } from '@/api/msg'
 const { wsCache } = useCache('localStorage')
 const aiBaseUrl = ref('https://maxkb.fit2cloud.com/ui/chat/2ddd8b594ce09dbb?mode=embed')
 const handleIconClick = () => {
@@ -54,8 +51,6 @@ const downloadClick = params => {
 }
 const routers: any[] = formatRoute(permissionStore.getRoutersNotHidden as AppCustomRouteRecordRaw[])
 const showSystem = ref(false)
-const showMsg = ref(false)
-const showToolbox = ref(false)
 const showOverlay = ref(false)
 const handleSelect = (index: string) => {
   // 自定义事件
@@ -68,12 +63,6 @@ const handleSelect = (index: string) => {
 }
 const initShowSystem = () => {
   showSystem.value = permissionStore.getRouters.some(route => route.path === '/system')
-}
-const initShowMsg = () => {
-  showMsg.value = permissionStore.getRouters.some(route => route.path === '/msg')
-}
-const initShowToolbox = () => {
-  showToolbox.value = permissionStore.getRouters.some(route => route.path === '/toolbox')
 }
 const navigateBg = computed(() => appearanceStore.getNavigateBg)
 const navigate = computed(() => appearanceStore.getNavigate)
@@ -100,20 +89,9 @@ const aiTipsConfirm = () => {
   showOverlay.value = false
 }
 
-const msgNoticePush = () => {
-  push('/msg/msg-fill')
-}
-
-const badgeCount = ref('0')
 onMounted(() => {
   initShowSystem()
-  initShowToolbox()
-  initShowMsg()
   initAiBase()
-
-  msgCountApi().then(res => {
-    badgeCount.value = (res?.data > 99 ? '99+' : res?.data) || '0'
-  })
 })
 </script>
 
@@ -158,29 +136,7 @@ onMounted(() => {
         v-if="showOverlay && appearanceStore.getShowAi"
         class="ai-icon-tips"
       />
-      <ToolboxCfg v-if="showToolbox" />
       <TopDoc v-if="appearanceStore.getShowDoc" />
-      <el-tooltip
-        v-if="showMsg"
-        effect="dark"
-        :content="$t('v_query.msg_center')"
-        placement="bottom"
-      >
-        <el-badge
-          style="margin-right: 10px"
-          :hidden="[0, '0'].includes(badgeCount)"
-          :value="badgeCount"
-          class="ed-badge_custom"
-        >
-          <el-icon
-            class="preview-download_icon"
-            :class="navigateBg === 'light' && 'is-light-setting'"
-          >
-            <Icon><msgNotice @click="msgNoticePush" class="svg-icon" /></Icon>
-          </el-icon>
-        </el-badge>
-      </el-tooltip>
-
       <SystemCfg v-if="showSystem" />
       <AccountOperator />
       <ai-component

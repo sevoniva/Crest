@@ -5,9 +5,7 @@ import { storeToRefs } from 'pinia'
 import { findComponentAttr } from '../../utils/components'
 import DvSidebar from '../../components/visualization/DvSidebar.vue'
 import router from '@/router'
-import MobileConfigPanel from './MobileConfigPanel.vue'
 import { useAppStoreWithOut } from '@/store/modules/app'
-import { useEmitt } from '@/hooks/web/useEmitt'
 import DbToolbar from '@/components/dashboard/DbToolbar.vue'
 import ViewEditor from '@/views/chart/components/editor/index.vue'
 import { getDatasetTree } from '@/api/dataset'
@@ -18,7 +16,6 @@ import ChartStyleBatchSet from '@/views/chart/components/editor/editor-style/Cha
 import DeCanvas from '@/views/canvas/DeCanvas.vue'
 import { check, compareStorage } from '@/utils/CrossPermission'
 import { useCache } from '@/hooks/web/useCache'
-import { cloneDeep } from 'lodash-es'
 import { useEmbedded } from '@/store/modules/embedded'
 import { snapshotStoreWithOut } from '@/store/modules/data-visualization/snapshot'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
@@ -118,26 +115,6 @@ const checkPer = async resourceId => {
   return check(wsCache.get('panel-weight'), resourceId, 4)
 }
 
-const mobileConfig = ref(false)
-
-const onMobileConfig = () => {
-  const canvasStyleDataCopy = cloneDeep(canvasStyleData.value)
-  if (!canvasStyleDataCopy.mobileSetting) {
-    canvasStyleDataCopy.mobileSetting = {
-      backgroundColorSelect: false,
-      background: '',
-      color: '#ffffff',
-      backgroundImageEnable: false,
-      customSetting: false
-    }
-  }
-  dvMainStore.setCanvasStyle(canvasStyleDataCopy)
-  nextTick(() => {
-    mobileConfig.value = true
-    dvMainStore.setCurComponent({ component: null, index: null })
-  })
-}
-
 const loadFinish = ref(false)
 const newWindowFromDiv = ref(false)
 
@@ -189,12 +166,6 @@ onMounted(async () => {
     newWindowFromDiv.value = true
   }
   loadFinish.value = true
-  useEmitt({
-    name: 'mobileConfig',
-    callback: () => {
-      onMobileConfig()
-    }
-  })
   window.addEventListener('storage', eventCheck)
   window.addEventListener('message', winMsgHandle)
   const resourceId = embeddedStore.resourceId || router.currentRoute.value.query.resourceId
@@ -330,7 +301,7 @@ onUnmounted(() => {
     class="dv-common-layout dv-teleport-query"
     :class="isDataEaseBi && !newWindowFromDiv && 'dataease-w-h'"
     v-loading="requestStore.loadingMap[permissionStore.currentPath]"
-    v-if="loadFinish && !mobileConfig"
+    v-if="loadFinish"
   >
     <DbToolbar @recoverToPublished="doRecoverToPublished" />
     <el-container
@@ -406,10 +377,6 @@ onUnmounted(() => {
       </dv-sidebar>
     </el-container>
   </div>
-  <MobileConfigPanel
-    @pcMode="mobileConfig = false"
-    v-else-if="loadFinish && mobileConfig"
-  ></MobileConfigPanel>
   <canvas-cache-dialog ref="canvasCacheOutRef" @doUseCache="doUseCache"></canvas-cache-dialog>
 </template>
 

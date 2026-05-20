@@ -7,20 +7,13 @@ import icon_right_outlined from '@/assets/svg/icon_right_outlined.svg'
 import dvAi from '@/assets/svg/dv-ai.svg'
 import AiComponent from '@/layout/components/AiComponent.vue'
 import dvPreviewDownload from '@/assets/svg/icon_download_outlined.svg'
-import ToolboxCfg from './ToolboxCfg.vue'
 import { findBaseParams } from '@/api/aiComponent'
 import icon_more_outlined from '@/assets/svg/icon_more_outlined.svg'
-import { usePermissionStore } from '@/store/modules/permission'
 import { useAppearanceStoreWithOut } from '@/store/modules/appearance'
-import { msgCountApi } from '@/api/msg'
 import { computed, ref, onMounted } from 'vue'
 import { useEmitt } from '@/hooks/web/useEmitt'
 
 const aiBaseUrl = ref('https://maxkb.fit2cloud.com/ui/chat/2ddd8b594ce09dbb?mode=embed')
-const showToolbox = ref(false)
-
-const badgeCount = ref('0')
-const permissionStore = usePermissionStore()
 const appearanceStore = useAppearanceStoreWithOut()
 const navigateBg = computed(() => appearanceStore.getNavigateBg)
 const { push, resolve } = useRouter()
@@ -30,9 +23,6 @@ const redirectUser = () => {
   push(`${sysMenu.path}/${kidPath}`)
 }
 
-const initShowToolbox = () => {
-  showToolbox.value = permissionStore.getRouters.some(route => route.path === '/toolbox')
-}
 const downloadClick = params => {
   useEmitt().emitter.emit('data-export-center', params)
 }
@@ -52,16 +42,11 @@ const handleAiClick = () => {
 }
 
 onMounted(() => {
-  initShowToolbox()
   initAiBase()
-  msgCountApi().then(res => {
-    badgeCount.value = (res?.data > 99 ? '99+' : res?.data) || '0'
-  })
 })
 </script>
 
 <template>
-  <ToolboxCfg v-if="showToolbox" />
   <el-tooltip effect="dark" :content="$t('data_export.export_center')" placement="bottom">
     <el-icon
       style="margin-left: 10px"

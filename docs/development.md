@@ -73,6 +73,15 @@ Supported username formats:
 
 When schema is left empty, the implementation defaults to the account name uppercased, matching Oracle-style schema behavior.
 
+## Internal Lite Boundary
+
+This fork is maintained as an internal BI baseline. Keep the main BI path simple:
+
+- keep datasource, dataset, dataset cache sync, chart editor, dashboards, screens, export, login, users, roles, system parameters, and OB Oracle support;
+- do not reintroduce SQLBot, template market, toolbox, message center, standalone mobile pages, public share pages, map chart creation, or demo template resources unless there is a clear product decision;
+- preserve compatibility for existing dashboards where practical, but do not add new entry points for removed features;
+- when removing another feature, remove the visible entry, router/page build input, active API calls, large static assets, and documentation together.
+
 ## Workspace Hygiene
 
 Do not commit local build or runtime output:

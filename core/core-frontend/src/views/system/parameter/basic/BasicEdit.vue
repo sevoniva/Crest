@@ -296,8 +296,6 @@ defineExpose({
             item.pkey === 'autoCreateUser' ||
             item.pkey === 'pwdStrategy' ||
             item.pkey === 'dip' ||
-            item.pkey === 'shareDisable' ||
-            item.pkey === 'sharePeRequire' ||
             item.pkey === 'loginLimit'
           "
           active-value="true"

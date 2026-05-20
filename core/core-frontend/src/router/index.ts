@@ -105,13 +105,6 @@ export const routes: AppRouteRecordRaw[] = [
     component: () => import('@/views/data-visualization/PreviewCanvas.vue')
   },
   {
-    path: '/de-link/:uuid',
-    name: 'link',
-    hidden: true,
-    meta: {},
-    component: () => import('@/views/data-visualization/LinkContainer.vue')
-  },
-  {
     path: '/rich-text',
     name: 'rich-text',
     hidden: true,
