@@ -46,7 +46,7 @@ CREATE TABLE `core_copilot_config`  (
 
 INSERT INTO `core_copilot_config` VALUES (1, 'https://copilot.dataease.cn', 'xlab', 'Q2Fsb25nQDIwMTU=');
 
-UPDATE `core_sys_setting` SET `pkey` = 'ai.baseUrl', `pval` = 'https://maxkb.fit2cloud.com/ui/chat/2ddd8b594ce09dbb?mode=embed', `type` = 'text', `sort` = 0 WHERE `id` = 3;
+UPDATE `core_sys_setting` SET `pkey` = 'ai.baseUrl', `pval` = '', `type` = 'text', `sort` = 0 WHERE `id` = 3;
 
 DROP TABLE IF EXISTS `core_api_traffic`;
 CREATE TABLE `core_api_traffic`
@@ -65,4 +65,3 @@ ALTER TABLE `visualization_template`
 
 INSERT INTO `core_sys_setting` (`id`, `pkey`, `pval`, `type`, `sort`) VALUES (10, 'basic.exportFileLiveTime', '30', 'text', 2);
 delete from visualization_background where id ='dark_1';
-

@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, reactive, ref, toRefs } from 'vue'
-import CodeMirror from '@/views/visualized/data/dataset/form/CodeMirror.vue'
+import CodeMirror from '@/views/visualized/data/dataset/form/SqlCodeEditor.vue'
 const myCm = ref(null)
 const mirror = ref(null)
 const props = defineProps({

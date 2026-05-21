@@ -54,7 +54,7 @@ VALUES (1, 'https://copilot.dataease.cn', 'xlab', 'Q2Fsb25nQDIwMTU=');
 
 UPDATE `core_sys_setting`
 SET `pkey` = 'ai.baseUrl',
-    `pval` = 'https://maxkb.fit2cloud.com/ui/chat/2ddd8b594ce09dbb?mode=embed',
+    `pval` = '',
     `type` = 'text',
     `sort` = 0
 WHERE `id` = 3;
@@ -75,4 +75,3 @@ ALTER TABLE `visualization_template`
 
 INSERT INTO `core_sys_setting` (`id`, `pkey`, `pval`, `type`, `sort`) VALUES (10, 'basic.exportFileLiveTime', '30', 'text', 2);
 delete from visualization_background where id ='dark_1';
-

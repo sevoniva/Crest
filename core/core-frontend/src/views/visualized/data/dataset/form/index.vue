@@ -1621,10 +1621,11 @@ const saveAndBack = async () => {
 
 onMounted(async () => {
   isEdit.value = false
-  await new Promise(r => (p = r))
+  await nextTick()
   await initEdite()
   getDatasource(isEdit.value ? 0 : 2)
   window.addEventListener('resize', handleResize)
+  await nextTick()
   getSqlResultHeight()
   quotaTableHeight.value = sqlResultHeight.value - 242
 })
@@ -1634,7 +1635,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
 })
 const getSqlResultHeight = () => {
-  sqlResultHeight.value = (document.querySelector('.sql-result') as HTMLElement).offsetHeight
+  const sqlResult = document.querySelector('.sql-result') as HTMLElement | null
+  sqlResultHeight.value = sqlResult?.offsetHeight || 0
 }
 const getDatasource = (weight?: number) => {
   getDatasourceList(weight).then(res => {

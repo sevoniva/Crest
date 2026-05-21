@@ -380,7 +380,6 @@ onMounted(async () => {
   if (window.location.hash.includes('#/dvCanvas')) {
     newWindowFromDiv.value = true
   }
-  await new Promise(r => (p = r))
   loadFinish.value = true
   window.addEventListener('blur', releaseAttachKey)
   window.addEventListener('message', winMsgHandle)

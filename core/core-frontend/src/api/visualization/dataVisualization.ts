@@ -154,6 +154,13 @@ export const queryOuterParamsDsInfo = async dvId => {
   })
 }
 
+export const queryShareBaseApi = () => {
+  return request.get({
+    url: '/sysParameter/shareBase',
+    loading: false
+  })
+}
+
 export const exportLogApp = data => request.post({ url: '/dataVisualization/exportLogApp', data })
 
 export const exportLogTemplate = data =>

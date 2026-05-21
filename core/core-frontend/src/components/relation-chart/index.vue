@@ -5,6 +5,7 @@ import {
   getDatasourceRelationship as getDatasourceRelation,
   getDatasetRelationship as getDatasetRelation
 } from '@/api/relation/index'
+import RelationGraphView from './GraphView.vue'
 const relationDrawer = ref(false)
 const chartSize = reactive({
   height: 0,
@@ -19,7 +20,6 @@ const getChartSize = () => {
   })
 }
 
-const consanguinity = ref()
 let resRef = null
 const getDatasourceRelationship = id => {
   getDatasourceRelation(id)
@@ -28,15 +28,6 @@ const getDatasourceRelationship = id => {
     })
     .finally(() => {
       tableLoading.value = false
-      nextTick(() => {
-        consanguinity.value.invokeMethod({
-          methodName: 'getChartData',
-          args: {
-            info: current,
-            res: resRef
-          }
-        })
-      })
     })
 }
 const getDatasetRelationship = id => {
@@ -46,15 +37,6 @@ const getDatasetRelationship = id => {
     })
     .finally(() => {
       tableLoading.value = false
-      nextTick(() => {
-        consanguinity.value.invokeMethod({
-          methodName: 'getChartData',
-          args: {
-            info: current,
-            res: resRef
-          }
-        })
-      })
     })
 }
 
@@ -97,8 +79,9 @@ defineExpose({
     size="1200px"
     direction="rtl"
   >
-    <div v-loading="tableLoading" class="relation-drawer_content">
-          </div>
+    <div class="relation-drawer_content">
+      <RelationGraphView :graph="resRef" :loading="tableLoading" />
+    </div>
   </el-drawer>
 </template>
 

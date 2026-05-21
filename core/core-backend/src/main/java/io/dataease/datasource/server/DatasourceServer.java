@@ -629,12 +629,7 @@ public class DatasourceServer implements DatasourceApi {
 
     @Override
     public boolean perDelete(Long id) {
-        if (LicenseUtil.licenseValid()) {
-            try {
-                relationManage.checkAuth();
-            } catch (Exception e) {
-                return false;
-            }
+        if (relationManage != null) {
             Long count = relationManage.getDsResource(id);
             if (count > 0) {
                 return true;

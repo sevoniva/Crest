@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import logo from '@/assets/svg/logo.svg'
-import dvAi from '@/assets/svg/dv-ai.svg'
 import dvPreviewDownload from '@/assets/svg/icon_download_outlined.svg'
+import crestLogoDark from '@/assets/img/crest-logo-horizontal-dark-192h.png'
 import { computed, onMounted, ref } from 'vue'
 import { usePermissionStore } from '@/store/modules/permission'
 import { isExternal } from '@/utils/validate'
@@ -11,13 +10,9 @@ import { useEmitt } from '@/hooks/web/useEmitt'
 import { Icon } from '@/components/icon-custom'
 import SystemCfg from './SystemCfg.vue'
 import { useRouter, useRoute } from 'vue-router_2'
-import TopDoc from '@/layout/components/TopDoc.vue'
 import AccountOperator from '@/layout/components/AccountOperator.vue'
 import { isDesktop } from '@/utils/ModelUtil'
 import { useAppearanceStoreWithOut } from '@/store/modules/appearance'
-import AiComponent from '@/layout/components/AiComponent.vue'
-import { findBaseParams } from '@/api/aiComponent'
-import AiTips from '@/layout/components/AiTips.vue'
 import DesktopSetting from './DesktopSetting.vue'
 
 const appearanceStore = useAppearanceStoreWithOut()
@@ -26,15 +21,11 @@ const route = useRoute()
 import { useCache } from '@/hooks/web/useCache'
 import { useI18n } from '@/hooks/web/useI18n'
 const { wsCache } = useCache('localStorage')
-const aiBaseUrl = ref('https://maxkb.fit2cloud.com/ui/chat/2ddd8b594ce09dbb?mode=embed')
 const handleIconClick = () => {
   if (route.path === '/workbranch/index') return
   push('/workbranch/index')
 }
 
-const handleAiClick = () => {
-  useEmitt().emitter.emit('aiComponentChange')
-}
 const { t } = useI18n()
 
 const desktop = isDesktop()
@@ -51,7 +42,6 @@ const downloadClick = params => {
 }
 const routers: any[] = formatRoute(permissionStore.getRoutersNotHidden as AppCustomRouteRecordRaw[])
 const showSystem = ref(false)
-const showOverlay = ref(false)
 const handleSelect = (index: string) => {
   // 自定义事件
   if (isExternal(index)) {
@@ -67,40 +57,14 @@ const initShowSystem = () => {
 const navigateBg = computed(() => appearanceStore.getNavigateBg)
 const navigate = computed(() => appearanceStore.getNavigate)
 
-const initAiBase = async () => {
-  // const aiTipsCheck = wsCache.get('DE-AI-TIPS-CHECK')
-  // if (aiTipsCheck === 'CHECKED') {
-  //   showOverlay.value = false
-  // } else {
-  //   showOverlay.value = true
-  // }
-  await findBaseParams().then(rsp => {
-    const params = rsp.data
-    if (params && params['ai.baseUrl']) {
-      aiBaseUrl.value = params['ai.baseUrl']
-    } else {
-      aiBaseUrl.value = null
-    }
-  })
-}
-
-const aiTipsConfirm = () => {
-  wsCache.set('DE-AI-TIPS-CHECK', 'CHECKED')
-  showOverlay.value = false
-}
-
 onMounted(() => {
   initShowSystem()
-  initAiBase()
 })
 </script>
 
 <template>
   <el-header class="header-flex" :class="{ 'header-light': navigateBg === 'light' }">
-    <img class="logo" v-if="navigate" :src="navigate" alt="" />
-    <Icon v-else
-      ><logo @click="handleIconClick" class="svg-icon logo" style="cursor: pointer"
-    /></Icon>
+    <img class="logo" :src="navigate || crestLogoDark" alt="Crest" @click="handleIconClick" />
     <el-menu
       :default-active="activeIndex"
       mode="horizontal"
@@ -111,15 +75,6 @@ onMounted(() => {
       <HeaderMenuItem v-for="menu in routers" :key="menu.path" :menu="menu"></HeaderMenuItem>
     </el-menu>
     <div class="operate-setting" v-if="!desktop">
-      <el-tooltip effect="dark" :content="t('commons.assistant')" placement="bottom">
-        <el-icon
-          style="margin: 0 10px"
-          class="ai-icon"
-          v-if="aiBaseUrl && !showOverlay && appearanceStore.getShowAi"
-        >
-          <Icon name="dv-ai"><dvAi @click="handleAiClick" class="svg-icon" /></Icon>
-        </el-icon>
-      </el-tooltip>
       <el-tooltip effect="dark" :content="t('data_export.export_center')" placement="bottom">
         <el-icon
           class="preview-download_icon"
@@ -131,19 +86,8 @@ onMounted(() => {
         </el-icon>
       </el-tooltip>
 
-      <ai-tips
-        @confirm="aiTipsConfirm"
-        v-if="showOverlay && appearanceStore.getShowAi"
-        class="ai-icon-tips"
-      />
-      <TopDoc v-if="appearanceStore.getShowDoc" />
       <SystemCfg v-if="showSystem" />
       <AccountOperator />
-      <ai-component
-        v-if="aiBaseUrl && appearanceStore.getShowAi"
-        :base-url="aiBaseUrl"
-      ></ai-component>
-      <div v-if="showOverlay && appearanceStore.getShowAi" class="overlay"></div>
     </div>
     <div v-else class="operate-setting">
       <desktop-setting />
@@ -220,10 +164,12 @@ onMounted(() => {
 }
 
 .logo {
-  width: 134px;
+  width: 158px;
   height: 34px;
   margin-right: 48px;
   color: #ffffff;
+  object-fit: contain;
+  cursor: pointer;
 }
 </style>
 

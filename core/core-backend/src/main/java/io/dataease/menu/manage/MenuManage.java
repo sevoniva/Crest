@@ -29,7 +29,7 @@ public class MenuManage {
     private final static int ROOTID = 0;
 
     private static final Set<Long> INTERNAL_LITE_MENU_IDS = Set.of(
-            1L, 2L, 3L, 4L, 5L, 6L, 11L, 12L, 15L, 16L, 64L
+            1L, 2L, 3L, 4L, 5L, 6L, 11L, 12L, 15L, 16L, 64L, 66L
     );
 
     @Resource

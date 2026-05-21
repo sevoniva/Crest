@@ -22,6 +22,7 @@ import { onMounted, reactive, ref, toRefs, watch, nextTick, computed } from 'vue
 import {
   copyResource,
   deleteLogic,
+  queryShareBaseApi,
   ResourceOrFolder,
   updateBase
 } from '@/api/visualization/dataVisualization'
@@ -37,6 +38,8 @@ import { useAppStoreWithOut } from '@/store/modules/app'
 import { storeToRefs } from 'pinia'
 import DvHandleMore from '@/components/handle-more/src/DvHandleMore.vue'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
+import { useShareStoreWithOut } from '@/store/modules/share'
+const shareStore = useShareStoreWithOut()
 const interactiveStore = interactiveStoreWithOut()
 import { useI18n } from '@/hooks/web/useI18n'
 import _ from 'lodash'
@@ -601,9 +604,20 @@ const loadInit = () => {
   }
 }
 
+const loadShareBase = () => {
+  queryShareBaseApi().then(res => {
+    const param = {
+      shareDisable: res.data?.disable,
+      sharePeRequire: res.data?.peRequire
+    }
+    shareStore.setData(param)
+  })
+}
+
 onMounted(() => {
   loadInit()
   getTree()
+  loadShareBase()
 })
 
 defineExpose({

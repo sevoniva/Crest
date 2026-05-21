@@ -3,8 +3,11 @@ import { Icon } from '@/components/icon-custom'
 import icon_more_outlined from '@/assets/svg/icon_more_outlined.svg'
 import { propTypes } from '@/utils/propTypes'
 import type { Placement } from 'element-plus-secondary'
-import { ref, PropType } from 'vue'
+import { computed, ref, PropType } from 'vue'
+import ShareHandler from '@/views/share/share/ShareHandler.vue'
+import { useShareStoreWithOut } from '@/store/modules/share'
 import { useI18n } from '@/hooks/web/useI18n'
+const shareStore = useShareStoreWithOut()
 const { t } = useI18n()
 
 export interface Menu {
@@ -36,18 +39,30 @@ const props = defineProps({
   anyManage: propTypes.bool.def(false)
 })
 
+const shareDisable = computed(() => shareStore.getShareDisable)
+const shareComponent = ref(null)
 const menus = ref([
-  ...props.menuList
-    .filter(item => item.command !== 'share')
-    .map(item => {
-      if (!props.anyManage && (item.command === 'copy' || item.command === 'move')) {
-        item.hidden = true
-      }
-      return item
-    })
+  ...props.menuList.map(item => {
+    if (!props.anyManage && (item.command === 'copy' || item.command === 'move')) {
+      item.hidden = true
+    }
+    return item
+  })
 ])
 const handleCommand = (command: string | number | object) => {
+  if (command === 'share') {
+    shareComponent.value.execute()
+    return
+  }
   emit('handleCommand', command)
+}
+const callBack = param => {
+  if (shareDisable.value) {
+    return
+  }
+  if (props.node.leaf && props.node?.weight >= 7) {
+    menus.value.splice(0, 0, param)
+  }
 }
 const emit = defineEmits(['handleCommand'])
 
@@ -102,6 +117,14 @@ const menuDisabledCheck = ele => {
       </el-dropdown-menu>
     </template>
   </el-dropdown>
+  <ShareHandler
+    v-if="!shareDisable"
+    ref="shareComponent"
+    :resource-id="props.node.id"
+    :resource-type="props.resourceType"
+    :weight="node.weight"
+    @loaded="callBack"
+  />
 </template>
 
 <style lang="less">

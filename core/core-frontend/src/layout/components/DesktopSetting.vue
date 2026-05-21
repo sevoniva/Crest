@@ -2,18 +2,13 @@
 import iconSetting from '@/assets/svg/icon-setting.svg'
 import LangSelector from '@/layout/components/LangSelector.vue'
 import { useRouter } from 'vue-router_2'
-import TopDesktopCard from './TopDesktopCard.vue'
 import icon_right_outlined from '@/assets/svg/icon_right_outlined.svg'
-import dvAi from '@/assets/svg/dv-ai.svg'
-import AiComponent from '@/layout/components/AiComponent.vue'
 import dvPreviewDownload from '@/assets/svg/icon_download_outlined.svg'
-import { findBaseParams } from '@/api/aiComponent'
 import icon_more_outlined from '@/assets/svg/icon_more_outlined.svg'
 import { useAppearanceStoreWithOut } from '@/store/modules/appearance'
-import { computed, ref, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useEmitt } from '@/hooks/web/useEmitt'
 
-const aiBaseUrl = ref('https://maxkb.fit2cloud.com/ui/chat/2ddd8b594ce09dbb?mode=embed')
 const appearanceStore = useAppearanceStoreWithOut()
 const navigateBg = computed(() => appearanceStore.getNavigateBg)
 const { push, resolve } = useRouter()
@@ -26,24 +21,6 @@ const redirectUser = () => {
 const downloadClick = params => {
   useEmitt().emitter.emit('data-export-center', params)
 }
-const initAiBase = async () => {
-  await findBaseParams().then(rsp => {
-    const params = rsp.data
-    if (params && params['ai.baseUrl']) {
-      aiBaseUrl.value = params['ai.baseUrl']
-    } else {
-      aiBaseUrl.value = null
-    }
-  })
-}
-
-const handleAiClick = () => {
-  useEmitt().emitter.emit('aiComponentChange')
-}
-
-onMounted(() => {
-  initAiBase()
-})
 </script>
 
 <template>
@@ -82,37 +59,25 @@ onMounted(() => {
   >
     <template #default>
       <div>
-        <div class="card-content_desk">
-          <TopDesktopCard
-            v-if="aiBaseUrl && appearanceStore.getShowAi"
-            @openBlank="handleAiClick"
-            :cardInfo="{
-              icon: dvAi,
-              name: $t('commons.assistant')
-            }"
-          ></TopDesktopCard>
-        </div>
-        <div class="border-top">
-          <el-popover
-            :teleported="false"
-            popper-class="popper-class_ai-copilot"
-            placement="left-start"
-            :width="224"
-            trigger="click"
-            ><template #default>
-              <div style="padding: 8px 0">
-                <LangSelector />
-              </div>
-            </template>
-            <template #reference>
-              <div class="item-select_info">
-                {{ $t('commons.language') }}
-                <el-icon style="font-size: 16px">
-                  <Icon><icon_right_outlined></icon_right_outlined></Icon>
-                </el-icon>
-              </div> </template
-          ></el-popover>
-        </div>
+        <el-popover
+          :teleported="false"
+          popper-class="popper-class_ai-copilot"
+          placement="left-start"
+          :width="224"
+          trigger="click"
+          ><template #default>
+            <div style="padding: 8px 0">
+              <LangSelector />
+            </div>
+          </template>
+          <template #reference>
+            <div class="item-select_info">
+              {{ $t('commons.language') }}
+              <el-icon style="font-size: 16px">
+                <Icon><icon_right_outlined></icon_right_outlined></Icon>
+              </el-icon>
+            </div> </template
+        ></el-popover>
       </div>
     </template>
     <template #reference>
@@ -121,7 +86,6 @@ onMounted(() => {
       </el-icon>
     </template>
   </el-popover>
-  <ai-component v-if="aiBaseUrl && appearanceStore.getShowAi" :base-url="aiBaseUrl"></ai-component>
 </template>
 
 <style lang="less" scoped>

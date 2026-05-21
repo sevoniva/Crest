@@ -191,12 +191,7 @@ public class DatasetGroupManage {
     }
 
     public boolean perDelete(Long id) {
-        if (LicenseUtil.licenseValid()) {
-            try {
-                relationManage.checkAuth();
-            } catch (Exception e) {
-                return false;
-            }
+        if (relationManage != null) {
             Long count = relationManage.getDatasetResource(id);
             if (count > 0) {
                 return true;

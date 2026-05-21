@@ -1,9 +1,7 @@
 <script lang="ts" setup>
-import DataEase from '@/assets/svg/DataEase.svg'
 import { ref, reactive, onMounted, computed, nextTick } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { FormRules, FormInstance } from 'element-plus-secondary'
-import { Icon } from '@/components/icon-custom'
 import { loginApi, queryDekey } from '@/api/login'
 import { useCache } from '@/hooks/web/useCache'
 import { useAppStoreWithOut } from '@/store/modules/app'
@@ -15,6 +13,7 @@ import router from '@/router'
 import { ElMessage } from 'element-plus-secondary'
 import { logoutHandler } from '@/utils/logout'
 import DeImage from '@/assets/login-desc-de.png'
+import crestLogo from '@/assets/img/crest-logo-horizontal-192h.png'
 import elementResizeDetectorMaker from 'element-resize-detector'
 import { cleanPlatformFlag } from '@/utils/utils'
 import xss from 'xss'
@@ -70,16 +69,19 @@ const enterHandler = e => {
 }
 const formRef = ref<FormInstance | undefined>()
 const duringLogin = ref(true)
+const refreshDekey = async () => {
+  const res = await queryDekey()
+  if (res?.data) {
+    wsCache.set(appStore.getDekey, res.data)
+  }
+}
 const handleLogin = () => {
   if (!formRef.value) return
   formRef.value.validate(async (valid: boolean) => {
     if (valid) {
       const name = state.loginForm.username.trim()
       const pwd = state.loginForm.password
-      if (!wsCache.get(appStore.getDekey)) {
-        const res = await queryDekey()
-        wsCache.set(appStore.getDekey, res.data)
-      }
+      await refreshDekey()
       const param = { name: rsaEncryp(name), pwd: rsaEncryp(pwd) }
       const isLdap = activeName.value === 'ldap'
       if (isLdap) {
@@ -113,7 +115,7 @@ const showLoginImage = computed<boolean>(() => {
   return !(loginContainerWidth.value < 889)
 })
 
-const preheat = ref(true)
+const preheat = ref(false)
 const showLoginErrorMsg = () => {
   if (!loginErrorMsg.value) {
     return
@@ -211,11 +213,7 @@ onMounted(async () => {
     localStorage.removeItem('DE-GATEWAY-FLAG')
     logoutHandler(true)
   }
-  if (!wsCache.get(appStore.getDekey)) {
-    queryDekey().then(res => {
-      wsCache.set(appStore.getDekey, res.data)
-    })
-  }
+  refreshDekey()
   const erd = elementResizeDetectorMaker()
   erd.listenTo(loginContainer.value, () => {
     nextTick(() => {
@@ -254,14 +252,7 @@ onMounted(async () => {
             :disabled="preheat"
           >
             <div class="login-logo">
-              <Icon
-                v-if="!loginLogoUrl && axiosFinished"
-                className="login-logo-icon"
-                name="DataEase"
-              >
-                <DataEase class="login-logo-icon" />
-              </Icon>
-              <img v-if="loginLogoUrl && axiosFinished" :src="loginLogoUrl" alt="" />
+              <img v-if="axiosFinished" :src="loginLogoUrl || crestLogo" alt="Crest" />
             </div>
             <div v-if="showSlogan" class="login-welcome">
               {{ slogan || t('system.available_to_everyone') }}
