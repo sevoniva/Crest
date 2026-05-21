@@ -7,36 +7,18 @@ import {
   DEFAULT_YAXIS_STYLE
 } from '@/views/chart/components/editor/util/chart'
 import { valueFormatter } from '@/views/chart/components/js/formatter'
-import type { AreaOptions, LabelOptions } from '@antv/l7plot'
-import type { TooltipOptions } from '@antv/l7plot/dist/lib/types/tooltip'
-import type { FeatureCollection } from '@antv/l7plot/dist/esm/plots/choropleth/types'
 import { Datum } from '@antv/g2plot/esm/types/common'
 import { Tooltip } from '@antv/g2plot/esm'
 import { add } from 'mathjs'
 import isEmpty from 'lodash-es/isEmpty'
 import _ from 'lodash'
-import type { LegendOptions } from '@antv/l7plot/dist/esm/types/legend'
-import type { CategoryLegendListItem } from '@antv/l7plot-component/dist/lib/types/legend'
 import createDom from '@antv/dom-util/esm/create-dom'
-import {
-  CONTAINER_TPL,
-  ITEM_TPL,
-  LIST_CLASS
-} from '@antv/l7plot-component/dist/esm/legend/category/constants'
 import substitute from '@antv/util/esm/substitute'
-import type { Plot as L7Plot, PlotOptions } from '@antv/l7plot/dist/esm'
-import { Zoom } from '@antv/l7'
-import { DOM } from '@antv/l7-utils'
-import { Scene } from '@antv/l7-scene'
-import type { IZoomControlOption } from '@antv/l7-component'
-import { PositionType } from '@antv/l7-core'
-import { centroid } from '@turf/centroid'
 import type { Plot } from '@antv/g2plot'
 import type { PickOptions } from '@antv/g2plot/lib/core/plot'
 import { defaults, find } from 'lodash-es'
 import { useI18n } from '@/hooks/web/useI18n'
 import { isMobile } from '@/utils/utils'
-import { GaodeMap, TMap, TencentMap } from '@antv/l7-maps'
 import ChartCarouselTooltip, {
   isPie,
   isColumn,
@@ -45,6 +27,163 @@ import ChartCarouselTooltip, {
 } from '@/views/chart/components/js/g2plot_tooltip_carousel'
 
 const { t: tI18n } = useI18n()
+
+type L7StyleOptions = Record<string, any>
+type L7LabelOptions = Record<string, any>
+type L7TooltipOptions = Record<string, any>
+type L7LegendOptions = Record<string, any>
+type L7LegendItem = Record<string, any>
+type L7Plot = any
+type L7ZoomControlOption = Record<string, any>
+type GeoFeatureCollection = {
+  features?: Array<Record<string, any>>
+  deMapping?: Record<string, string>
+}
+
+type Listener = (...args: any[]) => void
+
+const L7_LEGEND_CONTAINER_TPL =
+  '<div><div class="l7plot-legend__category-list"></div></div>'
+const L7_LEGEND_ITEM_TPL = '<div class="l7plot-legend__category-item"></div>'
+const L7_LEGEND_LIST_CLASS = 'l7plot-legend__category-list'
+
+class LiteMapObject {
+  deMapProvider?: string
+  deMapAutoFit?: boolean
+  deMapAutoZoom?: number
+  deMapAutoLng?: number
+  deMapAutoLat?: number
+  showLabel?: boolean
+  dragPan = { disable: () => undefined }
+  scrollZoom = { disable: () => undefined }
+  doubleClickZoom = { disable: () => undefined }
+  dragRotate = { disable: () => undefined }
+  touchPitch = { disable: () => undefined }
+  touchZoomRotate = { disable: () => undefined }
+
+  constructor(options?: Record<string, any>) {
+    Object.assign(this, options)
+  }
+
+  on(_event: string, listener?: Listener) {
+    listener?.()
+  }
+
+  getCenter() {
+    return {
+      lng: 0,
+      lat: 0,
+      getLng: () => 0,
+      getLat: () => 0
+    }
+  }
+
+  getZoom() {
+    return 0
+  }
+
+  setStatus() {}
+  setBaseMap() {}
+  checkResize() {}
+  removeStyle() {}
+}
+
+export class Scene {
+  map: any
+  loaded = true
+
+  constructor(options?: Record<string, any>) {
+    this.map = options?.map ?? new LiteMapObject()
+  }
+
+  once(_event: string, listener?: Listener) {
+    listener?.()
+  }
+
+  on(_event: string, listener?: Listener) {
+    listener?.()
+  }
+
+  addControl() {}
+  removeControl() {}
+  getControlByName() {
+    return null
+  }
+  getZoom() {
+    return 0
+  }
+  getCenter() {
+    return [0, 0]
+  }
+  setZoomAndCenter() {}
+  setPitch() {}
+  setMapStyle() {}
+  async removeAllLayer() {}
+  getLayers() {
+    return []
+  }
+  getServiceContainer() {
+    return {
+      sceneService: {
+        getSceneContainer: () => null
+      }
+    }
+  }
+}
+
+class LiteZoom {
+  controlOption: Record<string, any>
+  mapsService = {
+    map: new LiteMapObject(),
+    fitBounds: () => undefined,
+    setZoomAndCenter: () => undefined
+  }
+  zoomIn = () => undefined
+  zoomOut = () => undefined
+
+  constructor(option?: Record<string, any>) {
+    this.controlOption = option ?? {}
+  }
+
+  createButton(text = '', title = '', className = '', container?: HTMLElement, handler?: Listener) {
+    const button = document.createElement('button')
+    button.innerHTML = text
+    button.title = title
+    button.className = className
+    handler && button.addEventListener('click', handler)
+    container?.appendChild(button)
+    return button
+  }
+
+  updateDisabled() {}
+}
+
+class GaodeMap extends LiteMapObject {}
+class TMap extends LiteMapObject {}
+class TencentMap extends LiteMapObject {}
+
+const L7Dom = {
+  clearChildren(container?: HTMLElement) {
+    if (container) {
+      container.textContent = ''
+    }
+  }
+}
+
+const L7PositionType = {
+  BOTTOMRIGHT: 'bottomright'
+}
+
+function getGeometryCenter(geometry: any): [number, number] {
+  const coordinates = geometry?.coordinates
+  if (Array.isArray(coordinates?.[0]?.[0])) {
+    return coordinates[0][0]
+  }
+  if (Array.isArray(coordinates?.[0])) {
+    return coordinates[0]
+  }
+  return [0, 0]
+}
 
 const gaodeMapStyleOptions = [
   { name: tI18n('chart.map_style_normal'), value: 'normal' },
@@ -963,7 +1102,7 @@ export function transAxisPosition(position: string): string {
   }
 }
 
-export function configL7Label(chart: Chart): false | LabelOptions {
+export function configL7Label(chart: Chart): false | L7LabelOptions {
   const customAttr = parseJson(chart.customAttr)
   const label = customAttr.label
   const style = {
@@ -985,14 +1124,14 @@ export function configL7Label(chart: Chart): false | LabelOptions {
   }
 }
 
-export function configL7Style(chart: Chart): AreaOptions['style'] {
+export function configL7Style(chart: Chart): L7StyleOptions {
   const customAttr = parseJson(chart.customAttr)
   return {
     stroke: customAttr.basicStyle.areaBorderColor
   }
 }
 
-export function configL7Tooltip(chart: Chart): TooltipOptions {
+export function configL7Tooltip(chart: Chart): L7TooltipOptions {
   const customAttr = parseJson(chart.customAttr)
   const tooltip = customAttr.tooltip
   const formatterMap = tooltip.seriesTooltipFormatter
@@ -1080,7 +1219,7 @@ export function configL7Tooltip(chart: Chart): TooltipOptions {
 }
 
 export function handleGeoJson(
-  geoJson: FeatureCollection,
+  geoJson: GeoFeatureCollection,
   nameMapping?: Record<string, string>,
   useGlobalAreaMapping = false
 ) {
@@ -1093,8 +1232,7 @@ export function handleGeoJson(
       if (item.properties['center']) {
         item.properties['centroid'] = item.properties['center']
       } else {
-        const tmp = centroid(item.geometry)
-        item.properties['centroid'] = tmp.geometry.coordinates
+        item.properties['centroid'] = getGeometryCenter(item.geometry)
       }
     }
     let name = item.properties['name']
@@ -1134,7 +1272,7 @@ const LEGEND_SHAPE_STYLE_MAP = {
     transform: 'rotate(45deg)'
   }
 }
-export function configL7Legend(chart: Chart): LegendOptions | false {
+export function configL7Legend(chart: Chart): L7LegendOptions | false {
   const { basicStyle } = parseJson(chart.customAttr)
   if (basicStyle.suspension === false && basicStyle.showZoom === undefined) {
     return false
@@ -1145,11 +1283,11 @@ export function configL7Legend(chart: Chart): LegendOptions | false {
   }
   return {
     position: 'bottomleft',
-    customContent: (_: string, items: CategoryLegendListItem[]) => {
+    customContent: (_: string, items: L7LegendItem[]) => {
       const showItems = items?.length > 30 ? items.slice(0, 30) : items
       if (showItems?.length) {
-        const containerDom = createDom(CONTAINER_TPL) as HTMLElement
-        const listDom = containerDom.getElementsByClassName(LIST_CLASS)[0] as HTMLElement
+        const containerDom = createDom(L7_LEGEND_CONTAINER_TPL) as HTMLElement
+        const listDom = containerDom.getElementsByClassName(L7_LEGEND_LIST_CLASS)[0] as HTMLElement
         showItems.forEach(item => {
           let value = '-'
           if (item.value !== '') {
@@ -1165,7 +1303,7 @@ export function configL7Legend(chart: Chart): LegendOptions | false {
           }
           const substituteObj = { ...item, value }
 
-          const domStr = substitute(ITEM_TPL, substituteObj)
+          const domStr = substitute(L7_LEGEND_ITEM_TPL, substituteObj)
           const itemDom = createDom(domStr)
           // 给 legend 形状用的
           itemDom.style.setProperty('--bgColor', item.color)
@@ -1192,9 +1330,9 @@ const RESET_BTN =
   '<svg t="1717487786436" fill="${fill}" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="18361" width="14px" height="14px"><path d="M127.594667 503.274667a383.573333 383.573333 0 0 1 112.426666-263.04 380.864 380.864 0 0 1 122.24-82.474667 382.421333 382.421333 0 0 1 149.632-30.165333c51.946667 0 102.250667 10.176 149.504 30.165333a381.610667 381.610667 0 0 1 122.133334 82.474667 385.152 385.152 0 0 1 31.082666 35.093333l-67.285333 52.501333a8.96 8.96 0 0 0 3.349333 15.765334l196.352 48.042666a8.96 8.96 0 0 0 11.050667-8.597333l0.896-202.154667c0-7.466667-8.597333-11.733333-14.421333-7.04l-63.018667 49.28C795.605333 113.173333 661.973333 42.666667 511.786667 42.666667 255.786667 42.666667 47.488 247.829333 42.666667 502.826667a8.96 8.96 0 0 0 8.96 9.173333h67.029333c4.906667 0 8.832-3.925333 8.96-8.725333z m844.8 8.725333h-67.050667a8.917333 8.917333 0 0 0-8.96 8.704 381.76 381.76 0 0 1-30.037333 140.8 382.336 382.336 0 0 1-82.346667 122.24 382.656 382.656 0 0 1-271.893333 112.64 382.421333 382.421333 0 0 1-271.765334-112.64 385.152 385.152 0 0 1-31.061333-35.072l67.264-52.522667a8.96 8.96 0 0 0-3.349333-15.765333l-196.330667-48.042667a8.96 8.96 0 0 0-11.050667 8.597334l-0.789333 202.261333c0 7.488 8.597333 11.733333 14.421333 7.04l63.018667-49.28C228.394667 910.826667 362.026667 981.333333 512.213333 981.333333 768.341333 981.333333 976.512 776.042667 981.333333 521.173333a8.96 8.96 0 0 0-8.96-9.173333z" p-id="18362"></path></svg>'
 const ZOOM_OUT_BTN =
   '<svg t="1717486240292" fill="${fill}" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="13641" width="14px" height="14px"><path d="M935 423.3H89C40.2 423.3 0.3 463.2 0.3 512c0 48.8 39.9 88.7 88.7 88.7h846c48.8 0 88.7-39.9 88.7-88.7 0-48.8-39.9-88.7-88.7-88.7z" p-id="13642"></path></svg>'
-export class CustomZoom extends Zoom {
+export class CustomZoom extends LiteZoom {
   resetButtonGroup(container) {
-    DOM.clearChildren(container)
+    L7Dom.clearChildren(container)
     this['zoomInButton'] = this['createButton'](
       this.controlOption.zoomInText,
       this.controlOption.zoomInTitle,
@@ -1264,7 +1402,7 @@ export class CustomZoom extends Zoom {
       })
     }
   }
-  public getDefault(option: Partial<IZoomControlOption>) {
+  public getDefault(option: Partial<L7ZoomControlOption>) {
     const { buttonColor } = option as any
     let zoomInText = ZOOM_IN_BTN
     let zoomOutText = ZOOM_OUT_BTN
@@ -1276,7 +1414,7 @@ export class CustomZoom extends Zoom {
     }
     return {
       ...option,
-      position: PositionType.BOTTOMRIGHT,
+      position: L7PositionType.BOTTOMRIGHT,
       name: 'zoom',
       zoomInText,
       zoomInTitle: 'Zoom in',
@@ -1284,7 +1422,7 @@ export class CustomZoom extends Zoom {
       zoomOutTitle: 'Zoom out',
       resetText,
       showZoom: false
-    } as IZoomControlOption
+    } as L7ZoomControlOption
   }
 }
 export function configL7Zoom(
@@ -1427,7 +1565,7 @@ export function calculateBounds(coordinates: number[][]): {
   ]
 }
 
-function mobileEv(chart: Chart, plot: L7Plot<PlotOptions>) {
+function mobileEv(chart: Chart, plot: L7Plot) {
   if (!isMobile()) return
   const containerDiv = document.getElementById(chart.container)
   const active = containerDiv?.getAttribute('de-chart-active') === 'true'
@@ -1442,7 +1580,7 @@ function mobileEv(chart: Chart, plot: L7Plot<PlotOptions>) {
   plot.scene.loaded ? setTouchAction() : plot.scene.once('loaded', setTouchAction)
 }
 
-export function configL7PlotZoom(chart: Chart, plot: L7Plot<PlotOptions>) {
+export function configL7PlotZoom(chart: Chart, plot: L7Plot) {
   const { basicStyle } = parseJson(chart.customAttr)
   mobileEv(chart, plot)
   if (shouldHideZoom(basicStyle)) {

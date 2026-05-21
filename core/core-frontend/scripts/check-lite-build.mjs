@@ -90,6 +90,7 @@ assertMissing('core/core-frontend/src/api/plugin.ts', '内部轻量前端不应�
 assertMissing('core/core-frontend/src/components/plugin', '内部轻量前端不应保留远程插件组件目录')
 assertMissing('core/core-frontend/src/api/map.ts', '内部轻量前端不应保留地图 API')
 assertMissing('core/core-frontend/src/store/modules/map.ts', '内部轻量前端不应保留地图状态模块')
+assertMissing('core/core-frontend/src/internal-lite/map-stub.ts', '内部轻量前端不应依赖地图运行时替身')
 assertMissing('core/core-frontend/src/views/chart/components/js/panel/charts/map', '内部轻量前端不应保留地图图表实现')
 assertMissing('core/core-backend/src/main/java/io/dataease/map', '内部轻量后端不应保留地图接口和管理模块')
 assertMissing('sdk/api/api-base/src/main/java/io/dataease/api/map', '内部轻量 SDK 不应保留地图 API')
@@ -117,8 +118,16 @@ assertFileDoesNotContain(
 assertFileDoesNotContain('core/core-frontend/src', [/XpackComponent/, /PluginComponent/], '前端源码不应保留商业插件组件引用')
 assertFileDoesNotContain(
   'core/core-frontend/src',
-  [/queryOnlineMap/, /saveOnlineMap/, /\/customGeo\//, /\/map\/worldTree/],
-  '前端源码不应保留地图接口调用'
+  [
+    /queryOnlineMap/,
+    /saveOnlineMap/,
+    /\/customGeo\//,
+    /\/map\/worldTree/,
+    /@antv\/l7/,
+    /@antv\/l7plot/,
+    /@turf\/centroid/
+  ],
+  '前端源码不应保留地图接口和地图运行时引用'
 )
 
 if (!fs.existsSync(dist)) {
