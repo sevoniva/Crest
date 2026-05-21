@@ -73,14 +73,23 @@ Supported username formats:
 
 When schema is left empty, the implementation defaults to the account name uppercased, matching Oracle-style schema behavior.
 
+Minimum regression coverage for OB Oracle changes:
+
+- direct OBServer connection, for example `test@obora` on port `2881`;
+- OBProxy/ODP connection, for example `test@obora#obdemo` on port `2883`;
+- table and field metadata, including column comments;
+- dataset preview, full cache sync, incremental cache sync, and dashboard reads.
+
 ## Internal Lite Boundary
 
 This fork is maintained as an internal BI baseline. Keep the main BI path simple:
 
-- keep datasource, dataset, dataset cache sync, chart editor, dashboards, screens, export, login, users, roles, system parameters, and OB Oracle support;
-- do not reintroduce SQLBot, template market, toolbox, message center, standalone mobile pages, public share pages, map chart creation, or demo template resources unless there is a clear product decision;
+- keep datasource, dataset, dataset cache sync, chart editor, dashboards, screens, share pages, export, login, users, roles, system parameters, and OB Oracle support;
+- do not reintroduce SQLBot, template market, toolbox, message center, standalone mobile pages, map chart creation, map runtime dependencies, map APIs, or demo template resources unless there is a clear product decision;
 - preserve compatibility for existing dashboards where practical, but do not add new entry points for removed features;
 - when removing another feature, remove the visible entry, router/page build input, active API calls, large static assets, and documentation together.
+
+The share module intentionally keeps historical names such as `xpack_share`, `XpackShare*`, and `io.dataease.api.xpack.share`. These names are compatibility boundaries for existing tables, routes, mapper statements, and old share links. Do not rename them without a migration and link-compatibility plan.
 
 ## Workspace Hygiene
 
