@@ -1,5 +1,4 @@
 import richTextDark from '@/assets/svg/rich-text-dark.svg'
-import chartMixDualLineDark from '@/assets/svg/empty-dark/icon_line_light.svg'
 import { defineAsyncComponent } from 'vue'
 const svgs = import.meta.glob('@/assets/svg/empty-dark/*.svg')
 const iconChartMapEmpty = {
@@ -45,12 +44,15 @@ const iconChartMapEmpty = {
   'icon_word-cloud_light': 'word-cloud-dark'
 }
 const iconChartDarkMap = {
-  'chart-mix-dual-line-dark': chartMixDualLineDark,
   'rich-text-dark': richTextDark
 }
 Object.keys(svgs).forEach(path => {
   const name = path.match(/\/assets\/svg\/empty-dark\/([^/]+)\.svg$/)[1]
-  iconChartDarkMap[iconChartMapEmpty[name]] = defineAsyncComponent(svgs[path])
+  const chartName = iconChartMapEmpty[name]
+  iconChartDarkMap[chartName] = defineAsyncComponent(svgs[path])
+  if (chartName === 'line-dark') {
+    iconChartDarkMap['chart-mix-dual-line-dark'] = iconChartDarkMap[chartName]
+  }
 })
 
 export { iconChartDarkMap, iconChartMapEmpty }

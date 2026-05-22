@@ -287,7 +287,7 @@ docker login ghcr.io
 
 - Maven 使用仓库内 `.mvn/settings.xml`，公共依赖走阿里云 Maven 公共镜像；
 - 前端使用 `core/core-frontend/.npmrc` 中的 `registry.npmmirror.com`；
-- 少量公共仓库缺失的制品放在 `third-party/maven`；
+- 不维护私有 Maven 静态仓库，后端依赖必须来自公开 Maven 坐标或本仓库源码；
 - 前端依赖以 `package-lock.json` 为准。
 
 常用命令：
@@ -306,14 +306,13 @@ npm run build:base:gzip
 
 # 后端打包
 cd ../..
-mvn -s .mvn/settings.xml clean install -DskipTests -Dmaven.test.skip=true
-mvn -s .mvn/settings.xml -f core/pom.xml clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
+mvn -s .mvn/settings.xml -pl :core-backend -am clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
 
 # 本地镜像
 docker build -t dataease-2.10.22-ob:local .
 ```
 
-默认前端构建跳过 Vite 阶段的 ESLint、Stylelint 和 gzip 预压缩，减少本地与 CI 打包耗时。提交前需要完整检查时执行 `npm run lint:check` 或 `npm run build:base:strict`。构建完成后执行 `npm run build:lite:check`，用于确认源码、依赖声明和构建产物中没有重新引入地图接口、Mapbox、L7、L7Plot、Maplibre 或 PMTiles。
+默认前端构建跳过 Vite 阶段的 ESLint、Stylelint 和 gzip 预压缩，减少本地与 CI 打包耗时。提交前需要完整检查时执行 `npm run lint:check` 或 `npm run build:base:strict`。构建完成后执行 `npm run build:lite:check`，用于确认源码、依赖声明和构建产物中没有重新引入地图接口、Mapbox、L7、L7Plot、Maplibre 或 PMTiles。后端从根目录构建 `:core-backend`，Maven 会同时编译本仓库的 `sdk` 源码，不需要从外部 Maven 仓库拉取 DataEase API 包。
 
 ## 目录说明
 
@@ -322,7 +321,6 @@ core/core-backend                  后端服务
 core/core-frontend                 前端工程
 drivers                            本 fork 管理的 JDBC 驱动
 installer/dataease                 安装模板
-third-party/maven                  本地 Maven 静态仓库
 docs/development.md                二次开发说明
 docs/data-lineage.md               数据血缘功能和设计说明
 .github/workflows/docker-publish.yml  GHCR 镜像发布 workflow

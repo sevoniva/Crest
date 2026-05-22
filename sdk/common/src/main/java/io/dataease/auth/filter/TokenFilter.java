@@ -8,7 +8,6 @@ import com.auth0.jwt.interfaces.Verification;
 import io.dataease.auth.bo.TokenUserBO;
 import io.dataease.constant.AuthConstant;
 import io.dataease.exception.DEException;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.result.ResultMessage;
 import io.dataease.utils.*;
 import jakarta.servlet.*;
@@ -111,18 +110,7 @@ public class TokenFilter implements Filter {
             UserUtils.setUserInfo(userBO);
             filterChain.doFilter(servletRequest, servletResponse);
         } catch (Exception e) {
-            if (!LicenseUtil.licenseValid()) {
-                HttpServletResponse res = (HttpServletResponse) servletResponse;
-                ResultMessage resultMessage = new ResultMessage(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
-                HttpHeaders headers = new HttpHeaders();
-                String msg = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8).replace("+", "%20");
-                headers.add(headName, msg);
-                ResponseEntity<ResultMessage> entity = new ResponseEntity<>(resultMessage, headers, HttpStatus.UNAUTHORIZED);
-                sendResponseEntity(res, entity);
-                LogUtil.error(e.getMessage(), e);
-            } else {
-                throw e;
-            }
+            throw e;
         } finally {
             UserUtils.removeUser();
         }

@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@SuppressWarnings("deprecation")
 public class SwaggerConfig {
 
     @Value("${dataease.version}")
@@ -36,8 +37,7 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         Contact contact = new Contact();
         contact.setName("DataEase");
-        contact.setUrl("https://www.fit2cloud.com/dataease/index.html");
-        contact.setEmail("dataease@fit2cloud.com");
+        contact.setUrl("https://dataease.io");
         return new OpenAPI()
                 .info(new Info()
                         .title("DataEaseAPI")

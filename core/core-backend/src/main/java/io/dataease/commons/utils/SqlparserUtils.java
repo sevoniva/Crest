@@ -11,7 +11,6 @@ import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import io.dataease.extensions.datasource.vo.XpackPluginsDatasourceVO;
 import io.dataease.extensions.view.dto.SqlVariableDetails;
 import io.dataease.i18n.Translator;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.utils.JsonUtil;
 import io.dataease.utils.LogUtil;
 import net.sf.jsqlparser.expression.*;
@@ -120,16 +119,14 @@ public class SqlparserUtils {
                     prefix = datasourceType.getPrefix();
                     suffix = datasourceType.getSuffix();
                 } else {
-                    if (LicenseUtil.licenseValid()) {
-                        List<XpackPluginsDatasourceVO> pluginDatasourceList = pluginManage.queryPluginDs();
-                        List<XpackPluginsDatasourceVO> list = pluginDatasourceList.stream().filter(ele -> StringUtils.equals(ele.getType(), value.getType())).toList();
-                        if (ObjectUtils.isNotEmpty(list)) {
-                            XpackPluginsDatasourceVO first = list.getFirst();
-                            prefix = first.getPrefix();
-                            suffix = first.getSuffix();
-                        } else {
-                            DEException.throwException("当前数据源插件不存在");
-                        }
+                    List<XpackPluginsDatasourceVO> pluginDatasourceList = pluginManage.queryPluginDs();
+                    List<XpackPluginsDatasourceVO> list = pluginDatasourceList.stream().filter(ele -> StringUtils.equals(ele.getType(), value.getType())).toList();
+                    if (ObjectUtils.isNotEmpty(list)) {
+                        XpackPluginsDatasourceVO first = list.getFirst();
+                        prefix = first.getPrefix();
+                        suffix = first.getSuffix();
+                    } else {
+                        DEException.throwException("当前数据源插件不存在");
                     }
                 }
 
@@ -786,5 +783,4 @@ public class SqlparserUtils {
         }
     }
 }
-
 

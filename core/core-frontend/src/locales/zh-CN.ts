@@ -2457,8 +2457,6 @@ export default {
   },
   about: {
     auth_to: '授权给',
-    invalid_license: 'License 无效',
-    update_license: '更新 License',
     expiration_time: '过期时间',
     expirationed: '(已过期)',
     auth_num: '授权数量',

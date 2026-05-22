@@ -16,7 +16,7 @@ start() {
 
     if [ ! -f "$JAR_FILE" ]; then
         echo "错误: 找不到 $JAR_FILE"
-        echo "请先执行: mvn clean install"
+        echo "请先执行: mvn -pl :core-backend -am clean package -Pstandalone -DskipTests -Dmaven.test.skip=true"
         exit 1
     fi
 

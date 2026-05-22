@@ -1,4 +1,4 @@
 UPDATE core_sys_setting
-SET pval = 'https://cdn0-templates-dataease-cn.fit2cloud.com'
+SET pval = ''
 WHERE
     pkey = 'template.url';

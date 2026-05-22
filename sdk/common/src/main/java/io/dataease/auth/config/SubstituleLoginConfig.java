@@ -19,6 +19,7 @@ import java.util.Map;
 
 @ConditionalOnMissingBean(name = "loginServer")
 @Configuration
+@SuppressWarnings("unchecked")
 public class SubstituleLoginConfig {
 
     @Value("${dataease.path.substitule:classpath:substitule.json}")

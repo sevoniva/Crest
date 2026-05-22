@@ -16,7 +16,6 @@ import io.dataease.constant.AuthConstant;
 import io.dataease.constant.BusiResourceEnum;
 import io.dataease.exception.DEException;
 import io.dataease.i18n.Translator;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.share.dao.auto.entity.CoreShareTicket;
 import io.dataease.share.dao.auto.entity.XpackShare;
 import io.dataease.share.dao.auto.mapper.CoreShareTicketMapper;
@@ -243,7 +242,7 @@ public class XpackShareManage {
             vo.setShareDisable(true);
             return vo;
         }
-        boolean inIframeError = request.isInIframe() && !LicenseUtil.licenseValid();
+        boolean inIframeError = request.isInIframe() && false;
         if (inIframeError) {
             return new XpackShareProxyVO();
         }

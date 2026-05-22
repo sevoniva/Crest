@@ -2,7 +2,7 @@ package io.dataease.template.manage;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.dataease.api.visualization.request.DataVisualizationBaseRequest;
-import io.dataease.license.utils.LogUtil;
+import io.dataease.utils.LogUtil;
 import io.dataease.template.dao.auto.entity.DeTemplateVersion;
 import io.dataease.template.dao.auto.mapper.DeTemplateVersionMapper;
 import io.dataease.utils.JsonUtil;

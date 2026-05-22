@@ -8,7 +8,6 @@ This repository is a fork of `https://github.com/dataease/dataease.git` based on
 - `core/core-frontend`: Vue frontend. Use the checked-in `package-lock.json`.
 - `sdk/extensions/extensions-datasource`: datasource extension interfaces and JDBC datasource definitions.
 - `drivers`: fork-managed JDBC driver jars. Only `oceanbase-client-2.4.17.jar` is intentionally tracked here.
-- `third-party/maven`: small static Maven repository for required artifacts that are not available from public Maven mirrors.
 - `installer`: deployment templates.
 - `docs/data-lineage.md`: product and design notes for the field-level data lineage page.
 - `.github/workflows/docker-publish.yml`: GHCR image build and publish workflow.
@@ -22,7 +21,7 @@ This repository is a fork of `https://github.com/dataease/dataease.git` based on
 
 ## Dependency Sources
 
-Maven uses the repository-local `.mvn/settings.xml`, which mirrors Maven Central through Aliyun public Maven. Keep public dependencies in normal Maven coordinates. Only add files to `third-party/maven` when a required upstream artifact is not available from public repositories.
+Maven uses the repository-local `.mvn/settings.xml`, which mirrors Maven Central through Aliyun public Maven. Keep public dependencies in normal Maven coordinates or source modules in this repository; do not add private static Maven artifacts.
 
 Frontend dependencies use `core/core-frontend/.npmrc` and `registry.npmmirror.com`. Keep `package-lock.json` updated whenever frontend dependencies change.
 
@@ -47,8 +46,7 @@ npm run build:base
 Build the backend package:
 
 ```bash
-mvn clean install -DskipTests -Dmaven.test.skip=true
-mvn -f core/pom.xml clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
+mvn -pl :core-backend -am clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
 ```
 
 Build the Docker image locally after backend packaging:

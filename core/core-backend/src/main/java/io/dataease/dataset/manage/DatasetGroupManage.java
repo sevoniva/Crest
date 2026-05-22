@@ -31,7 +31,6 @@ import io.dataease.extensions.datasource.dto.DatasourceDTO;
 import io.dataease.extensions.datasource.model.SQLObj;
 import io.dataease.extensions.view.dto.SqlVariableDetails;
 import io.dataease.i18n.Translator;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.model.BusiNodeRequest;
 import io.dataease.model.BusiNodeVO;
 import io.dataease.operation.manage.CoreOptRecentManage;
@@ -292,28 +291,6 @@ public class DatasetGroupManage {
     }
 
     public void checkName(DatasetGroupInfoDTO dto) {
-        if (!LicenseUtil.licenseValid()) {
-            QueryWrapper<CoreDatasetGroup> wrapper = new QueryWrapper<>();
-            if (ObjectUtils.isNotEmpty(dto.getPid())) {
-                wrapper.eq("pid", dto.getPid());
-            }
-            if (StringUtils.isNotEmpty(dto.getName())) {
-                wrapper.eq("name", dto.getName());
-            }
-            if (ObjectUtils.isNotEmpty(dto.getId())) {
-                wrapper.ne("id", dto.getId());
-            }
-            if (ObjectUtils.isNotEmpty(dto.getLevel())) {
-                wrapper.eq("level", dto.getLevel());
-            }
-            if (ObjectUtils.isNotEmpty(dto.getNodeType())) {
-                wrapper.eq("node_type", dto.getNodeType());
-            }
-            List<CoreDatasetGroup> list = coreDatasetGroupMapper.selectList(wrapper);
-            if (list.size() > 0) {
-                DEException.throwException(Translator.get("i18n_ds_name_exists"));
-            }
-        }
     }
 
     public void saveTable(DatasetGroupInfoDTO datasetGroupInfoDTO, List<UnionDTO> union, List<Long> tableIds, boolean isCreate) {

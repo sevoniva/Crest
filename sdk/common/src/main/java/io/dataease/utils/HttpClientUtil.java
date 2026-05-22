@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 
 import static io.dataease.result.ResultCode.SYSTEM_INNER_ERROR;
 
+@SuppressWarnings("deprecation")
 public class HttpClientUtil {
 
     private static Logger logger = LoggerFactory.getLogger(HttpClientUtil.class);

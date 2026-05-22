@@ -1,6 +1,5 @@
 package io.dataease.job.schedule;
 
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.utils.CommonBeanFactory;
 import io.dataease.utils.LogUtil;
 import org.quartz.*;
@@ -20,7 +19,6 @@ public class DeDataFillingScheduleJob implements Job {
         DeDataFillingTaskExecutor deTaskExecutor = CommonBeanFactory.getBean(DeDataFillingTaskExecutor.class);
         assert deTaskExecutor != null;
         try {
-            LicenseUtil.validate();
             boolean taskLoaded = deTaskExecutor.execute(jobDataMap);
             if (!taskLoaded) {
                 Objects.requireNonNull(CommonBeanFactory.getBean(ScheduleManager.class)).removeJob(jobKey, trigger.getKey());

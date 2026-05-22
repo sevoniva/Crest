@@ -133,18 +133,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.dataease</groupId>
-            <artifactId>extensions-view</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.dataease</groupId>
-            <artifactId>extensions-datafilling</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml-core</artifactId>
             <version>${opensaml.version}</version>

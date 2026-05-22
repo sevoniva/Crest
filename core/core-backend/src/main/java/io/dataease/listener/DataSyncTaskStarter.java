@@ -3,7 +3,6 @@ package io.dataease.listener;
 import io.dataease.job.schedule.DeDataFillingTaskExecutor;
 import io.dataease.job.schedule.DeTaskExecutor;
 import io.dataease.job.schedule.DeDataSyncTaskExecutor;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.utils.LogUtil;
 import jakarta.annotation.Resource;
 import org.springframework.boot.ApplicationArguments;
@@ -27,19 +26,16 @@ public class DataSyncTaskStarter implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         try {
-            LicenseUtil.validate();
             deTaskExecutor.init();
         } catch (Exception e) {
             LogUtil.error(e.getMessage(), e.getCause());
         }
         try {
-            LicenseUtil.validate();
             deDataFillingTaskExecutor.init();
         } catch (Exception e) {
             LogUtil.error(e.getMessage(), e.getCause());
         }
         try {
-            LicenseUtil.validate();
             deDataSyncTaskExecutor.init();
         } catch (Exception e) {
             LogUtil.error(e.getMessage(), e.getCause());

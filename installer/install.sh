@@ -187,7 +187,7 @@ function install_docker() {
          chmod 644 /etc/systemd/system/docker.service
       else
          log_content "在线安装 docker"
-         curl -fsSL https://resource.fit2cloud.com/get-docker-linux.sh -o get-docker.sh 2>&1 | tee -a ${CURRENT_DIR}/install.log
+         curl -fsSL https://get.docker.com -o get-docker.sh 2>&1 | tee -a ${CURRENT_DIR}/install.log
          if [[ ! -f get-docker.sh ]];then
             log_content "docker 在线安装脚本下载失败，请稍候重试"
             exit 1
@@ -241,7 +241,7 @@ function install_docker_compose() {
             chmod +x /usr/bin/docker-compose
          else
             log_content "在线安装 docker-compose"
-            curl -L https://resource.fit2cloud.com/docker/compose/releases/download/v2.16.0/docker-compose-$(uname -s | tr A-Z a-z)-$(uname -m) -o /usr/local/bin/docker-compose 2>&1 | tee -a ${CURRENT_DIR}/install.log
+            curl -L https://github.com/docker/compose/releases/download/v2.16.0/docker-compose-$(uname -s | tr A-Z a-z)-$(uname -m) -o /usr/local/bin/docker-compose 2>&1 | tee -a ${CURRENT_DIR}/install.log
             if [[ ! -f /usr/local/bin/docker-compose ]];then
                log_content "docker-compose 下载失败，请稍候重试"
                exit 1
@@ -283,8 +283,7 @@ function load_de_images() {
          fi
       done
    else
-      DEVERSION=$(cat ${CURRENT_DIR}/dataease/templates/version)
-      curl -sfL https://resource.fit2cloud.com/installation-log.sh | sh -s de ${INSTALL_TYPE} ${DEVERSION}
+      log_content "未检测到离线镜像目录，后续将从 docker-compose.yml 中定义的镜像仓库拉取"
    fi
 }
 

@@ -2,6 +2,31 @@ import pkg from '../package.json'
 import viteCompression from 'vite-plugin-compression'
 
 const enableGzip = process.env.DE_ENABLE_VITE_GZIP === 'true'
+const emptyProxyPackages = new Set([
+  'lodash-unified',
+  'vue-demi',
+  '@vue/devtools-api',
+  '@vant/popperjs',
+  '@floating-ui',
+  '@floating-ui/dom',
+  '@floating-ui/core',
+  'javascript-natural-sort',
+  'escape-latex',
+  'seedrandom',
+  'tiny-emitter'
+])
+
+function vendorChunkName(id: string) {
+  if (!id.includes('node_modules')) {
+    return
+  }
+  const parts = id.toString().split('node_modules/')[1].split('/')
+  const packageName = parts[0].startsWith('@') ? `${parts[0]}/${parts[1]}` : parts[0]
+  if (emptyProxyPackages.has(packageName) || emptyProxyPackages.has(parts[0])) {
+    return
+  }
+  return packageName
+}
 
 export default {
   plugins: enableGzip
@@ -18,6 +43,7 @@ export default {
     : [],
   build: {
     reportCompressedSize: false,
+    chunkSizeWarningLimit: 3000,
     rollupOptions: {
       output: {
         // 用于命名代码拆分时创建的共享块的输出命名
@@ -25,9 +51,7 @@ export default {
         assetFileNames: `assets/[ext]/[name]-${pkg.version}-${pkg.name}.[ext]`,
         entryFileNames: `js/[name]-${pkg.version}-${pkg.name}.js`,
         manualChunks(id: string) {
-          if (id.includes('node_modules')) {
-            return id.toString().split('node_modules/')[1].split('/')[0].toString()
-          }
+          return vendorChunkName(id)
         }
       }
     },

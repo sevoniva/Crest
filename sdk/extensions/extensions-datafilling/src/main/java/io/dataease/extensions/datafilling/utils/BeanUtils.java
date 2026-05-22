@@ -1,6 +1,6 @@
 package io.dataease.extensions.datafilling.utils;
 
-import io.dataease.license.utils.LogUtil;
+import io.dataease.utils.LogUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;

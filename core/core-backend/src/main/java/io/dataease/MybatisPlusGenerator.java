@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.generator.config.converts.MySqlTypeConvert;
 /**
  * 研发使用，请勿提交
  */
+@SuppressWarnings("deprecation")
 public class MybatisPlusGenerator {
     /**
      * 为什么不从配置文件读？

@@ -2522,8 +2522,6 @@ export default {
   },
   about: {
     auth_to: 'Authorized to',
-    invalid_license: 'License is invalid',
-    update_license: 'Update License',
     expiration_time: 'Expiration time',
     expirationed: '(Expired)',
     auth_num: 'Authorized quantity',

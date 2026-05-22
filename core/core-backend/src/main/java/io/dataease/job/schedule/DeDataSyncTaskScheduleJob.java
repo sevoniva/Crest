@@ -1,6 +1,5 @@
 package io.dataease.job.schedule;
 
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.utils.CommonBeanFactory;
 import io.dataease.utils.LogUtil;
 import org.quartz.Job;
@@ -19,7 +18,6 @@ public class DeDataSyncTaskScheduleJob implements Job {
         DeDataSyncTaskExecutor deTaskExecutor = CommonBeanFactory.getBean(DeDataSyncTaskExecutor.class);
         assert deTaskExecutor != null;
         try {
-            LicenseUtil.validate();
             deTaskExecutor.execute(jobDataMap);
         } catch (Exception e) {
             LogUtil.error(e.getMessage(), e.getCause());

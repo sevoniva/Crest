@@ -17,7 +17,6 @@ import io.dataease.extensions.datasource.dto.DatasourceDTO;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import io.dataease.extensions.datasource.vo.XpackPluginsDatasourceVO;
 import io.dataease.i18n.Translator;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.model.BusiNodeRequest;
 import io.dataease.model.BusiNodeVO;
 import io.dataease.operation.manage.CoreOptRecentManage;
@@ -121,7 +120,7 @@ public class DataSourceManage {
         }
         QueryWrapper<CoreDatasource> wrapper = new QueryWrapper<>();
         if (ObjectUtils.isNotEmpty(dto.getPid())) {
-            if (LicenseUtil.licenseValid() && dto.getPid().equals(0L)) {
+            if (dto.getPid().equals(0L)) {
                 wrapper.eq("pid", -100L);
             } else {
                 wrapper.eq("pid", dto.getPid());

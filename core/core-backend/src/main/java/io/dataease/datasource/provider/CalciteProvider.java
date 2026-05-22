@@ -25,6 +25,7 @@ import org.apache.calcite.config.CalciteConnectionProperty;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.config.NullCollation;
 import org.apache.calcite.jdbc.CalciteConnection;
+import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
@@ -54,6 +55,7 @@ import java.util.stream.Collectors;
 
 
 @Component("calciteProvider")
+@SuppressWarnings({"deprecation", "unchecked"})
 public class CalciteProvider extends Provider {
 
     @Resource
@@ -1190,7 +1192,7 @@ public class CalciteProvider extends Provider {
                             JdbcSchema jdbcSchema = rootSchema.getSubSchema(ds.getSchemaAlias()).unwrap(JdbcSchema.class);
                             BasicDataSource basicDataSource = (BasicDataSource) jdbcSchema.getDataSource();
                             basicDataSource.close();
-                            rootSchema.removeSubSchema(ds.getSchemaAlias());
+                            removeSubSchema(rootSchema, ds.getSchemaAlias());
                         }
                         switch (datasourceType) {
                             case mysql:
@@ -1904,7 +1906,7 @@ public class CalciteProvider extends Provider {
                 JdbcSchema jdbcSchema = rootSchema.getSubSchema(datasourceSchemaDTO.getSchemaAlias()).unwrap(JdbcSchema.class);
                 BasicDataSource basicDataSource = (BasicDataSource) jdbcSchema.getDataSource();
                 basicDataSource.close();
-                rootSchema.removeSubSchema(datasourceSchemaDTO.getSchemaAlias());
+                removeSubSchema(rootSchema, datasourceSchemaDTO.getSchemaAlias());
             }
         } catch (Exception e) {
             DEException.throwException(e.getMessage());
@@ -1925,6 +1927,10 @@ public class CalciteProvider extends Provider {
             }
         }
         return connection;
+    }
+
+    private void removeSubSchema(SchemaPlus rootSchema, String schemaAlias) {
+        CalciteSchema.from(rootSchema).removeSubSchema(schemaAlias);
     }
 
     private Connection getConnectionFromPool(Long dsId) {

@@ -235,17 +235,17 @@ public abstract class Provider {
                 sqlDialect = MysqlSqlDialect.DEFAULT;
                 break;
             case doris:
-                sqlDialect = DorisSqlDialect.DEFAULT;
+                sqlDialect = MysqlSqlDialect.DEFAULT;
                 break;
             case impala:
-                sqlDialect = ImpalaSqlDialect.DEFAULT;
+                sqlDialect = HiveSqlDialect.DEFAULT;
                 break;
             case sqlServer:
-                sqlDialect = new MssqlSqlDialect(MssqlSqlDialect.DEFAULT_CONTEXT, coreDatasource.getDsVersion());
+                sqlDialect = MssqlSqlDialect.DEFAULT;
                 break;
             case oracle:
             case obOracle:
-                sqlDialect = new OracleSqlDialect(OracleSqlDialect.DEFAULT_CONTEXT, coreDatasource.getDsVersion());
+                sqlDialect = OracleSqlDialect.DEFAULT;
                 break;
             case db2:
                 sqlDialect = Db2SqlDialect.DEFAULT;
@@ -257,13 +257,13 @@ public abstract class Provider {
                 sqlDialect = RedshiftSqlDialect.DEFAULT;
                 break;
             case ck:
-                sqlDialect = new ClickHouseSqlDialect(ClickHouseSqlDialect.DEFAULT_CONTEXT, coreDatasource.getDsVersion());
+                sqlDialect = ClickHouseSqlDialect.DEFAULT;
                 break;
             case h2:
                 sqlDialect = H2SqlDialect.DEFAULT;
                 break;
             case es:
-                sqlDialect = EsSqlDialect.DEFAULT;
+                sqlDialect = AnsiSqlDialect.DEFAULT;
                 break;
             default:
                 sqlDialect = MysqlSqlDialect.DEFAULT;

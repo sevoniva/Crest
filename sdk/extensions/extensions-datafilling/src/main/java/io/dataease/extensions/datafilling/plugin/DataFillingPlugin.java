@@ -4,9 +4,9 @@ import io.dataease.exception.DEException;
 import io.dataease.extensions.datafilling.factory.ExtDDLProviderFactory;
 import io.dataease.extensions.datafilling.provider.ExtDDLProvider;
 import io.dataease.extensions.datafilling.vo.XpackPluginsDfVO;
-import io.dataease.license.utils.JsonUtil;
 import io.dataease.plugins.template.DataEasePlugin;
 import io.dataease.plugins.vo.DataEasePluginVO;
+import io.dataease.utils.JsonUtil;
 
 public abstract class DataFillingPlugin extends ExtDDLProvider implements DataEasePlugin {
 
