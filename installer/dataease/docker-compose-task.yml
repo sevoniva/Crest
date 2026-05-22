@@ -1,9 +1,0 @@
-version: '3'
-services:
-  task-actuator:
-    image: ghcr.io/sevoniva/dataease-2.10.22-sync-task:DE_TAG
-    container_name: sync-task-actuator
-    volumes:
-      - ${DE_BASE}/dataease2.0/logs:/opt/dataease2.0/logs
-    networks:
-      - dataease-network

@@ -74,7 +74,7 @@
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>run build:distributed</arguments>
+              <arguments>run build:base</arguments>
             </configuration>
           </execution>
         </executions>
