@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.dataease.exception.DEException;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Component("ck")
 public class CK extends DatasourceConfiguration {
     private static final Map<String, String> SSL_CERT_PATH_CACHE = new ConcurrentHashMap<>();

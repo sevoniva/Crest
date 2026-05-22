@@ -3,6 +3,7 @@ package io.dataease.datasource.type;
 import io.dataease.exception.DEException;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Component("obOracle")
 public class ObOracle extends DatasourceConfiguration {
     private String driver = "com.oceanbase.jdbc.Driver";

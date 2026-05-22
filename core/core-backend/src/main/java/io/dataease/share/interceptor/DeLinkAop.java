@@ -56,7 +56,7 @@ public class DeLinkAop {
         try {
             return point.proceed(params);
         } catch (Exception e) {
-            LogUtil.error(e.getMessage());
+            LogUtil.error(e.getMessage(), e);
             throw e;
         }
     }

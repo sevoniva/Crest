@@ -25,6 +25,7 @@ import io.dataease.api.ds.vo.ExcelConfiguration;
 import io.dataease.i18n.Translator;
 import io.dataease.utils.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -557,6 +558,7 @@ public class ExcelUtils {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper = false)
     public class NoModelDataListener extends AnalysisEventListener<Map<Integer, String>> {
         private List<String[]> data = new ArrayList<>();
         private List<String> header = new ArrayList<>();

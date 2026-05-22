@@ -2,6 +2,7 @@ package io.dataease.relation.manage;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.dataease.api.permissions.relation.api.RelationApi;
 import io.dataease.chart.dao.auto.entity.CoreChartView;
 import io.dataease.chart.dao.auto.mapper.CoreChartViewMapper;
@@ -197,6 +198,7 @@ public class RelationManage implements RelationApi {
                     }
                 }
             }
+            addDatasetJoinLineage(builder, context, dataset, includeFields);
 
             for (CoreChartView chart : context.chartsByDataset.getOrDefault(currentDatasetId, List.of())) {
                 if (dvId == null || Objects.equals(chart.getSceneId(), dvId)) {
@@ -300,7 +302,7 @@ public class RelationManage implements RelationApi {
         if (!visiting.add(field.getId())) {
             return;
         }
-        addDatasetFieldNode(builder, field);
+        addDatasetFieldNode(builder, context, field);
 
         CoreDatasetGroup dataset = context.datasets.get(field.getDatasetGroupId());
         addDatasetNode(builder, dataset);
@@ -357,11 +359,11 @@ public class RelationManage implements RelationApi {
         builder.addNode(tableFieldNodeId(table, field), tableFieldResourceId(table, field), safeOriginName(field), TYPE_TABLE_FIELD, field.getType(), field.getDescription(), null, field.getLastSyncTime(), 2);
     }
 
-    private void addDatasetFieldNode(GraphBuilder builder, CoreDatasetTableField field) {
+    private void addDatasetFieldNode(GraphBuilder builder, RelationContext context, CoreDatasetTableField field) {
         if (field == null || field.getId() == null) {
             return;
         }
-        builder.addNode(datasetFieldNodeId(field.getId()), field.getId(), safeDatasetFieldLabel(field), TYPE_DATASET_FIELD, fieldSubType(field), field.getDescription(), null, field.getLastSyncTime(), 3);
+        builder.addNode(datasetFieldNodeId(field.getId()), field.getId(), safeDatasetFieldLabel(field), TYPE_DATASET_FIELD, fieldSubType(field), datasetFieldDescription(field, context), null, field.getLastSyncTime(), 3);
     }
 
     private void addDatasetFieldNode(GraphBuilder builder, ChartFieldUsage usage, Long datasetId) {
@@ -377,7 +379,7 @@ public class RelationManage implements RelationApi {
             return;
         }
         String fieldName = StringUtils.defaultIfBlank(usage.name(), datasetField == null ? null : safeDatasetFieldLabel(datasetField));
-        builder.addNode(chartFieldNodeId(chart, usage), chart.getId() + ":" + usage.fieldId(), fieldName, TYPE_CHART_FIELD, usage.role(), null, chart.getCreateTime(), chart.getUpdateTime(), 5);
+        builder.addNode(chartFieldNodeId(chart, usage), chart.getId() + ":" + usage.fieldId(), fieldName, TYPE_CHART_FIELD, usage.role(), chartFieldDescription(usage), chart.getCreateTime(), chart.getUpdateTime(), 5);
     }
 
     private void addDatasetNode(GraphBuilder builder, CoreDatasetGroup dataset) {
@@ -432,11 +434,11 @@ public class RelationManage implements RelationApi {
     }
 
     private String safeTableLabel(CoreDatasetTable table) {
-        if (StringUtils.isNotBlank(table.getTableName())) {
-            return table.getTableName();
-        }
         if (StringUtils.isNotBlank(table.getName())) {
             return table.getName();
+        }
+        if (StringUtils.isNotBlank(table.getTableName())) {
+            return table.getTableName();
         }
         return "数据表";
     }
@@ -448,6 +450,9 @@ public class RelationManage implements RelationApi {
     private String safeDatasetFieldLabel(CoreDatasetTableField field) {
         String originName = safeOriginName(field);
         String displayName = StringUtils.trimToNull(field.getName());
+        if (Objects.equals(field.getExtField(), 2) && StringUtils.isNotBlank(displayName)) {
+            return displayName;
+        }
         if (StringUtils.isBlank(displayName) || StringUtils.equals(displayName, originName)) {
             return originName;
         }
@@ -457,6 +462,68 @@ public class RelationManage implements RelationApi {
     private String fieldSubType(CoreDatasetTableField field) {
         String groupType = StringUtils.equalsIgnoreCase(field.getGroupType(), "q") ? "指标" : "维度";
         return StringUtils.isBlank(field.getType()) ? groupType : groupType + " / " + field.getType();
+    }
+
+    private String datasetFieldDescription(CoreDatasetTableField field, RelationContext context) {
+        if (field == null) {
+            return null;
+        }
+        if (Objects.equals(field.getExtField(), 2) && StringUtils.isNotBlank(field.getOriginName())) {
+            String formula = "公式：" + formatFieldFormula(field.getOriginName(), context);
+            return StringUtils.isBlank(field.getDescription()) ? formula : field.getDescription() + "\n" + formula;
+        }
+        if (StringUtils.isNotBlank(field.getDescription())) {
+            return field.getDescription();
+        }
+        return null;
+    }
+
+    private String chartFieldDescription(ChartFieldUsage usage) {
+        List<String> parts = new ArrayList<>();
+        if (StringUtils.isNotBlank(usage.role())) {
+            parts.add("用途：" + usage.role());
+        }
+        if (StringUtils.isNotBlank(usage.summary())) {
+            parts.add("聚合：" + summaryLabel(usage.summary()));
+        }
+        return String.join("；", parts);
+    }
+
+    private String formatFieldFormula(String formula, RelationContext context) {
+        if (StringUtils.isBlank(formula)) {
+            return formula;
+        }
+        Matcher matcher = FIELD_REF_PATTERN.matcher(formula);
+        StringBuilder result = new StringBuilder();
+        while (matcher.find()) {
+            String replacement = "[" + matcher.group(1) + "]";
+            try {
+                CoreDatasetTableField source = context.fields.get(Long.valueOf(matcher.group(1)));
+                if (source != null) {
+                    replacement = "[" + safeDatasetFieldLabel(source) + "]";
+                }
+            } catch (NumberFormatException ignored) {
+                // Keep the original token when the historical formula is malformed.
+            }
+            matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(result);
+        return result.toString();
+    }
+
+    private String summaryLabel(String summary) {
+        if (StringUtils.isBlank(summary)) {
+            return summary;
+        }
+        return switch (summary.toLowerCase()) {
+            case "sum" -> "求和";
+            case "count" -> "计数";
+            case "avg" -> "平均";
+            case "max" -> "最大值";
+            case "min" -> "最小值";
+            case "count_distinct" -> "去重计数";
+            default -> summary;
+        };
     }
 
     private List<ChartFieldUsage> collectChartFieldUsages(CoreChartView chart) {
@@ -474,7 +541,7 @@ public class RelationManage implements RelationApi {
         addChartFieldUsages(usages, chart.getExtColor(), "颜色");
         addChartFieldUsages(usages, chart.getDrillFields(), "钻取");
         for (Long fieldId : extractFieldRefs(chart.getCustomFilter(), chart.getSenior(), chart.getSortPriority())) {
-            usages.putIfAbsent("条件:" + fieldId, new ChartFieldUsage(fieldId, "字段 " + fieldId, "条件", null));
+            usages.putIfAbsent("条件:" + fieldId, new ChartFieldUsage(fieldId, "字段 " + fieldId, "条件", null, null));
         }
         return new ArrayList<>(usages.values());
     }
@@ -490,8 +557,146 @@ public class RelationManage implements RelationApi {
                 continue;
             }
             String key = role + ":" + field.getId() + ":" + index++;
-            usages.putIfAbsent(key, new ChartFieldUsage(field.getId(), StringUtils.defaultIfBlank(field.getChartShowName(), field.getName()), role, field.getGroupType()));
+            usages.putIfAbsent(key, new ChartFieldUsage(field.getId(), StringUtils.defaultIfBlank(field.getChartShowName(), field.getName()), role, field.getGroupType(), field.getSummary()));
         }
+    }
+
+    private void addDatasetJoinLineage(GraphBuilder builder, RelationContext context, CoreDatasetGroup dataset, boolean includeFields) {
+        if (dataset == null || StringUtils.isBlank(dataset.getInfo())) {
+            return;
+        }
+        JsonNode root = JsonUtil.parseObject(dataset.getInfo(), JsonNode.class);
+        if (root == null) {
+            return;
+        }
+        if (root.isArray()) {
+            root.forEach(node -> addDatasetJoinLineageNode(builder, context, node, includeFields));
+        } else {
+            addDatasetJoinLineageNode(builder, context, root, includeFields);
+        }
+    }
+
+    private void addDatasetJoinLineageNode(GraphBuilder builder, RelationContext context, JsonNode node, boolean includeFields) {
+        if (node == null || node.isMissingNode() || node.isNull()) {
+            return;
+        }
+        JsonNode unionToParent = node.path("unionToParent");
+        if (!unionToParent.isMissingNode() && !unionToParent.isNull()) {
+            CoreDatasetTable parent = findDatasetTable(context, unionToParent.path("parentDs"));
+            CoreDatasetTable current = findDatasetTable(context, unionToParent.path("currentDs"));
+            if (current == null) {
+                current = findDatasetTable(context, node.path("currentDs"));
+            }
+            if (parent != null && current != null) {
+                addPhysicalTableNode(builder, parent);
+                addPhysicalTableNode(builder, current);
+                builder.addEdge(tableNodeId(parent), tableNodeId(current), "dataset_table_join", joinLabel(unionToParent));
+                if (includeFields) {
+                    addJoinFieldLineage(builder, context, parent, current, unionToParent);
+                }
+            }
+        }
+
+        JsonNode children = node.path("childrenDs");
+        if (children.isArray()) {
+            children.forEach(child -> addDatasetJoinLineageNode(builder, context, child, includeFields));
+        }
+    }
+
+    private CoreDatasetTable findDatasetTable(RelationContext context, JsonNode dsNode) {
+        Long id = readLong(dsNode, "id");
+        if (id != null && context.tables.containsKey(id)) {
+            return context.tables.get(id);
+        }
+        Long datasourceId = readLong(dsNode, "datasourceId");
+        String tableName = readText(dsNode, "tableName");
+        if (datasourceId == null || StringUtils.isBlank(tableName)) {
+            return null;
+        }
+        return context.tables.values().stream()
+                .filter(table -> Objects.equals(table.getDatasourceId(), datasourceId))
+                .filter(table -> StringUtils.equalsIgnoreCase(table.getTableName(), tableName))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void addJoinFieldLineage(GraphBuilder builder, RelationContext context, CoreDatasetTable parent, CoreDatasetTable current, JsonNode unionToParent) {
+        JsonNode unionFields = unionToParent.path("unionFields");
+        if (!unionFields.isArray()) {
+            return;
+        }
+        String label = joinTypeLabel(readText(unionToParent, "unionType")) + " 关联键";
+        for (JsonNode item : unionFields) {
+            CoreDatasetTableField parentField = context.fields.get(readLong(item.path("parentField"), "id"));
+            CoreDatasetTableField currentField = context.fields.get(readLong(item.path("currentField"), "id"));
+            if (parentField == null || currentField == null) {
+                continue;
+            }
+            addDatasetFieldLineage(builder, context, parentField, new HashSet<>());
+            addDatasetFieldLineage(builder, context, currentField, new HashSet<>());
+            builder.addEdge(tableFieldNodeId(parent, parentField), tableFieldNodeId(current, currentField), "table_field_join", label);
+        }
+    }
+
+    private String joinLabel(JsonNode unionToParent) {
+        String joinType = joinTypeLabel(readText(unionToParent, "unionType"));
+        JsonNode unionFields = unionToParent.path("unionFields");
+        List<String> fields = new ArrayList<>();
+        if (unionFields.isArray()) {
+            for (JsonNode item : unionFields) {
+                String parentField = readFieldLabel(item.path("parentField"));
+                String currentField = readFieldLabel(item.path("currentField"));
+                if (StringUtils.isNoneBlank(parentField, currentField)) {
+                    fields.add(parentField + " = " + currentField);
+                }
+                if (fields.size() >= 3) {
+                    break;
+                }
+            }
+        }
+        return fields.isEmpty() ? joinType : joinType + "：" + String.join("、", fields);
+    }
+
+    private String readFieldLabel(JsonNode node) {
+        return StringUtils.defaultIfBlank(readText(node, "name"), readText(node, "originName"));
+    }
+
+    private String joinTypeLabel(String joinType) {
+        if (StringUtils.isBlank(joinType)) {
+            return "JOIN";
+        }
+        return switch (joinType.toLowerCase()) {
+            case "left" -> "LEFT JOIN";
+            case "right" -> "RIGHT JOIN";
+            case "inner" -> "INNER JOIN";
+            case "full" -> "FULL JOIN";
+            default -> joinType.toUpperCase() + " JOIN";
+        };
+    }
+
+    private Long readLong(JsonNode node, String field) {
+        if (node == null || node.isMissingNode() || node.isNull()) {
+            return null;
+        }
+        JsonNode value = node.path(field);
+        if (value.isMissingNode() || value.isNull()) {
+            return null;
+        }
+        if (value.isNumber()) {
+            return value.longValue();
+        }
+        if (value.isTextual() && StringUtils.isNumeric(value.asText())) {
+            return Long.valueOf(value.asText());
+        }
+        return null;
+    }
+
+    private String readText(JsonNode node, String field) {
+        if (node == null || node.isMissingNode() || node.isNull()) {
+            return null;
+        }
+        JsonNode value = node.path(field);
+        return value.isMissingNode() || value.isNull() ? null : value.asText();
     }
 
     private Set<Long> extractFieldRefs(String... texts) {
@@ -562,7 +767,7 @@ public class RelationManage implements RelationApi {
         return TYPE_CHART_FIELD + ":" + chart.getId() + ":" + usage.role() + ":" + usage.fieldId();
     }
 
-    private record ChartFieldUsage(Long fieldId, String name, String role, String groupType) {
+    private record ChartFieldUsage(Long fieldId, String name, String role, String groupType, String summary) {
     }
 
     private static class RelationContext {

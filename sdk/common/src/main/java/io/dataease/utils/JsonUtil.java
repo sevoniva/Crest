@@ -27,6 +27,7 @@ public class JsonUtil {
     }
 
     public static <T> T parse(String json, Class<T> classOfT) {
+        if (json == null) return null;
         T t = null;
         try {
             t = objectMapper.readValue(json, new TypeReference<T>() {

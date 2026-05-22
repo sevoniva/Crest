@@ -5,7 +5,7 @@
     <parent>
         <artifactId>core</artifactId>
         <groupId>io.dataease</groupId>
-        <version>${dataease.version}</version>
+        <version>2.10.22</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -26,17 +26,17 @@
         <dependency>
             <groupId>io.dataease</groupId>
             <artifactId>api-base</artifactId>
-            <version>${dataease.version}</version>
+            <version>2.10.22</version>
         </dependency>
         <dependency>
             <groupId>io.dataease</groupId>
             <artifactId>api-permissions</artifactId>
-            <version>${dataease.version}</version>
+            <version>2.10.22</version>
         </dependency>
         <dependency>
             <groupId>io.dataease</groupId>
             <artifactId>api-sync</artifactId>
-            <version>${dataease.version}</version>
+            <version>2.10.22</version>
         </dependency>
         <dependency>
             <groupId>com.mysql</groupId>
@@ -127,7 +127,7 @@
                 </dependency>
                 <dependency>
                     <groupId>com.itextpdf</groupId>
-                    <artifactId>itext7-core</artifactId>
+                    <artifactId>itext-core</artifactId>
                     <version>${itextpdf.version}</version>
                     <type>pom</type>
                 </dependency>
@@ -183,6 +183,7 @@
     </profiles>
 
     <build>
+        <finalName>CoreApplication</finalName>
         <!-- 打包时必须要包含resources下配置文件 -->
         <resources>
             <resource>
@@ -220,7 +221,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <finalName>CoreApplication</finalName>
                     <layout>ZIP</layout>
                 </configuration>
                 <executions>

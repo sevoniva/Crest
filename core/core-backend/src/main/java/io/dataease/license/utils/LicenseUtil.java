@@ -7,7 +7,8 @@ public class LicenseUtil {
         return true;
     }
 
-    public static void validate() {
+    public static boolean validate() {
+        return true;
     }
 
     public static F2CLicResult get() {

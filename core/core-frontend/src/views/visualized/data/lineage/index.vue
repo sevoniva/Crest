@@ -50,6 +50,7 @@ const selectedResource = ref<string>()
 const selectedTable = ref<string>()
 const selectedField = ref<string>()
 const keyword = ref('')
+const showFieldNodes = ref(false)
 const loading = ref(false)
 const resourceLoading = ref(false)
 
@@ -164,8 +165,8 @@ const collectFieldLineageNodeIds = (sourceGraph: RelationGraph, seedIds: string[
     const node = nodeLookup[current]
 
     if (node.type === 'table_field') {
-      pushIncoming(current, ['table_table_field'])
-      pushOutgoing(current, ['table_field_dataset_field'])
+      pushIncoming(current, ['table_table_field', 'table_field_join'])
+      pushOutgoing(current, ['table_field_dataset_field', 'table_field_join'])
       continue
     }
     if (node.type === 'dataset_field') {
@@ -283,6 +284,19 @@ const filteredGraph = computed<RelationGraph>(() => {
           matchedNodes.map(node => node.id)
         )
   return buildVisibleGraph(sourceGraph, visible)
+})
+
+const displayGraph = computed<RelationGraph>(() => {
+  if (showFieldNodes.value) {
+    return filteredGraph.value
+  }
+  const nodes = filteredGraph.value.nodes.filter(node => !fieldNodeTypes.has(node.type))
+  const visible = new Set(nodes.map(node => node.id))
+  return {
+    ...filteredGraph.value,
+    nodes,
+    edges: filteredGraph.value.edges.filter(edge => visible.has(edge.source) && visible.has(edge.target))
+  }
 })
 
 const summary = computed(() => {
@@ -452,6 +466,11 @@ const handleSearch = async () => {
   }
 }
 
+const handleReset = async () => {
+  resetLineagePicker()
+  await loadGraph()
+}
+
 const handleResourceChange = async () => {
   resetLineagePicker()
   await loadGraph()
@@ -468,7 +487,7 @@ onMounted(async () => {
     <div class="lineage-toolbar">
       <div class="lineage-title">
         <h1>数据血缘</h1>
-        <span>{{ filteredGraph.nodes.length || 0 }} 个资源</span>
+        <span>{{ filteredGraph.nodes.length || 0 }} 个节点</span>
       </div>
       <div class="lineage-actions">
         <el-select v-model="queryType" class="type-select" @change="handleTypeChange">
@@ -558,7 +577,14 @@ onMounted(async () => {
           @clear="handleSearch"
         />
         <el-button :icon="Search" type="primary" @click="handleSearch">查询</el-button>
-        <el-button :icon="RefreshLeft" @click="loadGraph"></el-button>
+        <el-button :icon="RefreshLeft" aria-label="清空筛选" title="清空筛选" @click="handleReset"></el-button>
+        <el-switch
+          v-model="showFieldNodes"
+          class="field-node-switch"
+          inline-prompt
+          active-text="字段"
+          inactive-text="资源"
+        />
         <span v-if="filterStats" class="filter-stats">{{ filterStats }}</span>
       </div>
     </div>
@@ -572,7 +598,7 @@ onMounted(async () => {
 
     <div class="lineage-content">
       <section class="graph-panel">
-        <RelationGraphView :graph="filteredGraph" :loading="loading" height="calc(100vh - 294px)" />
+        <RelationGraphView :graph="displayGraph" :loading="loading" height="calc(100vh - 294px)" />
       </section>
 
       <aside class="detail-panel">
@@ -677,6 +703,10 @@ onMounted(async () => {
 
 .keyword-input {
   width: 170px;
+}
+
+.field-node-switch {
+  margin-left: 2px;
 }
 
 .filter-stats {

@@ -163,6 +163,11 @@ export const useAppearanceStore = defineStore('appearanceStore', {
     setCurrentFont(name) {
       const currentFont = this.fontList.find(ele => ele.name === name)
       if (currentFont) {
+        document.documentElement.style.setProperty('--de-custom_font', `${name}`)
+        document.documentElement.style.setProperty('--van-base-font', `${name}`)
+        if (!currentFont.fileTransName) {
+          return
+        }
         let fontStyleElement = document.querySelector(`[id="de-custom_font${name}"]`)
         if (!fontStyleElement) {
           fontStyleElement = document.createElement('style')
@@ -178,7 +183,7 @@ export const useAppearanceStore = defineStore('appearanceStore', {
             }/typeface/download/${currentFont.fileTransName});
             font-weight: normal;
             font-style: normal;
-            }`
+          }`
       }
     },
     setMobileLoginBg(data: string) {
@@ -226,15 +231,20 @@ export const useAppearanceStore = defineStore('appearanceStore', {
             fontStyleElement.setAttribute('id', 'de-custom_font')
             document.querySelector('head').appendChild(fontStyleElement)
           }
-          fontStyleElement.innerHTML =
-            name && fileTransName
-              ? `@font-face {
+          if (!name) {
+            fontStyleElement.innerHTML = ''
+            document.documentElement.style.removeProperty('--de-custom_font')
+            document.documentElement.style.removeProperty('--van-base-font')
+            return
+          }
+          fontStyleElement.innerHTML = fileTransName
+            ? `@font-face {
                 font-family: '${name}';
                 src: url(${url});
                 font-weight: normal;
                 font-style: normal;
                 }`
-              : ''
+            : ''
           document.documentElement.style.setProperty('--de-custom_font', `${name}`)
           document.documentElement.style.setProperty('--van-base-font', `${name}`)
         }

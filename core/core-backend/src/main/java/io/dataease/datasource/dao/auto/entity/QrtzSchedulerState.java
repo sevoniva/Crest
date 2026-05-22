@@ -1,5 +1,6 @@
 package io.dataease.datasource.dao.auto.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 
@@ -16,6 +17,7 @@ public class QrtzSchedulerState implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @TableId("SCHED_NAME")
     private String schedName;
 
     private String instanceName;

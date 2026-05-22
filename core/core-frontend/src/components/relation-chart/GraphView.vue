@@ -49,19 +49,51 @@ let lastHeight = 0
 const typeMeta: Record<string, { label: string; color: string; level: number; symbol: string }> = {
   datasource: { label: '数据源', color: '#2f6bff', level: 0, symbol: 'roundRect' },
   table: { label: '物理表', color: '#00a3a3', level: 1, symbol: 'roundRect' },
-  table_field: { label: '物理字段', color: '#008fb3', level: 2, symbol: 'roundRect' },
-  dataset_field: { label: '数据集字段', color: '#13a35b', level: 3, symbol: 'roundRect' },
+  table_field: { label: '物理字段', color: '#008fb3', level: 2, symbol: 'circle' },
+  dataset_field: { label: '数据集字段', color: '#13a35b', level: 3, symbol: 'circle' },
   dataset: { label: '数据集', color: '#4f8f00', level: 4, symbol: 'roundRect' },
-  chart_field: { label: '图表字段', color: '#c47a00', level: 5, symbol: 'roundRect' },
+  chart_field: { label: '图表字段', color: '#c47a00', level: 5, symbol: 'circle' },
   chart: { label: '图表', color: '#d15b18', level: 6, symbol: 'roundRect' },
   dv: { label: '仪表板/大屏', color: '#c43e63', level: 7, symbol: 'roundRect' }
 }
+
+const dashedEdgeTypes = new Set([
+  'table_table_field',
+  'table_field_dataset_field',
+  'table_field_join',
+  'dataset_field_calc_field',
+  'dataset_field_chart_field',
+  'chart_field_chart'
+])
+
+const highlightedEdgeTypes = new Set(['dataset_table_join', 'table_field_join', 'dataset_field_calc_field'])
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 
 const hasData = computed(() => !!props.graph?.nodes?.length)
 const isLargeGraph = computed(() => {
   const nodeCount = props.graph?.nodes?.length || 0
   const edgeCount = props.graph?.edges?.length || 0
   return nodeCount > 220 || edgeCount > 420
+})
+
+const isDenseGraph = computed(() => {
+  const nodeCount = props.graph?.nodes?.length || 0
+  const edgeCount = props.graph?.edges?.length || 0
+  return nodeCount > 60 || edgeCount > 120
+})
+
+const categoryMeta = computed(() => {
+  const categoryNames = new Set(
+    (props.graph?.nodes || []).map(node => (typeMeta[node.type] || typeMeta.dataset).label)
+  )
+  return Object.values(typeMeta).filter(item => categoryNames.has(item.label))
 })
 
 const ensureChart = async () => {
@@ -90,15 +122,17 @@ const layoutNodes = () => {
     const index = group.findIndex(item => item.id === node.id)
     const step = height / (group.length + 1)
     const meta = typeMeta[node.type] || typeMeta.dataset
+    const isField = node.type?.includes('field')
     return {
       ...node,
       x: width * (lanes[level] ?? 0.5),
       y: step * (index + 1),
       category: meta.label,
       itemStyle: {
-        color: meta.color,
-        borderColor: '#ffffff',
-        borderWidth: 2,
+        color: isField ? '#ffffff' : meta.color,
+        borderColor: isField ? meta.color : '#ffffff',
+        borderType: isField ? 'dashed' : 'solid',
+        borderWidth: isField ? 1.6 : 2,
         shadowBlur: isLargeGraph.value ? 0 : 12,
         shadowColor: `${meta.color}40`
       },
@@ -107,17 +141,45 @@ const layoutNodes = () => {
         node.type === 'dv'
           ? [118, 42]
           : node.type?.includes('field')
-            ? [96, 30]
+            ? isDenseGraph.value
+              ? [18, 18]
+              : [62, 62]
             : node.type === 'table'
               ? [108, 40]
               : [104, 40],
       label: {
-        show: !isLargeGraph.value || !node.type?.includes('field'),
-        color: '#ffffff',
-        width: node.type === 'dv' ? 96 : node.type?.includes('field') ? 78 : 82,
+        show: !isDenseGraph.value || !node.type?.includes('field'),
+        color: isField ? '#1f2329' : '#ffffff',
+        width: node.type === 'dv' ? 96 : node.type?.includes('field') ? 52 : 82,
         overflow: 'truncate',
         fontSize: node.type?.includes('field') ? 11 : 12,
         fontWeight: 500
+      }
+    }
+  })
+}
+
+const formatLinks = () => {
+  return (props.graph?.edges || []).map(edge => {
+    const isHighlighted = highlightedEdgeTypes.has(edge.type || '')
+    const showLabel = !isDenseGraph.value && edge.type === 'dataset_field_calc_field'
+    return {
+      ...edge,
+      lineStyle: {
+        color: isHighlighted ? '#245bdb' : '#8f959e',
+        type: dashedEdgeTypes.has(edge.type || '') ? 'dashed' : 'solid',
+        width: isHighlighted ? 1.8 : isLargeGraph.value ? 0.9 : 1.3,
+        curveness: edge.type === 'dataset_table_join' ? 0.08 : 0.18,
+        opacity: isHighlighted ? 0.86 : isLargeGraph.value ? 0.46 : 0.72
+      },
+      label: {
+        show: showLabel,
+        formatter: edge.label || '',
+        color: '#245bdb',
+        fontSize: 10,
+        backgroundColor: 'rgba(255,255,255,0.82)',
+        borderRadius: 4,
+        padding: [2, 4]
       }
     }
   })
@@ -144,7 +206,10 @@ const renderChart = async () => {
         const data = params.data || {}
         const meta = typeMeta[data.type] || {}
         const subType = data.subType ? `<br/>类型：${data.subType}` : ''
-        return `${meta.label || '资源'}<br/>${data.name || ''}${subType}`
+        const description = data.description
+          ? `<br/><span style="color:#646a73">${escapeHtml(String(data.description)).replace(/\n/g, '<br/>')}</span>`
+          : ''
+        return `${meta.label || '资源'}<br/>${escapeHtml(data.name || '')}${subType}${description}`
       }
     },
     legend: {
@@ -155,7 +220,7 @@ const renderChart = async () => {
       textStyle: {
         color: '#646a73'
       },
-      data: Object.values(typeMeta).map(item => item.label)
+      data: categoryMeta.value.map(item => item.label)
     },
     series: [
       {
@@ -165,11 +230,11 @@ const renderChart = async () => {
         draggable: !isLargeGraph.value,
         edgeSymbol: ['none', 'arrow'],
         edgeSymbolSize: [4, 8],
-        categories: Object.values(typeMeta).map(item => ({
+        categories: categoryMeta.value.map(item => ({
           name: item.label
         })),
         data: layoutNodes(),
-        links: props.graph?.edges || [],
+        links: formatLinks(),
         lineStyle: {
           color: '#8f959e',
           width: isLargeGraph.value ? 0.9 : 1.3,

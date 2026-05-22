@@ -19,7 +19,11 @@ spring:
     validate-on-migrate: false
     locations: classpath:db/desktop
     baseline-on-migrate: true
-    out-of-order: true
+    out-of-order: false
+
+logging:
+  level:
+    "org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker": ERROR
 
 mybatis-plus:
   mapper-locations: classpath:mybatis/*.xml

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration debug="true">
+<configuration debug="false">
     <springProperty scope="context" name="logPath" source="logging.file.path" defaultValue="/opt/dataease2.0/logs/core"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -49,6 +49,8 @@
             <charset>UTF-8</charset>
         </encoder>
     </appender>
+
+    <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker" level="ERROR" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

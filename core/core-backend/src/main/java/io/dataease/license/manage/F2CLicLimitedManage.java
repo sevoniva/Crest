@@ -1,4 +1,4 @@
 package io.dataease.license.manage;
 
-public class F2CLicLimitedManage {
+public interface F2CLicLimitedManage {
 }

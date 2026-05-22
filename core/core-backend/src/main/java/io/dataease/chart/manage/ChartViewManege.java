@@ -76,6 +76,8 @@ public class ChartViewManege {
 
     @Resource
     private DatasetTableFieldManage datasetTableFieldManage;
+    @Resource
+    private ChartViewOldDataMergeService chartViewOldDataMergeService;
     @Autowired(required = false)
     private PluginManageApi pluginManage;
 
@@ -474,7 +476,7 @@ public class ChartViewManege {
         }
         dto.setSenior(JsonUtil.parse(record.getSenior(), Map.class));
         dto.setDrillFields(JsonUtil.parseList(record.getDrillFields(), tokenType));
-        dto.setCustomFilter(JsonUtil.parseObject(record.getCustomFilter(), FilterTreeObj.class));
+        dto.setCustomFilter(parseCustomFilter(record.getCustomFilter()));
         dto.setViewFields(JsonUtil.parseList(record.getViewFields(), tokenType));
         dto.setFlowMapStartName(JsonUtil.parseList(record.getFlowMapStartName(), tokenType));
         dto.setFlowMapEndName(JsonUtil.parseList(record.getFlowMapEndName(), tokenType));
@@ -484,6 +486,23 @@ public class ChartViewManege {
 
         return dto;
 
+    }
+
+    private FilterTreeObj parseCustomFilter(String customFilter) {
+        if (StringUtils.isBlank(customFilter)) {
+            return null;
+        }
+        String trimmed = customFilter.trim();
+        if (trimmed.startsWith("[")) {
+            TypeReference<List<ChartFieldCustomFilterDTO>> tokenType = new TypeReference<>() {
+            };
+            List<ChartFieldCustomFilterDTO> legacyFilters = JsonUtil.parseList(trimmed, tokenType);
+            if (CollectionUtils.isEmpty(legacyFilters)) {
+                return null;
+            }
+            return chartViewOldDataMergeService.transArr2Obj(legacyFilters);
+        }
+        return JsonUtil.parseObject(trimmed, FilterTreeObj.class);
     }
 
     public String checkSameDataSet(String viewIdSource, String viewIdTarget) {
