@@ -268,7 +268,7 @@ function load_de_images() {
    log_title "加载 Crest 镜像"
    cd ${CURRENT_DIR}
 
-   for i in $(docker images --format '{{.Repository}}:{{.Tag}}' | grep dataease); do
+   for i in $(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E 'crest|dataease'); do
       current_images[${#current_images[@]}]=${i##*/}
    done
 

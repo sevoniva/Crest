@@ -1,19 +1,11 @@
 # 安全说明
 
-如果您发现安全问题，请直接联系我们：
-
-- wei@fit2cloud.com
-- support@fit2cloud.com
-- 400-052-0755
+如果您发现安全问题，请通过 GitHub Security Advisory 或仓库 Issue 联系维护者。
 
 感谢您的支持！
 
 # Security Policy
 
-All security bugs should be reported to the contact as below:
-
-- wei@fit2cloud.com
-- support@fit2cloud.com
-- 400-052-0755
+Please report security issues through GitHub Security Advisories or repository issues.
 
 Thanks for your support!

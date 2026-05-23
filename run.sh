@@ -1,11 +1,11 @@
 #!/bin/bash
-# DataEase 简化启动脚本
+# Crest 本地启动脚本
 # 用法: ./run.sh [start|stop|status]
 
-APP_NAME="dataease"
+APP_NAME="crest"
 JAR_FILE="core/core-backend/target/CoreApplication.jar"
 LOG_DIR="logs"
-PID_FILE="dataease.pid"
+PID_FILE="crest.pid"
 JAVA_OPTS="-Dfile.encoding=utf-8 -Xms1g -Xmx2g"
 
 start() {

@@ -37,21 +37,24 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: core/core-frontend/package.json
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: |
-            core/core-frontend/package-lock.json
-            core/core-frontend/flushbonading/package-lock.json
+          cache: pnpm
+          cache-dependency-path: core/core-frontend/pnpm-lock.yaml
 
       - name: Build frontend
         working-directory: core/core-frontend
         run: |
-          npm ci
-          npm run build:base
-          npm run build:lite:check
+          pnpm install --frozen-lockfile
+          pnpm run build:base
+          pnpm run build:lite:check
 
       - name: Build backend
         run: |

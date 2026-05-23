@@ -12,6 +12,7 @@
 
 # Package Files #
 *.jar
+!/drivers/*.jar
 !/third-party/maven/**/*.jar
 *.war
 *.nar
@@ -52,10 +53,18 @@ core/core-frontend/src/assets/fsSvg.html
 /extensions/
 .vite/
 .local/
+.pnpm-store/
+.turbo/
+coverage/
+playwright-report/
+test-results/
+.playwright-cli/
 /core/backend/
 /classpath:substitule.json
 mapFiles/156/*.json
 !mapFiles/156/156.json
-reports/perf/
+reports/
+*.pid
+*.out
 __pycache__/
 *.pyc
