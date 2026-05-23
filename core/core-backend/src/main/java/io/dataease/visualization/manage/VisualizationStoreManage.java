@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class VisualizationStoreManage {
@@ -45,10 +46,7 @@ public class VisualizationStoreManage {
             return;
         }
         String type = request.getType();
-        BusiResourceEnum busiResourceEnum = BusiResourceEnum.valueOf(type.toUpperCase());
-        if (ObjectUtils.isEmpty(busiResourceEnum)) {
-            DEException.throwException("type is invalid");
-        }
+        BusiResourceEnum busiResourceEnum = busiResourceType(type);
         CoreStore coreStore = new CoreStore();
         coreStore.setId(IDUtils.snowID());
         coreStore.setTime(System.currentTimeMillis());
@@ -96,10 +94,7 @@ public class VisualizationStoreManage {
         queryWrapper.eq("s.uid", uid);
         queryWrapper.isNotNull("s.resource_id");
         if (StringUtils.isNotBlank(request.getType())) {
-            BusiResourceEnum busiResourceEnum = BusiResourceEnum.valueOf(request.getType().toUpperCase());
-            if (ObjectUtils.isEmpty(busiResourceEnum)) {
-                DEException.throwException("type is invalid");
-            }
+            BusiResourceEnum busiResourceEnum = busiResourceType(request.getType());
             queryWrapper.eq("s.resource_type", busiResourceEnum.getFlag());
         }
         if (StringUtils.isNotBlank(request.getKeyword())) {
@@ -112,5 +107,14 @@ public class VisualizationStoreManage {
         queryWrapper.orderBy(true, request.isAsc(), "v.update_time");
         Page<StorePO> page = new Page<>(goPage, pageSize);
         return coreStoreExtMapper.query(page, queryWrapper);
+    }
+
+    private BusiResourceEnum busiResourceType(String type) {
+        try {
+            return BusiResourceEnum.valueOf(type.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            DEException.throwException("type is invalid");
+            return null;
+        }
     }
 }

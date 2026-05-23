@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dataease.utils.CommonBeanFactory;
 import io.dataease.utils.LogUtil;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -25,9 +26,9 @@ public class SubstituleLoginConfig {
     @Value("${dataease.path.substitule:classpath:substitule.json}")
     private String jsonFilePath;
 
-    private static String pwd;
+    private static volatile String pwd;
 
-    private static boolean ready = false;
+    private static volatile boolean ready = false;
 
 
     @ConditionalOnMissingBean(name = "loginServer")
@@ -39,22 +40,35 @@ public class SubstituleLoginConfig {
             pwd = CommonBeanFactory.getBean(Environment.class).getProperty("dataease.default-pwd", "admin");
             modifyPwd(pwd);
         }
-        return objectMapper.readValue(jsonFile, Map.class);
+        Map<String, Object> data = objectMapper.readValue(jsonFile, Map.class);
+        if (ObjectUtils.isNotEmpty(data.get("pwd"))) {
+            pwd = data.get("pwd").toString();
+        }
+        ready = true;
+        return data;
     }
 
     public static String getPwd() {
-        if (!ready) {
+        if (ready && StringUtils.isNotBlank(pwd)) {
+            return pwd;
+        }
+        synchronized (SubstituleLoginConfig.class) {
+            if (ready && StringUtils.isNotBlank(pwd)) {
+                return pwd;
+            }
             ready = true;
             Object substituleLoginDataObject = CommonBeanFactory.getBean("substituleLoginData");
             if (substituleLoginDataObject != null) {
                 Map<String, Object> substituleLoginData = (Map<String, Object>) substituleLoginDataObject;
                 if (ObjectUtils.isNotEmpty(substituleLoginData.get("pwd"))) {
                     pwd = substituleLoginData.get("pwd").toString();
-                    return substituleLoginData.get("pwd").toString();
                 }
             }
+            if (StringUtils.isBlank(pwd)) {
+                pwd = CommonBeanFactory.getBean(Environment.class).getProperty("dataease.default-pwd", "admin");
+            }
+            return pwd;
         }
-        return pwd;
     }
 
     public void modifyPwd(String pwd) {

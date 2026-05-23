@@ -31,6 +31,8 @@
         <mybatis-plus.version>3.5.6</mybatis-plus.version>
         <h2.version>2.2.220</h2.version>
         <knife4j.version>4.4.0</knife4j.version>
+        <springdoc-openapi.version>2.8.9</springdoc-openapi.version>
+        <swagger-core.version>2.2.30</swagger-core.version>
         <calcite-core.version>1.35.0</calcite-core.version>
         <commons-dbcp2.version>2.6.0</commons-dbcp2.version>
         <antlr.version>3.5.2</antlr.version>
@@ -107,6 +109,36 @@
                 <version>${knife4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-common</artifactId>
+                <version>${springdoc-openapi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+                <version>${springdoc-openapi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc-openapi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations-jakarta</artifactId>
+                <version>${swagger-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-core-jakarta</artifactId>
+                <version>${swagger-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-models-jakarta</artifactId>
+                <version>${swagger-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.auth0</groupId>

@@ -836,7 +836,7 @@ public class DataVisualizationServer implements DataVisualizationApi {
             request.setResourceTable(CommonConstants.RESOURCE_TABLE.SNAPSHOT);
         }
         String busiFlag = request.getBusiFlag();
-        if (busiFlag.equals("dashboard-dataV")) {
+        if (StringUtils.equals(busiFlag, "dashboard-dataV")) {
             BusiNodeRequest requestDv = new BusiNodeRequest();
             BeanUtils.copyBean(requestDv, request);
             requestDv.setBusiFlag("dashboard");

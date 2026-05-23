@@ -249,10 +249,7 @@ public class CoreVisualizationManage {
         Long uid = AuthUtils.getUser().getUserId();
         Map<String, Object> params = new HashMap<>();
         if (StringUtils.isNotBlank(request.getType())) {
-            BusiResourceEnum busiResourceEnum = BusiResourceEnum.valueOf(request.getType().toUpperCase());
-            if (ObjectUtils.isEmpty(busiResourceEnum)) {
-                DEException.throwException("type is invalid");
-            }
+            assertBusiResourceType(request.getType());
             params.put("type", request.getType());
         }
         String info = CommunityUtils.getInfo();
@@ -262,6 +259,14 @@ public class CoreVisualizationManage {
         params.put("isAsc", request.isAsc());
         Page<VisualizationResourcePO> page = new Page<>(goPage, pageSize);
         return extDataVisualizationMapper.findRecent(page, uid, request.getKeyword(), params);
+    }
+
+    private void assertBusiResourceType(String type) {
+        try {
+            BusiResourceEnum.valueOf(type.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            DEException.throwException("type is invalid");
+        }
     }
 
     @Transactional

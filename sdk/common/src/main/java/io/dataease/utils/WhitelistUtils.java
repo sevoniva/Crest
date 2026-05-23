@@ -31,6 +31,7 @@ public class WhitelistUtils {
             "/index.html",
             "/model",
             "/swagger-resources",
+            "/swagger-ui.html",
             "/doc.html",
             "/panel.html",
             "/mobile.html",
@@ -71,6 +72,9 @@ public class WhitelistUtils {
                 || StringUtils.endsWithAny(requestURI, ".gif",".ico", "js", ".css", "svg", "png", "jpg", "js.map", ".otf", ".ttf", ".woff2")
                 || StringUtils.startsWithAny(requestURI, "data:image")
                 || StringUtils.startsWithAny(requestURI, "/login/platformLogin/")
+                || StringUtils.startsWithAny(requestURI, "/v3/api-docs")
+                || StringUtils.startsWithAny(requestURI, "/swagger-ui")
+                || StringUtils.startsWithAny(requestURI, "/webjars/")
                 || StringUtils.startsWithAny(requestURI, "/static-resource/")
                 || StringUtils.startsWithAny(requestURI, "/appearance/image/")
                 || StringUtils.startsWithAny(requestURI, "/share/proxyInfo")
