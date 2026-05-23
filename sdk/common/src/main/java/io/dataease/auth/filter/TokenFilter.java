@@ -5,9 +5,11 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.Verification;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import io.dataease.auth.bo.TokenUserBO;
 import io.dataease.constant.AuthConstant;
 import io.dataease.exception.DEException;
+import io.dataease.result.ResultCode;
 import io.dataease.result.ResultMessage;
 import io.dataease.utils.*;
 import jakarta.servlet.*;
@@ -112,8 +114,14 @@ public class TokenFilter implements Filter {
             TokenUserBO userBO = TokenUtils.validate(token);
             UserUtils.setUserInfo(userBO);
             filterChain.doFilter(servletRequest, servletResponse);
-        } catch (Exception e) {
-            throw e;
+        } catch (DEException | JWTVerificationException e) {
+            HttpServletResponse res = (HttpServletResponse) servletResponse;
+            String message = "登录已失效，请重新登录";
+            ResultMessage resultMessage = new ResultMessage(ResultCode.USER_NOT_LOGGED_IN.code(), message);
+            ResponseEntity<ResultMessage> entity = new ResponseEntity<>(resultMessage, HttpStatus.UNAUTHORIZED);
+            res.addHeader(headName, URLEncoder.encode(message, StandardCharsets.UTF_8));
+            sendResponseEntity(res, entity);
+            LogUtil.info(message + ": " + requestURI);
         } finally {
             UserUtils.removeUser();
         }
