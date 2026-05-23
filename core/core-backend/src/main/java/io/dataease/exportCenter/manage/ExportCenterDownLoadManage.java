@@ -190,6 +190,9 @@ public class ExportCenterDownLoadManage {
                 }).collect(Collectors.toList());
                 DatasetGroupInfoDTO datasetGroupInfoDTO = datasetGroupManage.getDatasetGroupInfoDTO(request.getId(), null);
                 Map<String, Object> sqlMap = datasetSQLManage.getUnionSQLForEdit(datasetGroupInfoDTO, null);
+                if (sqlMap == null || StringUtils.isBlank((String) sqlMap.get("sql"))) {
+                    DEException.throwException("数据集配置不完整，无法导出");
+                }
                 String sql = (String) sqlMap.get("sql");
                 if (ObjectUtils.isEmpty(allFields)) {
                     DEException.throwException(Translator.get("i18n_no_fields"));
@@ -652,6 +655,9 @@ public class ExportCenterDownLoadManage {
             }).collect(Collectors.toList());
             DatasetGroupInfoDTO datasetGroupInfoDTO = datasetGroupManage.getDatasetGroupInfoDTO(request.getId(), null);
             Map<String, Object> sqlMap = datasetSQLManage.getUnionSQLForEdit(datasetGroupInfoDTO, null);
+            if (sqlMap == null || StringUtils.isBlank((String) sqlMap.get("sql"))) {
+                DEException.throwException("数据集配置不完整，无法导出");
+            }
             String sql = (String) sqlMap.get("sql");
             if (ObjectUtils.isEmpty(allFields)) {
                 DEException.throwException(Translator.get("i18n_no_fields"));

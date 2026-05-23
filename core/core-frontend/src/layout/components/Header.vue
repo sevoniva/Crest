@@ -79,10 +79,9 @@ onMounted(() => {
         <el-icon
           class="preview-download_icon"
           :class="navigateBg === 'light' && 'is-light-setting'"
+          @click="downloadClick"
         >
-          <Icon name="dv-preview-download"
-            ><dvPreviewDownload @click="downloadClick" class="svg-icon"
-          /></Icon>
+          <Icon name="dv-preview-download"><dvPreviewDownload class="svg-icon" /></Icon>
         </el-icon>
       </el-tooltip>
 
@@ -144,6 +143,7 @@ onMounted(() => {
     margin-left: auto;
     display: flex;
     align-items: center;
+    gap: 12px;
     &:focus {
       outline: none;
     }

@@ -29,8 +29,9 @@ const downloadClick = params => {
       style="margin-left: 10px"
       class="preview-download_icon"
       :class="navigateBg === 'light' && 'is-light-setting'"
+      @click="downloadClick"
     >
-      <Icon><dvPreviewDownload @click="downloadClick" class="svg-icon" /></Icon>
+      <Icon><dvPreviewDownload class="svg-icon" /></Icon>
     </el-icon>
   </el-tooltip>
   <el-tooltip

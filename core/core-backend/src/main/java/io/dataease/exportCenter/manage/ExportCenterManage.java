@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.dataease.api.chart.request.ChartExcelRequest;
 import io.dataease.api.dataset.dto.DataSetExportRequest;
+import io.dataease.api.dataset.union.DatasetGroupInfoDTO;
 import io.dataease.api.export.BaseExportApi;
 import io.dataease.commons.utils.ExcelWatermarkUtils;
 import io.dataease.constant.LogOT;
@@ -51,6 +52,8 @@ public class ExportCenterManage implements BaseExportApi {
     private ExportTaskExtMapper exportTaskExtMapper;
     @Resource
     private DatasetGroupManage datasetGroupManage;
+    @Resource
+    private DatasetSQLManage datasetSQLManage;
     @Resource
     DataVisualizationServer dataVisualizationServer;
     @Resource
@@ -140,6 +143,16 @@ public class ExportCenterManage implements BaseExportApi {
         }
         if (exportTask.getExportFromType().equalsIgnoreCase("dataset")) {
             DataSetExportRequest request = JsonUtil.parseObject(exportTask.getParams(), DataSetExportRequest.class);
+            try {
+                prepareDatasetExportRequest(exportTask.getExportFrom(), request);
+                exportTask.setFileName(request.getFilename() + ".xlsx");
+                exportTask.setParams(JsonUtil.toJSONString(request).toString());
+            } catch (Exception e) {
+                exportTask.setMsg(e.getMessage());
+                exportTask.setExportStatus("FAILED");
+                exportTaskMapper.updateById(exportTask);
+                DEException.throwException(e.getMessage());
+            }
             exportCenterDownLoadManage.startDatasetTask(exportTask, request);
         }
     }
@@ -251,7 +264,7 @@ public class ExportCenterManage implements BaseExportApi {
     }
 
     public void addTask(Long exportFrom, String exportFromType, DataSetExportRequest request) throws Exception {
-        datasetGroupManage.getDatasetGroupInfoDTO(exportFrom, null);
+        prepareDatasetExportRequest(exportFrom, request);
         CoreExportTask exportTask = new CoreExportTask();
         exportTask.setId(IDUtils.snowID().toString());
         exportTask.setUserId(AuthUtils.getUser().getUserId());
@@ -265,6 +278,17 @@ public class ExportCenterManage implements BaseExportApi {
         exportTask.setExportMachineName(hostName());
         exportTaskMapper.insert(exportTask);
         exportCenterDownLoadManage.startDatasetTask(exportTask, request);
+    }
+
+    private void prepareDatasetExportRequest(Long exportFrom, DataSetExportRequest request) throws Exception {
+        DatasetGroupInfoDTO dataset = datasetGroupManage.getDatasetGroupInfoDTO(exportFrom, null);
+        Map<String, Object> sqlMap = datasetSQLManage.getUnionSQLForEdit(dataset, null);
+        if (sqlMap == null || StringUtils.isBlank((String) sqlMap.get("sql"))) {
+            DEException.throwException("数据集配置不完整，无法导出");
+        }
+        if (StringUtils.isBlank(request.getFilename())) {
+            request.setFilename(StringUtils.defaultIfBlank(dataset.getName(), "dataset-" + exportFrom));
+        }
     }
 
     @Override

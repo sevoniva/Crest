@@ -170,6 +170,7 @@ public class CoreVisualizationManage {
     }
 
     public Long preInnerSave(DataVisualizationInfo visualizationInfo) {
+        requireName(visualizationInfo);
         if (visualizationInfo.getId() == null) {
             Long id = IDUtils.snowID();
             visualizationInfo.setId(id);
@@ -191,6 +192,7 @@ public class CoreVisualizationManage {
     }
     public void innerEdit(DataVisualizationInfo visualizationInfo) {
         requireVisualizationAccess(visualizationInfo.getId());
+        keepExistingNameIfMissing(visualizationInfo);
         // 镜像和主表保持名称一致
         visualizationInfo.setUpdateTime(System.currentTimeMillis());
         visualizationInfo.setUpdateBy(AuthUtils.getUser().getUserId().toString());
@@ -211,6 +213,24 @@ public class CoreVisualizationManage {
         coreVisualizationInfo.setVersion(3);
         mapper.updateById(coreVisualizationInfo);
         coreOptRecentManage.saveOpt(visualizationInfo.getId(), OptConstants.OPT_RESOURCE_TYPE.VISUALIZATION, OptConstants.OPT_TYPE.UPDATE);
+    }
+
+    private void requireName(DataVisualizationInfo visualizationInfo) {
+        if (StringUtils.isBlank(visualizationInfo.getName())) {
+            DEException.throwException("资源名称不能为空");
+        }
+    }
+
+    private void keepExistingNameIfMissing(DataVisualizationInfo visualizationInfo) {
+        if (StringUtils.isNotBlank(visualizationInfo.getName())) {
+            return;
+        }
+        DataVisualizationInfo current = mapper.selectById(visualizationInfo.getId());
+        if (current != null && StringUtils.isNotBlank(current.getName())) {
+            visualizationInfo.setName(current.getName());
+            return;
+        }
+        DEException.throwException("资源名称不能为空");
     }
 
     private DataVisualizationInfo requireVisualizationAccess(Long id) {

@@ -259,6 +259,8 @@
             AND core_store.uid = #{uid}
                  INNER JOIN core_opt_recent ON dvResource.resource_id = core_opt_recent.resource_id
             AND core_opt_recent.uid = #{uid}
+            AND dvResource.name IS NOT NULL
+            AND TRIM(dvResource.name) != ''
              <if test="keyword">
                 AND LOWER(dvResource.name) LIKE LOWER(CONCAT('%', #{keyword}, '%'))
              </if>
