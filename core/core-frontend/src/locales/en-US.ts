@@ -504,7 +504,7 @@ export default {
     not_exceeding_5m:
       'Left side background image, recommended size 375*480 for vector image, recommended size 1125*1440 for bitmap; support JPG, PNG, SVG, size not exceeding 5M',
     hidden_in_iframe: 'Hidden in Iframe',
-    available_to_everyone: 'Open source BI tool available to everyone',
+    available_to_everyone: 'See data, understand business',
     the_website_name: 'Please enter the website name',
     enter_the_slogan: 'Please enter the slogan',
     the_help_document: 'Please enter the help document',

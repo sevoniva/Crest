@@ -565,7 +565,7 @@ export default {
     not_exceeding_5m:
       '左側背景圖，向量圖建議尺寸375*480，點陣圖建議尺寸1125*1440；支援JPG、PNG、SVG，大小不超過5M',
     hidden_in_iframe: 'Iframe中隱藏',
-    available_to_everyone: '人人可用的開源BI 工具',
+    available_to_everyone: '看見數據，讀懂業務',
     the_website_name: '請輸入網站名稱',
     enter_the_slogan: '請輸入Slogan',
     the_help_document: '請輸入說明文件',

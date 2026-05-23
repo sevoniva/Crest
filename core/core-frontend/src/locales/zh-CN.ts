@@ -568,7 +568,7 @@ export default {
     not_exceeding_5m:
       '左侧背景图，矢量图建议尺寸375*480，位图建议尺寸1125*1440；支持 JPG、PNG、SVG，大小不超过5M',
     hidden_in_iframe: 'Iframe中隐藏',
-    available_to_everyone: '人人可用的开源 BI 工具',
+    available_to_everyone: '看见数据，读懂业务',
     the_website_name: '请输入网站名称',
     enter_the_slogan: '请输入Slogan',
     the_help_document: '请输入帮助文档',
