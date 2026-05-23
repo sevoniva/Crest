@@ -6,7 +6,6 @@ import { computed } from 'vue'
 
 const appearanceStore = useAppearanceStoreWithOut()
 const navigateBg = computed(() => appearanceStore.getNavigateBg)
-const showDoc = computed(() => appearanceStore.getShowDoc)
 const { push, resolve } = useRouter()
 const redirectUser = () => {
   const sysMenu = resolve('/system')
@@ -20,8 +19,7 @@ const redirectUser = () => {
     <div
       class="sys-setting"
       :class="{
-        'is-light-setting': navigateBg && navigateBg === 'light',
-        'in-iframe-setting': !showDoc
+        'is-light-setting': navigateBg && navigateBg === 'light'
       }"
     >
       <el-icon @click="redirectUser">

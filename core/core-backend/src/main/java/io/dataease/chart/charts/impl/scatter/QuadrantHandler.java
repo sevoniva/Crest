@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class QuadrantHandler extends YoyChartHandler {
     @Getter
     private String type = "quadrant";

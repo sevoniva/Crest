@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import dvDashboardSpineMobile from '@/assets/svg/dv-dashboard-spine-mobile.svg'
-import dvDashboardSpineMobileDisabled from '@/assets/svg/dv-dashboard-spine-mobile-disabled.svg'
 import icon_add_outlined from '@/assets/svg/icon_add_outlined.svg'
 import dvCopyDark from '@/assets/svg/dv-copy-dark.svg'
 import dvDelete from '@/assets/svg/dv-delete.svg'
@@ -14,7 +12,6 @@ import dvDashboardSpineDisabled from '@/assets/svg/dv-dashboard-spine-disabled.s
 import dvScreenSpine from '@/assets/svg/dv-screen-spine.svg'
 import dvNewFolder from '@/assets/svg/dv-new-folder.svg'
 import icon_fileAdd_outlined from '@/assets/svg/icon_file-add_outlined.svg'
-import dvUseTemplate from '@/assets/svg/dv-use-template.svg'
 import icon_searchOutline_outlined from '@/assets/svg/icon_search-outline_outlined.svg'
 import dvSortAsc from '@/assets/svg/dv-sort-asc.svg'
 import dvSortDesc from '@/assets/svg/dv-sort-desc.svg'
@@ -25,8 +22,8 @@ import { onMounted, reactive, ref, toRefs, watch, nextTick, computed } from 'vue
 import {
   copyResource,
   deleteLogic,
-  ResourceOrFolder,
   queryShareBaseApi,
+  ResourceOrFolder,
   updateBase
 } from '@/api/visualization/dataVisualization'
 import { ElIcon, ElMessage, ElMessageBox, ElScrollbar } from 'element-plus-secondary'
@@ -46,10 +43,8 @@ const shareStore = useShareStoreWithOut()
 const interactiveStore = interactiveStoreWithOut()
 import { useI18n } from '@/hooks/web/useI18n'
 import _ from 'lodash'
-import DeResourceCreateOptV2 from '@/views/common/DeResourceCreateOptV2.vue'
 import { useCache } from '@/hooks/web/useCache'
 import { findParentIdByChildIdRecursive, onInitReady } from '@/utils/canvasUtils'
-import { XpackComponent } from '@/components/plugin'
 import treeSort, { treeParentWeight } from '@/utils/treeSortUtils'
 import router from '@/router'
 import { cancelRequestBatch } from '@/config/axios/service'
@@ -89,14 +84,11 @@ const anyManage = ref(false)
 const { curCanvasType, showPosition } = toRefs(props)
 const resourceLabel =
   curCanvasType.value === 'dataV' ? t('work_branch.big_data_screen') : t('work_branch.dashboard')
-const newResourceLabel =
-  curCanvasType.value === 'dataV' ? t('visualization.new_screen') : t('visualization.new_dashboard')
 const selectedNodeKey = ref(null)
 const filterText = ref(null)
 const expandedArray = ref([])
 const resourceListTree = ref()
 const resourceGroupOpt = ref()
-const resourceCreateOpt = ref()
 const returnMounted = ref(false)
 const state = reactive({
   pWeightMap: {},
@@ -138,8 +130,7 @@ const state = reactive({
       label: t('visualization.name_desc'), //'按名称降序'
       value: 'name_desc'
     }
-  ],
-  templateCreatePid: 0
+  ]
 })
 
 const dvSvgType = computed(() =>
@@ -154,11 +145,6 @@ const resourceTypeList = computed(() => {
       label: t('work_branch.new_empty'), //'空白新建',
       svgName: dvSvgType.value,
       command: 'newLeaf'
-    },
-    {
-      label: t('work_branch.new_using_template'),
-      svgName: dvUseTemplate,
-      command: 'newFromTemplate'
     },
     {
       label: t('work_branch.new_folder'), //'新建文件夹'
@@ -493,13 +479,6 @@ const addOperation = (
       newWindow = window.open(baseUrl, openType)
     }
     initOpenHandler(newWindow)
-  } else if (cmd === 'newFromTemplate') {
-    const params = {
-      curPosition: 'create',
-      pid: data?.id,
-      templateType: curCanvasType.value === 'dataV' ? 'SCREEN' : 'PANEL'
-    }
-    resourceCreateOpt.value.optInit(params)
   } else {
     resourceGroupOpt.value.optInit(nodeType, data || {}, cmd, parentSelect)
   }
@@ -531,36 +510,6 @@ const resourceEdit = resourceId => {
 
 const resourceOptFinish = () => {
   getTree(true)
-}
-
-const resourceCreateFinish = templateData => {
-  // do create
-  wsCache.set(`de-template-data`, JSON.stringify(templateData))
-  const baseUrl =
-    curCanvasType.value === 'dataV'
-      ? '#/dvCanvas?opt=create&createType=template'
-      : '#/dashboard?opt=create&createType=template'
-  let newWindow = null
-  if (isEmbedded.value) {
-    embeddedStore.clearState()
-    embeddedStore.setOpt('create')
-    embeddedStore.setCreateType('template')
-    if (state.templateCreatePid) {
-      embeddedStore.setPid(state.templateCreatePid as unknown as string)
-    }
-    useEmitt().emitter.emit(
-      'changeCurrentComponent',
-      curCanvasType.value === 'dataV' ? 'VisualizationEditor' : 'DashboardEditor'
-    )
-    return
-  }
-
-  if (state.templateCreatePid) {
-    newWindow = window.open(baseUrl + `&pid=${state.templateCreatePid}`, openType)
-  } else {
-    newWindow = window.open(baseUrl, openType)
-  }
-  initOpenHandler(newWindow)
 }
 
 const getParentKeys = (tree, targetKey, parentKeys = []) => {
@@ -664,6 +613,7 @@ const loadShareBase = () => {
     shareStore.setData(param)
   })
 }
+
 onMounted(() => {
   loadInit()
   getTree()
@@ -712,12 +662,6 @@ defineExpose({
                     <Icon><component class="svg-icon" :is="dvSvgType"></component></Icon>
                   </el-icon>
                   {{ t('work_branch.new_empty') }}
-                </el-dropdown-item>
-                <el-dropdown-item @click="addOperation('newFromTemplate', null, 'leaf', true)">
-                  <el-icon class="handle-icon">
-                    <Icon name="dv-use-template"><dvUseTemplate class="svg-icon" /></Icon>
-                  </el-icon>
-                  {{ t('work_branch.new_using_template') }}
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -792,15 +736,9 @@ defineExpose({
               <Icon name="dv-folder"><dvFolder class="svg-icon" /></Icon>
             </el-icon>
             <el-icon style="font-size: 18px" v-else-if="curCanvasType === 'dashboard'">
-              <Icon v-if="data.extraFlag1"
-                ><component
-                  :is="data.extraFlag ? dvDashboardSpineMobile : dvDashboardSpine"
-                ></component
-              ></Icon>
+              <Icon v-if="data.extraFlag1"><component :is="dvDashboardSpine"></component></Icon>
               <Icon v-if="!data.extraFlag1"
-                ><component
-                  :is="data.extraFlag ? dvDashboardSpineMobileDisabled : dvDashboardSpineDisabled"
-                ></component
+                ><component :is="dvDashboardSpineDisabled"></component
               ></Icon>
             </el-icon>
             <el-icon
@@ -858,15 +796,9 @@ defineExpose({
         @finish="resourceOptFinish"
         ref="resourceGroupOpt"
       />
-      <de-resource-create-opt-v2
-        :cur-canvas-type="curCanvasType"
-        ref="resourceCreateOpt"
-        @finish="resourceCreateFinish"
-      ></de-resource-create-opt-v2>
     </el-scrollbar>
   </div>
-  <XpackComponent ref="openHandler" jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvT3BlbkhhbmRsZXI=" />
-</template>
+  </template>
 <style lang="less" scoped>
 .filter-icon-span {
   border: 1px solid #d9dcdf;

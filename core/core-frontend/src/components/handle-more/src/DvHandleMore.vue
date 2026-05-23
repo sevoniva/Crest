@@ -3,10 +3,9 @@ import { Icon } from '@/components/icon-custom'
 import icon_more_outlined from '@/assets/svg/icon_more_outlined.svg'
 import { propTypes } from '@/utils/propTypes'
 import type { Placement } from 'element-plus-secondary'
-import { ref, PropType, computed } from 'vue'
+import { computed, ref, PropType } from 'vue'
 import ShareHandler from '@/views/share/share/ShareHandler.vue'
 import { useShareStoreWithOut } from '@/store/modules/share'
-import { isDesktop } from '@/utils/ModelUtil'
 import { useI18n } from '@/hooks/web/useI18n'
 const shareStore = useShareStoreWithOut()
 const { t } = useI18n()
@@ -40,10 +39,7 @@ const props = defineProps({
   anyManage: propTypes.bool.def(false)
 })
 
-const shareDisable = computed(() => {
-  return shareStore.getShareDisable || isDesktop()
-})
-
+const shareDisable = computed(() => shareStore.getShareDisable)
 const shareComponent = ref(null)
 const menus = ref([
   ...props.menuList.map(item => {
@@ -55,7 +51,6 @@ const menus = ref([
 ])
 const handleCommand = (command: string | number | object) => {
   if (command === 'share') {
-    // shareComponent.value.invokeMethod({ methodName: 'execute' })
     shareComponent.value.execute()
     return
   }

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class LineHandler extends YoyChartHandler {
     @Getter
     private String type = "line";

@@ -37,7 +37,6 @@ import {
 } from '@/utils/canvasUtils'
 import { changeSizeWithScale } from '@/utils/changeComponentsSizeWithScale'
 import MoreComGroup from '@/custom-component/component-group/MoreComGroup.vue'
-import { XpackComponent } from '@/components/plugin'
 import { useCache } from '@/hooks/web/useCache'
 import QueryGroup from '@/custom-component/component-group/QueryGroup.vue'
 import ComponentButton from '@/components/visualization/ComponentButton.vue'
@@ -569,8 +568,7 @@ const fullScreenPreview = () => {
   <de-fullscreen ref="fullScreeRef" show-position="dvEdit"></de-fullscreen>
   <multiplexing-canvas ref="multiplexingRef"></multiplexing-canvas>
   <outer-params-set ref="outerParamsSetRef"></outer-params-set>
-  <XpackComponent ref="openHandler" jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvT3BlbkhhbmRsZXI=" />
-</template>
+  </template>
 
 <style lang="less" scoped>
 .toolbar-main {

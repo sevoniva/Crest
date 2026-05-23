@@ -1,7 +1,6 @@
 package io.dataease.api.system;
 
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
-import io.dataease.api.system.request.OnlineMapEditor;
 import io.dataease.api.system.request.SQLBotConfigCreator;
 import io.dataease.api.system.vo.SQLBotConfigVO;
 import io.dataease.api.system.vo.SettingItemVO;
@@ -28,31 +27,19 @@ public interface SysParameterApi {
     @GetMapping("/singleVal/{key}")
     String singleVal(@PathVariable("key") String key);
 
-    @Operation(summary = "保存在线地图")
-    @PostMapping("/saveOnlineMap")
-    void saveOnlineMap(@RequestBody OnlineMapEditor editor);
-
-    @Operation(summary = "查询在线地图")
-    @GetMapping("/queryOnlineMap")
-    OnlineMapEditor queryOnlineMap();
-
-    @Operation(summary = "查询在线地图")
-    @GetMapping("/queryOnlineMap/{type}")
-    OnlineMapEditor queryOnlineMapByMapType(@PathVariable("type") String type);
-
-    @Operation(summary = "查询基础设置(非xpack)")
+    @Operation(summary = "查询基础设置(社区版)")
     @GetMapping("basic/query")
     List<SettingItemVO> queryBasicSetting();
 
-    @Operation(summary = "保存基础设置(非xpack)")
+    @Operation(summary = "保存基础设置(社区版)")
     @PostMapping("/basic/save")
     void saveBasicSetting(@RequestBody List<SettingItemVO> settingItemVOS);
 
-    @Operation(summary = "查询超时时间(非xpack)")
+    @Operation(summary = "查询超时时间(社区版)")
     @GetMapping("/requestTimeOut")
     public Integer RequestTimeOut();
 
-    @Operation(summary = "系统默认配置(非xpack)")
+    @Operation(summary = "系统默认配置(社区版)")
     @GetMapping("/defaultSettings")
     public Map<String, Object> defaultSettings();
 

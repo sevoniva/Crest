@@ -23,7 +23,6 @@ interface AppearanceState {
   showAi?: string
   showCopilot?: string
   showDoc?: string
-  showAbout?: string
   bg?: string
   login?: string
   showSlogan?: string
@@ -52,7 +51,6 @@ export const useAppearanceStore = defineStore('appearanceStore', {
       showDoc: '0',
       showAi: '0',
       showCopilot: '0',
-      showAbout: '0',
       bg: '',
       login: '',
       showSlogan: 'true',
@@ -150,9 +148,6 @@ export const useAppearanceStore = defineStore('appearanceStore', {
     getShowDoc(): boolean {
       return isBtnShow(this.showDoc)
     },
-    getShowAbout(): boolean {
-      return isBtnShow(this.showAbout)
-    }
   },
   actions: {
     setNavigate(data: string) {
@@ -168,6 +163,11 @@ export const useAppearanceStore = defineStore('appearanceStore', {
     setCurrentFont(name) {
       const currentFont = this.fontList.find(ele => ele.name === name)
       if (currentFont) {
+        document.documentElement.style.setProperty('--de-custom_font', `${name}`)
+        document.documentElement.style.setProperty('--van-base-font', `${name}`)
+        if (!currentFont.fileTransName) {
+          return
+        }
         let fontStyleElement = document.querySelector(`[id="de-custom_font${name}"]`)
         if (!fontStyleElement) {
           fontStyleElement = document.createElement('style')
@@ -183,7 +183,7 @@ export const useAppearanceStore = defineStore('appearanceStore', {
             }/typeface/download/${currentFont.fileTransName});
             font-weight: normal;
             font-style: normal;
-            }`
+          }`
       }
     },
     setMobileLoginBg(data: string) {
@@ -231,15 +231,20 @@ export const useAppearanceStore = defineStore('appearanceStore', {
             fontStyleElement.setAttribute('id', 'de-custom_font')
             document.querySelector('head').appendChild(fontStyleElement)
           }
-          fontStyleElement.innerHTML =
-            name && fileTransName
-              ? `@font-face {
+          if (!name) {
+            fontStyleElement.innerHTML = ''
+            document.documentElement.style.removeProperty('--de-custom_font')
+            document.documentElement.style.removeProperty('--van-base-font')
+            return
+          }
+          fontStyleElement.innerHTML = fileTransName
+            ? `@font-face {
                 font-family: '${name}';
                 src: url(${url});
                 font-weight: normal;
                 font-style: normal;
                 }`
-              : ''
+            : ''
           document.documentElement.style.setProperty('--de-custom_font', `${name}`)
           document.documentElement.style.setProperty('--van-base-font', `${name}`)
         }
@@ -281,7 +286,6 @@ export const useAppearanceStore = defineStore('appearanceStore', {
       this.showAi = data.showAi
       this.showCopilot = data.showCopilot
       this.showDoc = data.showDoc
-      this.showAbout = data.showAbout
       this.navigateBg = data.navigateBg
       this.themeColor = data.themeColor
       this.customColor = data.customColor
@@ -347,13 +351,28 @@ export const useAppearanceStore = defineStore('appearanceStore', {
 })
 
 const setLinkIcon = (linkWeb?: string) => {
-  const link = document.querySelector('link[rel="icon"]')
+  let link = document.querySelector('link[rel="icon"]')
+  if (!link) {
+    link = document.createElement('link')
+    link.setAttribute('rel', 'icon')
+    document.head.appendChild(link)
+  }
   if (link) {
     if (linkWeb) {
       link['href'] = baseUrl + linkWeb
     } else {
-      link['href'] = '/dataease.svg'
+      link['href'] = '/favicon.svg'
     }
+    link.setAttribute('type', 'image/svg+xml')
+  }
+  let shortcut = document.querySelector('link[rel="shortcut icon"]')
+  if (!shortcut) {
+    shortcut = document.createElement('link')
+    shortcut.setAttribute('rel', 'shortcut icon')
+    document.head.appendChild(shortcut)
+  }
+  if (shortcut) {
+    shortcut['href'] = linkWeb ? baseUrl + linkWeb : '/favicon.ico'
   }
 }
 

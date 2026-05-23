@@ -26,7 +26,6 @@ import io.dataease.extensions.view.dto.*;
 import io.dataease.extensions.view.plugin.AbstractChartPlugin;
 import io.dataease.extensions.view.util.ChartDataUtil;
 import io.dataease.extensions.view.util.FieldUtil;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.utils.BeanUtils;
 import io.dataease.utils.JsonUtil;
 import jakarta.annotation.PostConstruct;
@@ -49,6 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Component
+@SuppressWarnings("unchecked")
 public class DefaultChartHandler extends AbstractChartPlugin {
     public static Logger logger = LoggerFactory.getLogger(ChartDataManage.class);
     @Resource
@@ -404,16 +404,14 @@ public class DefaultChartHandler extends AbstractChartPlugin {
             prefix = datasourceType.getPrefix();
             suffix = datasourceType.getSuffix();
         } else {
-            if (LicenseUtil.licenseValid()) {
-                List<XpackPluginsDatasourceVO> xpackPluginsDatasourceVOS = pluginManage.queryPluginDs();
-                List<XpackPluginsDatasourceVO> list = xpackPluginsDatasourceVOS.stream().filter(ele -> StringUtils.equals(ele.getType(), dsType)).toList();
-                if (ObjectUtils.isNotEmpty(list)) {
-                    XpackPluginsDatasourceVO first = list.getFirst();
-                    prefix = first.getPrefix();
-                    suffix = first.getSuffix();
-                } else {
-                    DEException.throwException("当前数据源插件不存在");
-                }
+            List<XpackPluginsDatasourceVO> pluginDatasourceList = pluginManage.queryPluginDs();
+            List<XpackPluginsDatasourceVO> list = pluginDatasourceList.stream().filter(ele -> StringUtils.equals(ele.getType(), dsType)).toList();
+            if (ObjectUtils.isNotEmpty(list)) {
+                XpackPluginsDatasourceVO first = list.getFirst();
+                prefix = first.getPrefix();
+                suffix = first.getSuffix();
+            } else {
+                DEException.throwException("当前数据源插件不存在");
             }
         }
 
@@ -442,16 +440,14 @@ public class DefaultChartHandler extends AbstractChartPlugin {
             prefix = datasourceType.getPrefix();
             suffix = datasourceType.getSuffix();
         } else {
-            if (LicenseUtil.licenseValid()) {
-                List<XpackPluginsDatasourceVO> xpackPluginsDatasourceVOS = pluginManage.queryPluginDs();
-                List<XpackPluginsDatasourceVO> list = xpackPluginsDatasourceVOS.stream().filter(ele -> StringUtils.equals(ele.getType(), dsType)).toList();
-                if (ObjectUtils.isNotEmpty(list)) {
-                    XpackPluginsDatasourceVO first = list.getFirst();
-                    prefix = first.getPrefix();
-                    suffix = first.getSuffix();
-                } else {
-                    DEException.throwException("当前数据源插件不存在");
-                }
+            List<XpackPluginsDatasourceVO> pluginDatasourceList = pluginManage.queryPluginDs();
+            List<XpackPluginsDatasourceVO> list = pluginDatasourceList.stream().filter(ele -> StringUtils.equals(ele.getType(), dsType)).toList();
+            if (ObjectUtils.isNotEmpty(list)) {
+                XpackPluginsDatasourceVO first = list.getFirst();
+                prefix = first.getPrefix();
+                suffix = first.getSuffix();
+            } else {
+                DEException.throwException("当前数据源插件不存在");
             }
         }
 

@@ -49,7 +49,7 @@ DataEase, kullanıcıların hızlı bir şekilde veri analizlerini yapmalarını
 curl -sSL https://dataease.oss-cn-hangzhou.aliyuncs.com/quick_start_v2.sh | bash
 
 # Kullanıcı Adı: admin
-# Şifre: DataEase@123456
+# Şifre: admin
 ```
 
 ## Teknoloji Yığını

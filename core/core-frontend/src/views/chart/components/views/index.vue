@@ -10,8 +10,6 @@ import DeIndicator from '@/custom-component/indicator/DeIndicator.vue'
 import { useAppearanceStoreWithOut } from '@/store/modules/appearance'
 import { useAppStoreWithOut } from '@/store/modules/app'
 import { useEmbedded } from '@/store/modules/embedded'
-import { XpackComponent } from '@/components/plugin'
-import { PluginComponent } from '@/components/plugin'
 import {
   computed,
   CSSProperties,
@@ -73,16 +71,8 @@ const isIframe = computed(() => appStore.getIsIframe)
 
 const emit = defineEmits(['onPointClick', 'onComponentEvent'])
 
-const {
-  nowPanelJumpInfo,
-  publicLinkStatus,
-  dvInfo,
-  curComponent,
-  canvasStyleData,
-  mobileInPc,
-  inMobile,
-  editMode
-} = storeToRefs(dvMainStore)
+const { nowPanelJumpInfo, dvInfo, curComponent, canvasStyleData, mobileInPc, inMobile, editMode } =
+  storeToRefs(dvMainStore)
 
 const props = defineProps({
   // 公共参数集
@@ -523,39 +513,21 @@ const jumpClick = param => {
           attachParamsInfo =
             '&attachParams=' + encodeURIComponent(Base64.encode(JSON.stringify(filterOuterParams)))
         }
-        // 携带外部参数
-        if (publicLinkStatus.value) {
-          // 判断是否有公共链接ID
-          if (jumpInfo.publicJumpId) {
-            let url = `${embeddedBaseUrl}#/de-link/${jumpInfo.publicJumpId}?fromLink=true&dvType=${jumpInfo.targetDvType}`
-            if (attachParamsInfo) {
-              url = url + attachParamsInfo + jumpInfoParam + editPreviewParams
-            } else {
-              url = url + '&ignoreParams=true' + jumpInfoParam + editPreviewParams
-            }
-            const currentUrl = window.location.href
-            localStorage.setItem('beforeJumpUrl', currentUrl)
-            windowsJump(url, jumpInfo.jumpType, jumpInfo.windowSize)
-          } else {
-            ElMessage.warning(t('visualization.public_link_tips'))
-          }
+        let url = `${embeddedBaseUrl}#/preview?dvId=${jumpInfo.targetDvId}&fromLink=true&dvType=${jumpInfo.targetDvType}`
+        if (attachParamsInfo) {
+          url = url + attachParamsInfo + jumpInfoParam + editPreviewParams
         } else {
-          let url = `${embeddedBaseUrl}#/preview?dvId=${jumpInfo.targetDvId}&fromLink=true&dvType=${jumpInfo.targetDvType}`
-          if (attachParamsInfo) {
-            url = url + attachParamsInfo + jumpInfoParam + editPreviewParams
-          } else {
-            url = url + '&ignoreParams=true' + jumpInfoParam + editPreviewParams
-          }
-          const currentUrl = window.location.href
-          localStorage.setItem('beforeJumpUrl', currentUrl)
-          if (divSelf || iframeSelf) {
-            embeddedStore.setDvId(jumpInfo.targetDvId)
-            embeddedStore.setJumpInfoParam(encodeURIComponent(Base64.encode(JSON.stringify(param))))
-            divEmbedded('Preview')
-            return
-          }
-          windowsJump(url, jumpInfo.jumpType, jumpInfo.windowSize)
+          url = url + '&ignoreParams=true' + jumpInfoParam + editPreviewParams
         }
+        const currentUrl = window.location.href
+        localStorage.setItem('beforeJumpUrl', currentUrl)
+        if (divSelf || iframeSelf) {
+          embeddedStore.setDvId(jumpInfo.targetDvId)
+          embeddedStore.setJumpInfoParam(encodeURIComponent(Base64.encode(JSON.stringify(param))))
+          divEmbedded('Preview')
+          return
+        }
+        windowsJump(url, jumpInfo.jumpType, jumpInfo.windowSize)
       } else {
         ElMessage.warning('未指定跳转仪表板')
       }
@@ -1217,30 +1189,8 @@ const clearG2Tooltip = () => {
     </div>
     <!--这里去渲染不同图库的图表-->
     <div v-if="allEmptyCheck || (chartAreaShow && !showEmpty)" style="flex: 1; overflow: hidden">
-      <plugin-component
-        v-if="view.plugin?.isPlugin && loadPlugin"
-        :jsname="view.plugin.staticMap['index']"
-        :scale="scale"
-        :dynamic-area-id="dynamicAreaId"
-        :view="view"
-        :show-position="showPosition"
-        :element="element"
-        :request="request"
-        :emitter="emitter"
-        :store="store"
-        :suffixId="suffixId"
-        :active="active"
-        :disabled="!['canvas', 'canvasDataV'].includes(showPosition) || disabled"
-        :edit-mode="editMode"
-        ref="chartComponent"
-        @onChartClick="chartClick"
-        @onPointClick="onPointClick"
-        @onDrillFilters="onDrillFilters"
-        @onJumpClick="jumpClick"
-        @resetLoading="() => (loading = false)"
-      />
       <de-picture-group
-        v-else-if="showChartView(ChartLibraryType.PICTURE_GROUP)"
+        v-if="showChartView(ChartLibraryType.PICTURE_GROUP)"
         :themes="canvasStyleData.dashboard.themeColor"
         ref="chartComponent"
         :element="element"
@@ -1326,16 +1276,7 @@ const clearG2Tooltip = () => {
       :drill-filters="state.drillFilters"
       @onDrillJump="drillJump"
     />
-    <XpackComponent
-      ref="openHandler"
-      jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvT3BlbkhhbmRsZXI="
-    />
-    <XpackComponent
-      v-if="!pluginLoaded && view.isPlugin"
-      jsname="L2NvbXBvbmVudC9wbHVnaW5zLWhhbmRsZXIvVmlld0NhdGVnb3J5SGFuZGxlcg=="
-      @load-plugin-category="loadPluginCategory"
-    />
-    <DePreviewPopDialog ref="dePreviewPopDialogRef"></DePreviewPopDialog>
+            <DePreviewPopDialog ref="dePreviewPopDialogRef"></DePreviewPopDialog>
   </div>
 </template>
 

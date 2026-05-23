@@ -15,7 +15,6 @@ import { fieldType } from '@/utils/attr'
 import type { ApiConfiguration } from '@/views/visualized/data/datasource/form/option'
 import { cancelMap } from '@/config/axios/service'
 import { iconFieldMap } from '@/components/icon-group/field-list'
-import { PluginComponent } from '@/components/plugin'
 
 export interface Field {
   name: string
@@ -113,7 +112,7 @@ const columns = shallowRef([])
 const valueList = shallowRef([])
 const tableData = shallowRef([])
 const apiItemBasicInfo = ref<FormInstance>()
-const xpackApiItemBasicInfo = ref<FormInstance>()
+const pluginApiItemBasicInfo = ref<FormInstance>()
 const isSupportSetKey = ref(false)
 const isNumber = (rule, value, callback) => {
   if (!value) {
@@ -226,11 +225,11 @@ const initApiItem = (
   active.value = 0
   nextTick(() => {
     if (isPlugin.value) {
-      xpackApiItemBasicInfo?.value?.invokeMethod({
+      pluginApiItemBasicInfo?.value?.invokeMethod({
         methodName: 'clearForm',
         args: []
       })
-      xpackApiItemBasicInfo?.value?.invokeMethod({
+      pluginApiItemBasicInfo?.value?.invokeMethod({
         methodName: 'initForm',
         args: []
       })
@@ -365,7 +364,7 @@ const saveItem = () => {
   }
   returnAPIItem('returnItem', cloneDeep(apiItem))
   if (isPlugin.value) {
-    xpackApiItemBasicInfo?.value?.invokeMethod({
+    pluginApiItemBasicInfo?.value?.invokeMethod({
       methodName: 'resetForm',
       args: []
     })
@@ -378,7 +377,7 @@ const before = () => {
 
 const next = () => {
   if (isPlugin.value) {
-    xpackApiItemBasicInfo?.value?.invokeMethod({
+    pluginApiItemBasicInfo?.value?.invokeMethod({
       methodName: 'submitForm',
       args: [{ eventName: 'stepNext', args: apiItem }]
     })
@@ -444,7 +443,7 @@ const stepNext = () => {
 }
 const validate = () => {
   if (isPlugin.value) {
-    xpackApiItemBasicInfo?.value?.invokeMethod({
+    pluginApiItemBasicInfo?.value?.invokeMethod({
       methodName: 'submitForm',
       args: [{ eventName: 'validateItem', args: apiItem }]
     })
@@ -503,7 +502,7 @@ const handleSubmit = param => {
 const closeEditItem = () => {
   cancelMap['/datasource/checkApiDatasource']?.()
   if (isPlugin.value) {
-    xpackApiItemBasicInfo?.value?.invokeMethod({
+    pluginApiItemBasicInfo?.value?.invokeMethod({
       methodName: 'resetForm',
       args: []
     })
@@ -800,15 +799,7 @@ defineExpose({
       </el-form>
     </el-row>
     <el-row v-show="active === 0 && dsType !== 'API'">
-      <plugin-component
-        :jsname="jsName"
-        :api-item="apiItem"
-        ref="xpackApiItemBasicInfo"
-        @submitForm="handleSubmit"
-        v-if="dsType !== 'API'"
-      >
-      </plugin-component>
-    </el-row>
+          </el-row>
     <el-row v-show="active === 1">
       <el-form
         style="width: 100%"

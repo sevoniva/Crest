@@ -1,18 +1,108 @@
-# Vue 3 + TypeScript + Vite
+# Crest DataEase 前端工程
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+这里是内部轻量版前端，基于 DataEase 2.10.22 的 Vue 3、TypeScript 和 Vite 工程改造。
 
-## Recommended IDE Setup
+## 主要边界
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+保留的主路径：
 
-## Type Support For `.vue` Imports in TS
+- 工作台；
+- 仪表板；
+- 数据大屏；
+- 分享；
+- 数据准备；
+- 数据集；
+- 数据源；
+- 数据血缘；
+- 系统参数和字体管理。
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+下线的入口：
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+- SQLBot；
+- 模板市场；
+- 工具箱；
+- 消息中心；
+- 独立移动端入口；
+- 地图类图表和地图运行时；
+- 商业插件入口；
+- 帮助中心、关于页和相关导航。
 
-1. Disable the built-in TypeScript Extension
-   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+分享功能是保留项。不要因为代码里还有 `xpack_share`、`ShareTicket`、`de-link` 等命名就删除它们，这些名字要兼容已有表结构、接口路径和旧分享链接。
+
+## 常用命令
+
+安装依赖：
+
+```bash
+pnpm install --frozen-lockfile
+```
+
+构建内部版前端：
+
+```bash
+pnpm run build:base
+```
+
+常规检查：
+
+```bash
+pnpm run lint:check
+pnpm run build:lite:check
+```
+
+后端打包时会把前端 `dist` 拷贝到后端静态资源目录。只改前端后，如果要在 `http://localhost:8100` 的打包服务里看到效果，需要重新执行前端构建和后端打包。
+
+## 品牌资源
+
+内部版使用 Crest 品牌资源：
+
+- 顶部导航 logo：`src/assets/img/crest-logo-horizontal-dark-192h.png`
+- 登录页 logo：`src/assets/img/crest-logo-horizontal-192h.png`
+- 浏览器图标：`public/favicon.svg`、`public/favicon.ico`
+- Apple touch icon：`public/apple-touch-icon.png`
+
+横版 logo 原图比例约为 `4.67:1`。顶部导航里使用 `158px x 34px`，并设置 `object-fit: contain`，不要改成会压缩图片比例的固定宽高。
+
+## 数据血缘前端
+
+入口页面：
+
+```text
+src/views/visualized/data/lineage/index.vue
+```
+
+图组件：
+
+```text
+src/components/relation-chart/GraphView.vue
+```
+
+接口封装：
+
+```text
+src/api/relation/index.ts
+```
+
+页面默认选择 `数据源` 范围，并优先选中名称包含 `Demo`、`dataease` 或 `内置` 的数据源。字段筛选按“先表、后字段”工作：表下拉来自当前图里的物理表节点，字段下拉来自 `table -> table_field` 关系。
+
+字段级过滤在前端完成。后端返回当前资源的完整图，前端从选中字段出发，沿血缘边收集上游和下游节点，再把图收敛后交给 ECharts 渲染。
+
+大图渲染有保护：节点超过 220 或边超过 420 时，图组件会关闭动画和拖拽，隐藏部分字段标签，减少页面卡顿。
+
+完整功能和设计说明见：
+
+```text
+../../docs/data-lineage.md
+```
+
+## CodeMirror 组件命名
+
+项目依赖包里有 `codemirror`。本地组件不要再命名为 `CodeMirror.vue`，否则在 macOS 默认大小写不敏感文件系统上，构建产物容易和依赖 chunk 撞名，导致运行时动态加载 404。
+
+当前本地 SQL 编辑组件命名为：
+
+```text
+src/views/visualized/data/dataset/form/SqlCodeEditor.vue
+```
+
+新增引用时继续使用这个文件名。

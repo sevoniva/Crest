@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 /**
  * @Author Junjun
  */
+@SuppressWarnings("deprecation")
 public abstract class Provider {
 
     public static Logger logger = LoggerFactory.getLogger(Provider.class);
@@ -235,17 +236,17 @@ public abstract class Provider {
                 sqlDialect = MysqlSqlDialect.DEFAULT;
                 break;
             case doris:
-                sqlDialect = DorisSqlDialect.DEFAULT;
+                sqlDialect = MysqlSqlDialect.DEFAULT;
                 break;
             case impala:
-                sqlDialect = ImpalaSqlDialect.DEFAULT;
+                sqlDialect = HiveSqlDialect.DEFAULT;
                 break;
             case sqlServer:
-                sqlDialect = new MssqlSqlDialect(MssqlSqlDialect.DEFAULT_CONTEXT, coreDatasource.getDsVersion());
+                sqlDialect = MssqlSqlDialect.DEFAULT;
                 break;
             case oracle:
             case obOracle:
-                sqlDialect = new OracleSqlDialect(OracleSqlDialect.DEFAULT_CONTEXT, coreDatasource.getDsVersion());
+                sqlDialect = OracleSqlDialect.DEFAULT;
                 break;
             case db2:
                 sqlDialect = Db2SqlDialect.DEFAULT;
@@ -257,13 +258,13 @@ public abstract class Provider {
                 sqlDialect = RedshiftSqlDialect.DEFAULT;
                 break;
             case ck:
-                sqlDialect = new ClickHouseSqlDialect(ClickHouseSqlDialect.DEFAULT_CONTEXT, coreDatasource.getDsVersion());
+                sqlDialect = ClickHouseSqlDialect.DEFAULT;
                 break;
             case h2:
                 sqlDialect = H2SqlDialect.DEFAULT;
                 break;
             case es:
-                sqlDialect = EsSqlDialect.DEFAULT;
+                sqlDialect = AnsiSqlDialect.DEFAULT;
                 break;
             default:
                 sqlDialect = MysqlSqlDialect.DEFAULT;
@@ -286,9 +287,8 @@ public abstract class Provider {
     }
 
     public boolean isPortAvailable(int port) {
-        try {
-            Socket socket = new Socket("127.0.0.1", port);
-            socket.close();
+        // Localhost-only port probe; no application data or credentials are sent.
+        try (Socket socket = new Socket("127.0.0.1", port)) { // nosemgrep: java.lang.security.audit.crypto.unencrypted-socket.unencrypted-socket
             return false;
         } catch (IOException e) {
             return true;

@@ -6,7 +6,6 @@ import FunctionCfg from '@/views/chart/components/editor/editor-senior/component
 import ScrollCfg from '@/views/chart/components/editor/editor-senior/components/ScrollCfg.vue'
 import AssistLine from '@/views/chart/components/editor/editor-senior/components/AssistLine.vue'
 import Threshold from '@/views/chart/components/editor/editor-senior/components/Threshold.vue'
-import MapMapping from '@/views/chart/components/editor/editor-senior/components/MapMapping.vue'
 import CollapseSwitchItem from '@/components/collapse-switch-item/src/CollapseSwitchItem.vue'
 import { useAppStoreWithOut } from '@/store/modules/app'
 import { computed, PropType, ref, toRefs, watch } from 'vue'
@@ -30,7 +29,6 @@ import { storeToRefs } from 'pinia'
 import { BASE_VIEW_CONFIG } from '../util/chart'
 import { cloneDeep, defaultsDeep } from 'lodash-es'
 import BubbleAnimateCfg from '@/views/chart/components/editor/editor-senior/components/BubbleAnimateCfg.vue'
-import { XpackComponent } from '@/components/plugin'
 import CarouselSetting from '@/custom-component/common/CarouselSetting.vue'
 import { Icon } from 'vant'
 import CommonEvent from '@/custom-component/common/CommonEvent.vue'
@@ -53,7 +51,6 @@ const emit = defineEmits([
   'onAssistLineChange',
   'onScrollCfgChange',
   'onThresholdChange',
-  'onMapMappingChange',
   'onBubbleAnimateChange'
 ])
 
@@ -148,10 +145,6 @@ const onThresholdChange = val => {
   emit('onThresholdChange', val)
 }
 
-const onMapMappingChange = (val, useGlobalAreaMapping) => {
-  emit('onMapMappingChange', val, useGlobalAreaMapping)
-}
-
 const onBubbleAnimateChange = val => {
   emit('onBubbleAnimateChange', val)
 }
@@ -182,7 +175,6 @@ const linkageSetOpen = () => {
 }
 
 const SENIOR_PROP: EditorProperty[] = [
-  'map-mapping',
   'function-cfg',
   'assist-line',
   'scroll-cfg',
@@ -261,21 +253,6 @@ const removeJumpSenior = () => {
             />
           </el-collapse-item>
 
-          <el-collapse-item
-            :effect="themes"
-            v-if="showProperties('map-mapping')"
-            name="mapMapping"
-            :title="t('chart.place_name_mapping')"
-            @modelChange="onFunctionCfgChange"
-          >
-            <map-mapping
-              :themes="themes"
-              :chart="props.chart"
-              :property-inner="propertyInnerAll['function-cfg']"
-              @onMapMappingChange="onMapMappingChange"
-            />
-          </el-collapse-item>
-
           <collapse-switch-item
             :effect="themes"
             :title="t('chart.assist_line')"
@@ -329,14 +306,6 @@ const removeJumpSenior = () => {
             />
           </collapse-switch-item>
 
-          <xpack-component
-            v-if="chart.id"
-            :chart="chart"
-            :themes="themes"
-            :is-screen="dvInfo.type === 'dataV'"
-            :resource-table="'snapshot'"
-            jsname="L2NvbXBvbmVudC90aHJlc2hvbGQtd2FybmluZy9TZW5pb3JIYW5kbGVy"
-          />
 
           <collapse-switch-item
             v-if="showProperties('linkage')"

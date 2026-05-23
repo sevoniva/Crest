@@ -31,8 +31,6 @@ import io.dataease.extensions.datasource.dto.DatasourceDTO;
 import io.dataease.extensions.datasource.model.SQLObj;
 import io.dataease.extensions.view.dto.SqlVariableDetails;
 import io.dataease.i18n.Translator;
-import io.dataease.license.config.XpackInteract;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.model.BusiNodeRequest;
 import io.dataease.model.BusiNodeVO;
 import io.dataease.operation.manage.CoreOptRecentManage;
@@ -56,6 +54,7 @@ import java.util.stream.Collectors;
  */
 @Component
 @Transactional(rollbackFor = Exception.class)
+@SuppressWarnings("unchecked")
 public class DatasetGroupManage {
     @Resource
     private CoreDatasetGroupMapper coreDatasetGroupMapper;
@@ -162,8 +161,6 @@ public class DatasetGroupManage {
         }
         return null;
     }
-
-    @XpackInteract(value = "authResourceTree", before = false)
     public void innerEdit(DatasetGroupInfoDTO datasetGroupInfoDTO) {
         checkName(datasetGroupInfoDTO);
         CoreDatasetGroup coreDatasetGroup = BeanUtils.copyBean(new CoreDatasetGroup(), datasetGroupInfoDTO);
@@ -171,16 +168,12 @@ public class DatasetGroupManage {
         coreDatasetGroupMapper.updateById(coreDatasetGroup);
         coreOptRecentManage.saveOpt(datasetGroupInfoDTO.getId(), OptConstants.OPT_RESOURCE_TYPE.DATASET, OptConstants.OPT_TYPE.UPDATE);
     }
-
-    @XpackInteract(value = "authResourceTree", before = false)
     public void innerSave(DatasetGroupInfoDTO datasetGroupInfoDTO) {
         checkName(datasetGroupInfoDTO);
         CoreDatasetGroup coreDatasetGroup = BeanUtils.copyBean(new CoreDatasetGroup(), datasetGroupInfoDTO);
         coreDatasetGroupMapper.insert(coreDatasetGroup);
         coreOptRecentManage.saveOpt(coreDatasetGroup.getId(), OptConstants.OPT_RESOURCE_TYPE.DATASET, OptConstants.OPT_TYPE.NEW);
     }
-
-    @XpackInteract(value = "authResourceTree", before = false)
     public DatasetGroupInfoDTO move(DatasetGroupInfoDTO datasetGroupInfoDTO) {
         checkName(datasetGroupInfoDTO);
         if (datasetGroupInfoDTO.getPid() != 0) {
@@ -198,12 +191,7 @@ public class DatasetGroupManage {
     }
 
     public boolean perDelete(Long id) {
-        if (LicenseUtil.licenseValid()) {
-            try {
-                relationManage.checkAuth();
-            } catch (Exception e) {
-                return false;
-            }
+        if (relationManage != null) {
             Long count = relationManage.getDatasetResource(id);
             if (count > 0) {
                 return true;
@@ -211,8 +199,6 @@ public class DatasetGroupManage {
         }
         return false;
     }
-
-    @XpackInteract(value = "authResourceTree", before = false)
     public void delete(Long id) {
         CoreDatasetGroup coreDatasetGroup = coreDatasetGroupMapper.selectById(id);
         if (ObjectUtils.isEmpty(coreDatasetGroup)) {
@@ -237,9 +223,6 @@ public class DatasetGroupManage {
             }
         }
     }
-
-
-    @XpackInteract(value = "authResourceTree", replace = true, invalid = true)
     public List<BusiNodeVO> tree(BusiNodeRequest request) {
 
         QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
@@ -309,28 +292,6 @@ public class DatasetGroupManage {
     }
 
     public void checkName(DatasetGroupInfoDTO dto) {
-        if (!LicenseUtil.licenseValid()) {
-            QueryWrapper<CoreDatasetGroup> wrapper = new QueryWrapper<>();
-            if (ObjectUtils.isNotEmpty(dto.getPid())) {
-                wrapper.eq("pid", dto.getPid());
-            }
-            if (StringUtils.isNotEmpty(dto.getName())) {
-                wrapper.eq("name", dto.getName());
-            }
-            if (ObjectUtils.isNotEmpty(dto.getId())) {
-                wrapper.ne("id", dto.getId());
-            }
-            if (ObjectUtils.isNotEmpty(dto.getLevel())) {
-                wrapper.eq("level", dto.getLevel());
-            }
-            if (ObjectUtils.isNotEmpty(dto.getNodeType())) {
-                wrapper.eq("node_type", dto.getNodeType());
-            }
-            List<CoreDatasetGroup> list = coreDatasetGroupMapper.selectList(wrapper);
-            if (list.size() > 0) {
-                DEException.throwException(Translator.get("i18n_ds_name_exists"));
-            }
-        }
     }
 
     public void saveTable(DatasetGroupInfoDTO datasetGroupInfoDTO, List<UnionDTO> union, List<Long> tableIds, boolean isCreate) {

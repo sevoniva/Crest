@@ -30,6 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@SuppressWarnings("unchecked")
 public class TablePivotHandler extends GroupChartHandler {
     @Getter
     private String type = "table-pivot";

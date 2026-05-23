@@ -44,7 +44,6 @@ import io.dataease.extensions.view.dto.ColumnPermissionItem;
 import io.dataease.extensions.view.dto.ColumnPermissions;
 import io.dataease.extensions.view.dto.DatasetRowPermissionsTreeItem;
 import io.dataease.extensions.view.dto.DatasetRowPermissionsTreeObj;
-import io.dataease.home.manage.DeIndexManage;
 import io.dataease.i18n.Translator;
 import io.dataease.utils.*;
 import jakarta.annotation.Resource;
@@ -64,8 +63,6 @@ import java.util.stream.Collectors;
 @Component
 public class DatasetSQLBotManage {
 
-    @Resource
-    private DeIndexManage deIndexManage;
 
     @Resource
     private DataSetAssistantMapper dataSetAssistantMapper;
@@ -167,7 +164,7 @@ public class DatasetSQLBotManage {
         List<Long> roleIds = null;
         Map<Long, List<DataSetColumnPermissionsDTO>> colPermissionMap = null;
         Map<Long, List<DataSetRowPermissionsTreeDTO>> rowPermissionMap = null;
-        Boolean model = deIndexManage.xpackModel();
+        Boolean model = null;
         List<Map<String, Object>> list = null;
         boolean isAdmin = uid == 1;
         QueryWrapper<Object> queryWrapper = new QueryWrapper<>();

@@ -3,6 +3,7 @@ package io.dataease.datasource.type;
 import io.dataease.exception.DEException;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Component("oracle")
 public class Oracle extends DatasourceConfiguration {
     private String driver = "oracle.jdbc.driver.OracleDriver";

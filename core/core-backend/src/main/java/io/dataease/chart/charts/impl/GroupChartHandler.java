@@ -8,6 +8,7 @@ import io.dataease.extensions.view.dto.ChartViewFieldDTO;
 
 import java.util.ArrayList;
 
+@SuppressWarnings("unchecked")
 public class GroupChartHandler extends YoyChartHandler {
     @Override
     public AxisFormatResult formatAxis(ChartViewDTO view) {

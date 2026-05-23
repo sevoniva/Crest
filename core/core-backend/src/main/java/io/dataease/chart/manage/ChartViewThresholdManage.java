@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component("chartViewThresholdManage")
+@SuppressWarnings("unchecked")
 public class ChartViewThresholdManage {
 
 

@@ -17,8 +17,6 @@ import io.dataease.extensions.datasource.dto.DatasourceDTO;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import io.dataease.extensions.datasource.vo.XpackPluginsDatasourceVO;
 import io.dataease.i18n.Translator;
-import io.dataease.license.config.XpackInteract;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.model.BusiNodeRequest;
 import io.dataease.model.BusiNodeVO;
 import io.dataease.operation.manage.CoreOptRecentManage;
@@ -70,8 +68,8 @@ public class DataSourceManage {
             }
         }
         if (ObjectUtils.isEmpty(flag)) {
-            List<XpackPluginsDatasourceVO> xpackPluginsDatasourceVOS = pluginManage.queryPluginDs();
-            List<XpackPluginsDatasourceVO> list = xpackPluginsDatasourceVOS.stream().filter(ele -> StringUtils.equals(ele.getType(), type)).toList();
+            List<XpackPluginsDatasourceVO> pluginDatasourceList = pluginManage.queryPluginDs();
+            List<XpackPluginsDatasourceVO> list = pluginDatasourceList.stream().filter(ele -> StringUtils.equals(ele.getType(), type)).toList();
             if (ObjectUtils.isNotEmpty(list)) {
                 XpackPluginsDatasourceVO first = list.getFirst();
                 flag = first.getFlag();
@@ -88,8 +86,6 @@ public class DataSourceManage {
         int extraFlag = StringUtils.equalsIgnoreCase("error", po.getStatus()) ? Math.negateExact(flag) : flag;
         return new DatasourceNodeBO(po.getId(), po.getName(), !StringUtils.equals(po.getType(), "folder"), 9, po.getPid(), extraFlag, po.getType());
     }
-
-    @XpackInteract(value = "datasourceResourceTree", replace = true, invalid = true)
     public List<BusiNodeVO> tree(BusiNodeRequest request) {
 
         QueryWrapper<DataSourceNodePO> queryWrapper = new QueryWrapper<>();
@@ -109,9 +105,6 @@ public class DataSourceManage {
         }
         return TreeUtils.mergeTree(nodes, BusiNodeVO.class, false);
     }
-
-
-    @XpackInteract(value = "datasourceResourceTree", before = false)
     public void innerSave(DatasourceDTO dataSourceDTO) {
         CoreDatasource coreDatasource = new CoreDatasource();
         coreDatasource.setTaskStatus(TaskStatus.WaitingForExecution.name());
@@ -127,7 +120,7 @@ public class DataSourceManage {
         }
         QueryWrapper<CoreDatasource> wrapper = new QueryWrapper<>();
         if (ObjectUtils.isNotEmpty(dto.getPid())) {
-            if (LicenseUtil.licenseValid() && dto.getPid().equals(0L)) {
+            if (dto.getPid().equals(0L)) {
                 wrapper.eq("pid", -100L);
             } else {
                 wrapper.eq("pid", dto.getPid());
@@ -152,14 +145,9 @@ public class DataSourceManage {
             DEException.throwException(Translator.get("i18n_ds_name_exists"));
         }
     }
-
-    @XpackInteract(value = "larkManage", replace = true)
     public String getTenantAccessToken() {
         return null;
     }
-
-
-    @XpackInteract(value = "datasourceResourceTree", before = false)
     public void innerEdit(CoreDatasource coreDatasource) {
         UpdateWrapper<CoreDatasource> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("id", coreDatasource.getId());
@@ -169,9 +157,6 @@ public class DataSourceManage {
         coreDatasourceMapper.update(coreDatasource, updateWrapper);
         coreOptRecentManage.saveOpt(coreDatasource.getId(), OptConstants.OPT_RESOURCE_TYPE.DATASOURCE, OptConstants.OPT_TYPE.UPDATE);
     }
-
-
-    @XpackInteract(value = "datasourceResourceTree", before = false)
     public void innerEditName(CoreDatasource coreDatasource) {
         UpdateWrapper<CoreDatasource> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("id", coreDatasource.getId());
@@ -181,17 +166,12 @@ public class DataSourceManage {
         coreDatasourceMapper.update(coreDatasource, updateWrapper);
         coreOptRecentManage.saveOpt(coreDatasource.getId(), OptConstants.OPT_RESOURCE_TYPE.DATASOURCE, OptConstants.OPT_TYPE.UPDATE);
     }
-
-    @XpackInteract(value = "datasourceResourceTree", before = false)
     public void innerEditStatus(CoreDatasource coreDatasource) {
         UpdateWrapper<CoreDatasource> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("id", coreDatasource.getId());
         updateWrapper.set("status", coreDatasource.getStatus());
         coreDatasourceMapper.update(null, updateWrapper);
     }
-
-
-    @XpackInteract(value = "datasourceResourceTree", before = false)
     public void move(DatasourceDTO dataSourceDTO) {
         Long id = dataSourceDTO.getId();
         CoreDatasource sourceData = null;
@@ -217,8 +197,6 @@ public class DataSourceManage {
             coreDatasourceMapper.updateById(dataSource);
         });
     }
-
-    @XpackInteract(value = "datasourceResourceTree", before = false)
     public CoreDatasource getCoreDatasource(Long id) {
         if (id == -1L) {
             return engineManage.getDeEngine();

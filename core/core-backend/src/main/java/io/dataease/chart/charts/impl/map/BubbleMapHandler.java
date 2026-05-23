@@ -7,6 +7,7 @@ import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("unchecked")
 public class BubbleMapHandler extends ExtQuotaChartHandler {
     @Getter
     private String type = "bubble-map";

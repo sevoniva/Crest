@@ -33,7 +33,6 @@ import io.dataease.extensions.view.dto.ChartExtFilterDTO;
 import io.dataease.extensions.view.dto.ChartExtRequest;
 import io.dataease.extensions.view.dto.SqlVariableDetails;
 import io.dataease.i18n.Translator;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.system.manage.CorePermissionManage;
 import io.dataease.utils.AuthUtils;
 import io.dataease.utils.BeanUtils;
@@ -432,21 +431,19 @@ public class DatasetSQLManage {
             BeanUtils.copyBean(dto, datasourceType);
             return dto;
         } else {
-            if (LicenseUtil.licenseValid()) {
-                List<XpackPluginsDatasourceVO> xpackPluginsDatasourceVOS = pluginManage.queryPluginDs();
-                List<XpackPluginsDatasourceVO> list = xpackPluginsDatasourceVOS.stream().filter(ele -> StringUtils.equals(ele.getType(), type)).toList();
-                if (ObjectUtils.isNotEmpty(list)) {
-                    XpackPluginsDatasourceVO first = list.getFirst();
-                    DsTypeDTO dto = new DsTypeDTO();
-                    dto.setName(first.getName());
-                    dto.setCatalog(first.getCategory());
-                    dto.setType(first.getType());
-                    dto.setPrefix(first.getPrefix());
-                    dto.setSuffix(first.getSuffix());
-                    return dto;
-                } else {
-                    DEException.throwException(Translator.get("i18n_dataset_plugin_error"));
-                }
+            List<XpackPluginsDatasourceVO> pluginDatasourceList = pluginManage.queryPluginDs();
+            List<XpackPluginsDatasourceVO> list = pluginDatasourceList.stream().filter(ele -> StringUtils.equals(ele.getType(), type)).toList();
+            if (ObjectUtils.isNotEmpty(list)) {
+                XpackPluginsDatasourceVO first = list.getFirst();
+                DsTypeDTO dto = new DsTypeDTO();
+                dto.setName(first.getName());
+                dto.setCatalog(first.getCategory());
+                dto.setType(first.getType());
+                dto.setPrefix(first.getPrefix());
+                dto.setSuffix(first.getSuffix());
+                return dto;
+            } else {
+                DEException.throwException(Translator.get("i18n_dataset_plugin_error"));
             }
             return null;
         }

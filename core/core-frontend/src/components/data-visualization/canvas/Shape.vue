@@ -29,7 +29,7 @@
       @click="updateFromMobile($event, 'delFromMobile')"
     >
       <el-icon>
-        <Icon name="mobile-checkbox"><mobileCheckbox class="svg-icon" /></Icon>
+        <Icon name="Checkbox"><checkbox class="svg-icon" /></Icon>
       </el-icon>
     </div>
     <div v-if="showHiddenIcon" class="del-from-mobile" @mousedown.stop="hiddenComponent">
@@ -126,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import mobileCheckbox from '@/assets/svg/mobile-checkbox.svg'
+import checkbox from '@/assets/svg/Checkbox.svg'
 import replaceOutlined from '@/assets/svg/icon_replace_outlined.svg'
 import dvLock from '@/assets/svg/dv-lock.svg'
 import eventBus from '@/utils/eventBus'

@@ -29,7 +29,7 @@
 <script lang="ts" setup>
 import { onMounted, nextTick, ref, reactive } from 'vue'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
-import PreviewCanvas from '@/views/data-visualization/PreviewCanvasMobile.vue'
+import PreviewCanvas from '@/views/data-visualization/PreviewCanvas.vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { ProxyInfo, shareProxy } from './ShareProxy'
 import PwdTips from './pwd.vue'

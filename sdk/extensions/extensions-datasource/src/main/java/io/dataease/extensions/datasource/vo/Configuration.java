@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Data
+@SuppressWarnings("deprecation")
 public class Configuration {
     private String type;
     private String name;

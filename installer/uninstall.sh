@@ -49,9 +49,9 @@ if test ! -z "$(docker images -f dangling=true -q)"; then
    docker rmi $(docker images -f dangling=true -q)
 fi
 
-if test -n "$(docker images | grep -E 'registry.cn-qingdao.aliyuncs.com/dataease|ghcr.io/sevoniva/dataease-2.10.22')"; then
+if test -n "$(docker images | grep -E 'ghcr.io/sevoniva/dataease-2.10.22')"; then
    echo "清理 DataEase 镜像"
-   docker rmi $(docker images | grep -E "registry.cn-qingdao.aliyuncs.com/dataease|ghcr.io/sevoniva/dataease-2.10.22" | awk -F' ' '{print $1":"$2}')
+   docker rmi $(docker images | grep -E "ghcr.io/sevoniva/dataease-2.10.22" | awk -F' ' '{print $1":"$2}')
 fi
 
 # 清理 DataEase 运行目录及命令行工具 dectl

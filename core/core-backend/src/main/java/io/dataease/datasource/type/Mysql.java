@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.dataease.exception.DEException;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +13,9 @@ import java.util.Arrays;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Component("mysql")
+@SuppressWarnings("deprecation")
 public class Mysql extends DatasourceConfiguration {
     private String driver = "com.mysql.cj.jdbc.Driver";
     private String extraParams = "characterEncoding=UTF-8&connectTimeout=5000&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull";

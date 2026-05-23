@@ -12,7 +12,6 @@ import { CustomPassword } from '@/components/custom-password'
 import { Base64 } from 'js-base64'
 import { querySymmetricKey } from '@/api/login'
 import { symmetricDecrypt } from '@/utils/encryption'
-import { XpackComponent } from '@/components/plugin'
 const { t } = useI18n()
 const dialogVisible = ref(false)
 const loadingInstance = ref(null)
@@ -440,11 +439,7 @@ defineExpose({
         </el-row>
       </template>
       <!--    数据填报      -->
-      <XpackComponent
-        :form="nodeInfo"
-        jsname="L2NvbXBvbmVudC9kYXRhLWZpbGxpbmcvRGF0YXNvdXJjZUVuYWJsZURhdGFGaWxsaW5n"
-      />
-    </el-form>
+          </el-form>
     <template #footer>
       <span class="dialog-footer">
         <el-button secondary @click="resetForm()">{{ t('common.cancel') }}</el-button>

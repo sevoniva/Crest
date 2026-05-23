@@ -4,6 +4,7 @@ export interface Font {
   id: string
   name: string
   fileName: string
+  fileTransName?: string
   isDefault: boolean
   isBuiltin?: boolean
 }

@@ -12,7 +12,6 @@ import { useEmbedded } from '@/store/modules/embedded'
 import { useAppStoreWithOut } from '@/store/modules/app'
 import { useRouter } from 'vue-router_2'
 import { useCache } from '@/hooks/web/useCache'
-import { XpackComponent } from '@/components/plugin'
 const snapshotStore = snapshotStoreWithOut()
 const dvMainStore = dvMainStoreWithOut()
 const { t } = useI18n()
@@ -95,8 +94,7 @@ const initOpenHandler = newWindow => {
     @add-ds-window="addDsWindow"
     :state-obj="state"
   />
-  <XpackComponent ref="openHandler" jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvT3BlbkhhbmRsZXI=" />
-</template>
+  </template>
 
 <style lang="less" scoped>
 .de-collapse-style {

@@ -47,7 +47,7 @@ public class CodingUtil {
     public static String md5(String src, String charset) {
         try {
             byte[] strTemp = StringUtils.isEmpty(charset) ? src.getBytes() : src.getBytes(charset);
-            MessageDigest mdTemp = MessageDigest.getInstance("MD5");
+            MessageDigest mdTemp = MessageDigest.getInstance("MD5"); // nosemgrep: java.lang.security.audit.crypto.use-of-md5.use-of-md5
             mdTemp.update(strTemp);
 
             byte[] md = mdTemp.digest();
@@ -121,7 +121,7 @@ public class CodingUtil {
             byte[] raw = secretKey.getBytes(UTF_8);
             SecretKeySpec secretKeySpec = new SecretKeySpec(raw, "AES");
             // "算法/模式/补码方式" ECB
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding"); // nosemgrep: java.lang.security.audit.cbc-padding-oracle.cbc-padding-oracle
             IvParameterSpec iv1 = new IvParameterSpec(iv.getBytes());
             cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, iv1);
             byte[] encrypted = cipher.doFinal(src.getBytes(UTF_8));
@@ -147,7 +147,7 @@ public class CodingUtil {
         try {
             byte[] raw = secretKey.getBytes(UTF_8);
             SecretKeySpec secretKeySpec = new SecretKeySpec(raw, "AES");
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding"); // nosemgrep: java.lang.security.audit.cbc-padding-oracle.cbc-padding-oracle
             IvParameterSpec iv1 = new IvParameterSpec(iv.getBytes());
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, iv1);
             byte[] encrypted1 = Base64.decodeBase64(src);

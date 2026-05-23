@@ -16,7 +16,7 @@ public class ShareSecretManage {
 
 
     @Getter
-    @Value("${dataease.default-link-pwd:link-pwd-fit2cloud}")
+    @Value("${dataease.default-link-pwd:dataease-link-pwd}")
     private String defaultPwd;
 
 

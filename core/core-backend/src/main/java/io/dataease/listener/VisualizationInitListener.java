@@ -1,6 +1,6 @@
 package io.dataease.listener;
 
-import io.dataease.license.utils.LogUtil;
+import io.dataease.utils.LogUtil;
 import io.dataease.template.manage.TemplateLocalParseManage;
 import io.dataease.visualization.manage.CoreVisualizationManage;
 import jakarta.annotation.Resource;

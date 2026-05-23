@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 
 @Component
 @Transactional(rollbackFor = Exception.class)
+@SuppressWarnings("unchecked")
 public class EngineManage {
     @Resource
     private Environment env;

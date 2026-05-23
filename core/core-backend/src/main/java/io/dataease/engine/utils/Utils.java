@@ -502,8 +502,8 @@ public class Utils {
             dto.setSuffix(datasourceType.getSuffix());
             return dto;
         } catch (Exception e) {
-            List<XpackPluginsDatasourceVO> xpackPluginsDatasourceVOS = pluginManage.queryPluginDs();
-            for (XpackPluginsDatasourceVO vo : xpackPluginsDatasourceVOS) {
+            List<XpackPluginsDatasourceVO> pluginDatasourceList = pluginManage.queryPluginDs();
+            for (XpackPluginsDatasourceVO vo : pluginDatasourceList) {
                 if (StringUtils.equalsIgnoreCase(vo.getType(), type)) {
                     dto.setType(type);
                     dto.setName(vo.getName());

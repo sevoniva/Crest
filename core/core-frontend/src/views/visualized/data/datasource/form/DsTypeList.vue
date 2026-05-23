@@ -2,7 +2,6 @@
 import { shallowRef, PropType, computed } from 'vue'
 import { dsTypes, typeList, nameMap } from './option'
 import Icon from '@/components/icon-custom/src/Icon.vue'
-import { XpackComponent } from '@/components/plugin'
 import { iconDatasourceMap } from '@/components/icon-group/datasource-list'
 import { useI18n } from '@/hooks/web/useI18n'
 
@@ -131,11 +130,7 @@ const selectDs = ({ type }) => {
       </div>
     </template>
 
-    <XpackComponent
-      jsname="L2NvbXBvbmVudC9wbHVnaW5zLWhhbmRsZXIvRHNDYXRlZ29yeUhhbmRsZXI="
-      @load-ds-plugin="loadDsPlugin"
-    />
-  </div>
+      </div>
 </template>
 
 <style lang="less" scoped>

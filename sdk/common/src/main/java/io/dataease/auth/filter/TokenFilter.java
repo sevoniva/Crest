@@ -8,7 +8,6 @@ import com.auth0.jwt.interfaces.Verification;
 import io.dataease.auth.bo.TokenUserBO;
 import io.dataease.constant.AuthConstant;
 import io.dataease.exception.DEException;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.result.ResultMessage;
 import io.dataease.utils.*;
 import jakarta.servlet.*;
@@ -28,6 +27,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+@SuppressWarnings("deprecation")
 public class TokenFilter implements Filter {
     private static final String headName = "DE-GATEWAY-FLAG";
 
@@ -82,7 +82,8 @@ public class TokenFilter implements Filter {
                 if (StringUtils.length(linkToken) < 100) {
                     DEException.throwException("token is invalid");
                 }
-                DecodedJWT jwt = JWT.decode(linkToken);
+                // Decode is used only to look up the signing secret; verifier.verify() below enforces integrity.
+                DecodedJWT jwt = JWT.decode(linkToken); // nosemgrep: java.java-jwt.security.audit.jwt-decode-without-verify.java-jwt-decode-without-verify
                 Long userId = jwt.getClaim("uid").asLong();
                 Long oid = jwt.getClaim("oid").asLong();
                 Long resourceId = jwt.getClaim("resourceId").asLong();
@@ -102,6 +103,7 @@ public class TokenFilter implements Filter {
                 algorithm.verify(decode);
                 verifier.verify(linkToken);
 
+                request.setAttribute(AuthConstant.LINK_RESOURCE_ID_ATTR, resourceId);
                 UserUtils.setUserInfo(new TokenUserBO(userId, oid));
                 filterChain.doFilter(servletRequest, servletResponse);
                 return;
@@ -111,18 +113,7 @@ public class TokenFilter implements Filter {
             UserUtils.setUserInfo(userBO);
             filterChain.doFilter(servletRequest, servletResponse);
         } catch (Exception e) {
-            if (!LicenseUtil.licenseValid()) {
-                HttpServletResponse res = (HttpServletResponse) servletResponse;
-                ResultMessage resultMessage = new ResultMessage(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
-                HttpHeaders headers = new HttpHeaders();
-                String msg = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8).replace("+", "%20");
-                headers.add(headName, msg);
-                ResponseEntity<ResultMessage> entity = new ResponseEntity<>(resultMessage, headers, HttpStatus.UNAUTHORIZED);
-                sendResponseEntity(res, entity);
-                LogUtil.error(e.getMessage(), e);
-            } else {
-                throw e;
-            }
+            throw e;
         } finally {
             UserUtils.removeUser();
         }

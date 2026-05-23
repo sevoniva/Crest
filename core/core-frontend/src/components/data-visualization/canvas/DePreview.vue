@@ -12,7 +12,6 @@ import CanvasOptBar from '@/components/visualization/CanvasOptBar.vue'
 import { isDashboard, isMainCanvas, refreshOtherComponent } from '@/utils/canvasUtils'
 import { activeWatermarkCheckUser } from '@/components/watermark/watermark'
 import router from '@/router'
-import { XpackComponent } from '@/components/plugin'
 import PopArea from '@/custom-component/pop-area/Component.vue'
 import CanvasFilterBtn from '@/custom-component/canvas-filter-btn/Component.vue'
 import { useEmitt } from '@/hooks/web/useEmitt'
@@ -616,8 +615,7 @@ defineExpose({
   <empty-background v-if="!state.initState" description="参数不能为空" img-type="noneWhite" />
   <de-fullscreen ref="fullScreeRef"></de-fullscreen>
   <dataset-params-component ref="customDatasetParamsRef"></dataset-params-component>
-  <XpackComponent ref="openHandler" jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvT3BlbkhhbmRsZXI=" />
-  <link-opt-bar
+    <link-opt-bar
     v-if="linkOptBarShow"
     ref="link-opt-bar"
     :terminal="'pc'"

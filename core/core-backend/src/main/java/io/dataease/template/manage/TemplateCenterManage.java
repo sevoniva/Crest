@@ -57,10 +57,10 @@ public class TemplateCenterManage {
      * @Description Get template file from template market
      */
     public TemplateManageFileDTO getTemplateFromMarket(String templateUrl) {
-        if (StringUtils.isNotEmpty(templateUrl)) {
+        String sufUrl = templateBaseUrl();
+        if (StringUtils.isNotEmpty(sufUrl) && StringUtils.isNotEmpty(templateUrl)) {
             String templateName = templateUrl.substring(templateUrl.lastIndexOf("/") + 1, templateUrl.length());
             templateUrl = templateUrl.replace(templateName, URLEncoder.encode(templateName, StandardCharsets.UTF_8).replace("+", "%20"));
-            String sufUrl = sysParameterManage.groupVal("template.").get("template.url");
             String templateInfo = HttpClientUtil.get(sufUrl + templateUrl, null);
             return JsonUtil.parseObject(templateInfo, TemplateManageFileDTO.class);
         } else {
@@ -73,8 +73,8 @@ public class TemplateCenterManage {
      * @Description Get template file from template market
      */
     public TemplateManageFileDTO getTemplateFromMarketV2(String templateName) {
-        if (StringUtils.isNotEmpty(templateName)) {
-            String sufUrl = sysParameterManage.groupVal("template.").get("template.url");
+        String sufUrl = templateBaseUrl();
+        if (StringUtils.isNotEmpty(sufUrl) && StringUtils.isNotEmpty(templateName)) {
             String templateBaseInfo = HttpClientUtil.get(sufUrl + TEMPLATE_BASE_INFO_URL + templateName, null);
             MarketTemplateV2ItemResult baseItemInfo = JsonUtil.parseObject(templateBaseInfo, MarketTemplateV2ItemResult.class);
             String templateUrl = "";
@@ -108,8 +108,12 @@ public class TemplateCenterManage {
     }
 
     private MarketTemplateV2BaseResponse templateQuery(Map<String, String> templateParams) {
+        String templateUrl = templateBaseUrl(templateParams);
+        if (StringUtils.isBlank(templateUrl)) {
+            return null;
+        }
         try {
-            String result = marketGet(templateParams.get("template.url") + POSTS_API_V2, null);
+            String result = marketGet(templateUrl + POSTS_API_V2, null);
             MarketTemplateV2BaseResponse postsResult = JsonUtil.parseObject(result, MarketTemplateV2BaseResponse.class);
             return postsResult;
         } catch (Exception e) {
@@ -121,7 +125,7 @@ public class TemplateCenterManage {
     public MarketBaseResponse searchTemplate() {
         try {
             Map<String, String> templateParams = sysParameterManage.groupVal("template.");
-            return baseResponseV2Trans(templateQuery(templateParams), searchTemplateFromManage(), templateParams.get("template.url"));
+            return baseResponseV2Trans(templateQuery(templateParams), searchTemplateFromManage(), templateBaseUrl(templateParams));
         } catch (Exception e) {
             LogUtil.error(e);
             e.printStackTrace();
@@ -168,7 +172,7 @@ public class TemplateCenterManage {
         }
         // 模版管理使用次数推荐
         List<TemplateMarketDTO> manage = searchTemplateFromManage();
-        return baseResponseV2TransRecommend(v2BaseResponse, manage, templateParams.get("template.url"));
+        return baseResponseV2TransRecommend(v2BaseResponse, manage, templateBaseUrl(templateParams));
     }
 
     public MarketPreviewBaseResponse searchTemplatePreview() {
@@ -288,9 +292,13 @@ public class TemplateCenterManage {
         List<MarketMetaDataVO> manageCategoriesTrans = manageCategories.stream()
                 .map(templateCategory -> new MarketMetaDataVO(templateCategory.getId(), templateCategory.getName(), CommonConstants.TEMPLATE_SOURCE.MANAGE))
                 .collect(Collectors.toList());
+        Map<String, String> templateParams = sysParameterManage.groupVal("template.");
+        String templateUrl = templateBaseUrl(templateParams);
+        if (StringUtils.isBlank(templateUrl)) {
+            return mergeAndDistinctByLabel(allCategories, manageCategoriesTrans);
+        }
         try {
-            Map<String, String> templateParams = sysParameterManage.groupVal("template.");
-            String resultStr = marketGet(templateParams.get("template.url") + TEMPLATE_META_DATA_URL, null);
+            String resultStr = marketGet(templateUrl + TEMPLATE_META_DATA_URL, null);
             MarketMetaDataBaseResponse metaData = JsonUtil.parseObject(resultStr, MarketMetaDataBaseResponse.class);
             allCategories.addAll(metaData.getLabels());
             allCategories.add(0, new MarketMetaDataVO("suggest", Translator.get("i18n_template_recommend"), CommonConstants.TEMPLATE_SOURCE.PUBLIC));
@@ -300,6 +308,17 @@ public class TemplateCenterManage {
 
         return mergeAndDistinctByLabel(allCategories, manageCategoriesTrans);
 
+    }
+
+    private String templateBaseUrl() {
+        return templateBaseUrl(sysParameterManage.groupVal("template."));
+    }
+
+    private String templateBaseUrl(Map<String, String> templateParams) {
+        if (templateParams == null) {
+            return "";
+        }
+        return StringUtils.trimToEmpty(templateParams.get("template.url"));
     }
 
     private List<MarketMetaDataVO> mergeAndDistinctByLabel(List<MarketMetaDataVO> list1, List<MarketMetaDataVO> list2) {

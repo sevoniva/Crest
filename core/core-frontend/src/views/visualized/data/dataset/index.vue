@@ -78,7 +78,6 @@ import {
 import type { TabPaneName } from 'element-plus-secondary'
 import { timestampFormatDate } from './form/util'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
-import { XpackComponent } from '@/components/plugin'
 import { useCache } from '@/hooks/web/useCache'
 import { RefreshLeft } from '@element-plus/icons-vue'
 import { iconFieldMap } from '@/components/icon-group/field-list'
@@ -1035,11 +1034,7 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
                 :name="ele.name"
               ></el-tab-pane>
             </el-tabs>
-            <XpackComponent
-              jsname="L2NvbXBvbmVudC9yb3ctY29sLXBlcm1pc3Npb24vcGFuZS9pbmRleA=="
-              @loaded="panelLoad"
-            />
-          </div>
+                      </div>
         </div>
         <div class="dataset-table-info">
           <div v-if="activeName === 'dataPreview'" class="preview-num">
@@ -1110,17 +1105,7 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
           </template>
           <template v-if="['row', 'column'].includes(activeName)">
             <div class="table-row-column">
-              <XpackComponent
-                :active-name="activeName"
-                :dataset-id="nodeInfo.id"
-                jsname="ZGF0YXNldC1yb3ctcGVybWlzc2lvbnM="
-              />
-              <XpackComponent
-                :active-name="activeName"
-                :dataset-id="nodeInfo.id"
-                jsname="ZGF0YXNldC1jb2x1bW4tcGVybWlzc2lvbnM="
-              />
-            </div>
+                                        </div>
           </template>
         </div>
       </template>

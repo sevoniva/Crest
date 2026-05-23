@@ -28,15 +28,6 @@ public class DeMvcConfig implements WebMvcConfigurer {
         String uploadUrlPattern = ensureBoth(URL_SEPARATOR + UPLOAD_URL_PREFIX, AuthConstant.DE_API_PREFIX, URL_SEPARATOR) + "**";
         registry.addResourceHandler(uploadUrlPattern).addResourceLocations(workDir);
 
-        // map
-        String mapDir = FILE_PROTOCOL + ensureSuffix(MAP_DIR, FILE_SEPARATOR);
-        String mapUrlPattern = ensureBoth(MAP_URL, AuthConstant.DE_API_PREFIX, URL_SEPARATOR) + "**";
-        registry.addResourceHandler(mapUrlPattern).addResourceLocations(mapDir);
-
-        String geoDir = FILE_PROTOCOL + ensureSuffix(CUSTOM_MAP_DIR, FILE_SEPARATOR);
-        String geoUrlPattern = ensureBoth(GEO_URL, AuthConstant.DE_API_PREFIX, URL_SEPARATOR) + "**";
-        registry.addResourceHandler(geoUrlPattern).addResourceLocations(geoDir);
-
         String i18nDir = FILE_PROTOCOL + ensureSuffix(I18N_DIR, FILE_SEPARATOR);
         String i18nUrlPattern = ensureBoth(I18N_URL, AuthConstant.DE_API_PREFIX, URL_SEPARATOR) + "**";
         registry.addResourceHandler(i18nUrlPattern).addResourceLocations(i18nDir);

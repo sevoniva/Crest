@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
+@SuppressWarnings("unchecked")
 public class StackBarHandler extends BarHandler {
     @Getter
     private String type = "bar-stack";

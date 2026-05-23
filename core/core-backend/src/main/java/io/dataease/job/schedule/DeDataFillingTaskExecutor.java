@@ -1,7 +1,6 @@
 package io.dataease.job.schedule;
 
 import io.dataease.commons.utils.CronUtils;
-import io.dataease.license.config.XpackInteract;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.ObjectUtils;
 import org.quartz.JobDataMap;
@@ -24,13 +23,9 @@ public class DeDataFillingTaskExecutor {
 
     @Resource
     private ScheduleManager scheduleManager;
-
-    @XpackInteract(value = "dataFillingTaskExecutor", replace = true)
     public boolean execute(Map<String, Object> taskData) {
         return false;
     }
-
-    @XpackInteract(value = "dataFillingTaskExecutor", replace = true)
     public void init() {
     }
 
@@ -46,7 +41,7 @@ public class DeDataFillingTaskExecutor {
         jobDataMap.put(IS_TEMP_TASK, false);
         Date end = null;
         if (ObjectUtils.isNotEmpty(endTime)) end = new Date(endTime);
-        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeXpackDataFillingScheduleJob.class, cron, startTime == null ? null : new Date(startTime), end, jobDataMap);
+        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeDataFillingScheduleJob.class, cron, startTime == null ? null : new Date(startTime), end, jobDataMap);
     }
 
     public void addRetryTask(Long taskId, Integer retryLimit, Integer retryInterval) {
@@ -67,7 +62,7 @@ public class DeDataFillingTaskExecutor {
         jobDataMap.put(IS_RETRY_TASK, true);
         Date end = null;
         if (ObjectUtils.isNotEmpty(endTime)) end = new Date(endTime);
-        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeXpackDataFillingScheduleJob.class, cron, new Date(now), end, jobDataMap);
+        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeDataFillingScheduleJob.class, cron, new Date(now), end, jobDataMap);
     }
 
     public boolean fireNow(Long taskId) throws Exception {
@@ -88,7 +83,7 @@ public class DeDataFillingTaskExecutor {
         jobDataMap.put(IS_TEMP_TASK, true);
         String cron = CronUtils.tempCron();
         jobDataMap.put("taskId", taskId);
-        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeXpackDataFillingScheduleJob.class, cron, new Date(startTime), null, jobDataMap);
+        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeDataFillingScheduleJob.class, cron, new Date(startTime), null, jobDataMap);
     }
 
     public void removeTask(Long taskId, boolean isTemp) {

@@ -11,7 +11,6 @@ import { ElDivider } from 'element-plus-secondary'
 import eventBus from '@/utils/eventBus'
 import { componentArraySort, getCurInfo } from '@/store/modules/data-visualization/common'
 import { useEmitt } from '@/hooks/web/useEmitt'
-import { XpackComponent } from '@/components/plugin'
 import { useI18n } from '@/hooks/web/useI18n'
 const dvMainStore = dvMainStoreWithOut()
 const copyStore = copyStoreWithOut()
@@ -331,13 +330,7 @@ const editQueryCriteria = () => {
             <li @click="customSort" v-if="curComponent.component === 'DeTabs'">
               {{ t('visualization.sort') }}
             </li>
-            <xpack-component
-              :chart="curComponent"
-              is-screen
-              resource-table="snapshot"
-              jsname="L2NvbXBvbmVudC90aHJlc2hvbGQtd2FybmluZy9FZGl0QmFySGFuZGxlcg=="
-            />
-            <li @click="categoryChange('hidden')" v-show="showMoveMenu">
+                        <li @click="categoryChange('hidden')" v-show="showMoveMenu">
               {{ t('visualization.move_to_pop_area') }}
             </li>
             <el-divider class="custom-divider" />

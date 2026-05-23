@@ -5,9 +5,9 @@ import io.dataease.extensions.datasource.dto.DatasourceRequest;
 import io.dataease.extensions.datasource.factory.ProviderFactory;
 import io.dataease.extensions.datasource.provider.Provider;
 import io.dataease.extensions.datasource.vo.XpackPluginsDatasourceVO;
-import io.dataease.license.utils.JsonUtil;
 import io.dataease.plugins.template.DataEasePlugin;
 import io.dataease.plugins.vo.DataEasePluginVO;
+import io.dataease.utils.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -25,6 +25,7 @@ import java.util.jar.JarFile;
 /**
  * @Author Junjun
  */
+@SuppressWarnings("deprecation")
 public abstract class DataEaseDatasourcePlugin extends Provider implements DataEasePlugin {
     private final String DEFAULT_FILE_PATH = "/opt/dataease2.0/drivers/plugin";
 

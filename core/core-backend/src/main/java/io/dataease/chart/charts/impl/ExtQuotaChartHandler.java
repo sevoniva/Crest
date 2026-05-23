@@ -7,6 +7,7 @@ import io.dataease.extensions.view.dto.ChartViewFieldDTO;
 
 import java.util.ArrayList;
 
+@SuppressWarnings("unchecked")
 public class ExtQuotaChartHandler extends DefaultChartHandler {
     @Override
     public AxisFormatResult formatAxis(ChartViewDTO view) {

@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
+@SuppressWarnings("unchecked")
 public class PieHandler extends YoyChartHandler {
     @Override
     public void init() {

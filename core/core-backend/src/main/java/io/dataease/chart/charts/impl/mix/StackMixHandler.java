@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
+@SuppressWarnings("unchecked")
 public class StackMixHandler extends MixHandler {
     @Getter
     private final String type = "chart-mix-stack";

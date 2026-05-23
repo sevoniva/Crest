@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
+@SuppressWarnings("unchecked")
 public class IndicatorHandler extends YoyChartHandler {
     @Getter
     private String render = "custom";

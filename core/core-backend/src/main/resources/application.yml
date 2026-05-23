@@ -25,6 +25,8 @@ spring:
   jackson:
     parser:
       allow-numeric-leading-zeros: true
+  quartz:
+    scheduler-name: deSyncJob
 management:
   health:
     redis:
@@ -40,18 +42,12 @@ logging:
 #  configuration:
 #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
-quartz:
-  enabled: true
-  scheduler-name: deSyncJob
-
 dataease:
   version: '@project.version@'
   login_timeout: 2880
-  xpack-front-distributed: true
+  internal-lite:
+    enabled: true
   origin-list: http://localhost:8080
-  apisix-api:
-    domain: http://127.0.0.1:9180
-    key: edd1c9f034335f136f87ad84b625c8f1
 
 # springdoc-openapi项目配置
 springdoc:

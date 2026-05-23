@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import logo from '@/assets/svg/logo.svg'
+import crestLogoDark from '@/assets/img/crest-logo-horizontal-dark-192h.png'
 import icon_left_outlined from '@/assets/svg/icon_left_outlined.svg'
 import { computed } from 'vue'
 import { ElHeader } from 'element-plus-secondary'
@@ -30,10 +30,7 @@ const navigate = computed(() => appearanceStore.getNavigate)
     class="header-flex system-header"
     :class="{ 'header-light': navigateBg && navigateBg === 'light' }"
   >
-    <img class="logo" v-if="navigate" :src="navigate" alt="" />
-    <Icon class="de-logo" v-else className="logo" name="logo">
-      <logo class="svg-icon logo de-logo" />
-    </Icon>
+    <img class="logo" :src="navigate || crestLogoDark" alt="Crest" />
     <el-divider direction="vertical" />
     <span class="system">{{ title || t('commons.system_setting') }}</span>
     <div class="operate-setting">
@@ -54,12 +51,9 @@ const navigate = computed(() => appearanceStore.getNavigate)
   font-family: var(--de-custom_font, 'PingFang');
 
   .logo {
-    width: 134px;
+    width: 158px;
     height: 34px;
-  }
-
-  .de-logo {
-    color: #ffffff;
+    object-fit: contain;
   }
 
   .ed-divider {
@@ -104,9 +98,6 @@ const navigate = computed(() => appearanceStore.getNavigate)
 
   .system {
     color: #000 !important;
-  }
-  .de-logo {
-    color: #3371ff !important;
   }
 }
 .header-flex {

@@ -1,9 +1,10 @@
 package io.dataease.listener;
 
-import io.dataease.license.utils.LogUtil;
+import io.dataease.utils.LogUtil;
 import io.dataease.template.manage.TemplateLocalParseManage;
 import jakarta.annotation.Resource;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -15,8 +16,15 @@ public class TemplateInitListener implements ApplicationListener<ApplicationRead
     @Resource
     private TemplateLocalParseManage templateLocalParseManage;
 
+    @Value("${dataease.internal-lite.enabled:false}")
+    private boolean internalLiteEnabled;
+
     @Override
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
+        if (internalLiteEnabled) {
+            LogUtil.info("=====Template init skipped in internal lite mode=====");
+            return;
+        }
         LogUtil.info("=====Template init from code [Start]=====");
         try{
             templateLocalParseManage.doInit();

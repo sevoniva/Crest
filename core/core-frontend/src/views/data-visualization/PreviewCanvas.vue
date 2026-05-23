@@ -11,10 +11,9 @@ import { getOuterParamsInfo } from '@/api/visualization/outerParams'
 import { ElMessage } from 'element-plus-secondary'
 import { useEmbedded } from '@/store/modules/embedded'
 import { useI18n } from '@/hooks/web/useI18n'
-import { XpackComponent } from '@/components/plugin'
 import { propTypes } from '@/utils/propTypes'
 import { downloadCanvas2 } from '@/utils/imgUtils'
-import { isLink, setTitle } from '@/utils/utils'
+import { setTitle } from '@/utils/utils'
 import EmptyBackground from '../../components/empty-background/src/EmptyBackground.vue'
 import { useRoute } from 'vue-router_2'
 import { filterEnumMapSync } from '@/utils/componentUtils'
@@ -113,16 +112,6 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
     }
   }
 
-  const initBrowserTimer = () => {
-    if (state.canvasStylePreview.refreshBrowserEnable && isLink()) {
-      const gap = state.canvasStylePreview.refreshBrowserUnit === 'minute' ? 60 : 1
-      const browserRefreshTime = state.canvasStylePreview.refreshBrowserTime * gap * 1000
-      setTimeout(() => {
-        window.location.reload()
-      }, browserRefreshTime)
-    }
-  }
-
   await initCanvasData(
     dvId,
     {
@@ -166,7 +155,6 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
         document.title = dvInfo.name
         setTitle(dvInfo.name)
       }
-      initBrowserTimer()
       await nextTick(() => {
         onInitReady({ resourceId: dvId })
       })
@@ -193,9 +181,7 @@ watch(
   { deep: true }
 )
 
-let p = null
 let p1 = null
-const XpackLoaded = () => p(true)
 const initIframe = () => p1(true)
 onMounted(async () => {
   useEmitt({
@@ -317,18 +303,8 @@ defineExpose({
       img-type="noneWhite"
     />
   </div>
-  <XpackComponent
-    jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvTmV3V2luZG93SGFuZGxlcg=="
-    @loaded="XpackLoaded"
-    @load-fail="XpackLoaded"
-  />
 
-  <XpackComponent
-    jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvRW50cmFuY2Vz"
-    @init-iframe="initIframe"
-    @load-fail="initIframe"
-  />
-</template>
+  </template>
 
 <style lang="less">
 @media print {

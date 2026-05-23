@@ -20,7 +20,6 @@ import io.dataease.exportCenter.util.ExportCenterUtils;
 import io.dataease.extensions.datasource.dto.DatasetTableFieldDTO;
 import io.dataease.extensions.view.dto.*;
 import io.dataease.i18n.Lang;
-import io.dataease.license.manage.F2CLicLimitedManage;
 import io.dataease.log.DeLog;
 import io.dataease.result.ResultCode;
 import io.dataease.utils.CommonBeanFactory;
@@ -59,6 +58,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/chartData")
+@SuppressWarnings("unchecked")
 public class ChartDataServer implements ChartDataApi {
     @Resource
     private ChartDataManage chartDataManage;
@@ -73,8 +73,6 @@ public class ChartDataServer implements ChartDataApi {
     @Resource
     private DatasetFieldServer datasetFieldServer;
 
-    @Resource(name = "f2CLicLimitedManage")
-    private F2CLicLimitedManage f2CLicLimitedManage;
     @Value("${dataease.export.page.size:50000}")
     private Integer extractPageSize;
     private final Long sheetLimit = 1000000L;

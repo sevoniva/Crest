@@ -38,8 +38,6 @@ import io.dataease.extensions.datasource.vo.XpackPluginsDatasourceVO;
 import io.dataease.i18n.Translator;
 import io.dataease.job.schedule.CheckDsStatusJob;
 import io.dataease.job.schedule.ScheduleManager;
-import io.dataease.license.config.XpackInteract;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.log.DeLog;
 import io.dataease.model.BusiNodeRequest;
 import io.dataease.model.BusiNodeVO;
@@ -74,6 +72,7 @@ import static io.dataease.datasource.server.DatasourceTaskServer.ScheduleType.RI
 
 @RestController
 @RequestMapping("/datasource")
+@SuppressWarnings({"deprecation", "unchecked"})
 public class DatasourceServer implements DatasourceApi {
     private static final Pattern ORACLE_RECYCLE_BIN_TABLE_PATTERN = Pattern.compile("^BIN\\$.*\\$[0-9]+$", Pattern.CASE_INSENSITIVE);
 
@@ -481,9 +480,6 @@ public class DatasourceServer implements DatasourceApi {
                 dataSourceManage.innerEdit(requestDatasource);
             }
         } else {
-            if (!LicenseUtil.licenseValid()) {
-                requestDatasource.setEnableDataFill(null);
-            }
             checkParams(dataSourceDTO.getConfiguration());
             dataSourceManage.checkName(dataSourceDTO);
             dataSourceManage.innerEdit(requestDatasource);
@@ -630,12 +626,7 @@ public class DatasourceServer implements DatasourceApi {
 
     @Override
     public boolean perDelete(Long id) {
-        if (LicenseUtil.licenseValid()) {
-            try {
-                relationManage.checkAuth();
-            } catch (Exception e) {
-                return false;
-            }
+        if (relationManage != null) {
             Long count = relationManage.getDsResource(id);
             if (count > 0) {
                 return true;
@@ -647,7 +638,6 @@ public class DatasourceServer implements DatasourceApi {
     @Transactional
     @DeLog(id = "#p0", ot = LogOT.DELETE, st = LogST.DATASOURCE)
     @Override
-    @XpackInteract(value = "datasourceResourceTree", before = false)
     public void delete(Long datasourceId) throws DEException {
         Objects.requireNonNull(io.dataease.utils.CommonBeanFactory.getBean(DatasourceServer.class)).recursionDel(datasourceId);
     }
@@ -1069,10 +1059,8 @@ public class DatasourceServer implements DatasourceApi {
 
     private void preCheckDs(DatasourceDTO datasource) throws DEException {
         List<String> list = datasourceTypes().stream().map(DatasourceConfiguration.DatasourceType::getType).collect(Collectors.toList());
-        if (LicenseUtil.licenseValid()) {
-            List<XpackPluginsDatasourceVO> xpackPluginsDatasourceVOS = pluginManage.queryPluginDs();
-            xpackPluginsDatasourceVOS.forEach(ele -> list.add(ele.getType()));
-        }
+        List<XpackPluginsDatasourceVO> pluginDatasourceList = pluginManage.queryPluginDs();
+        pluginDatasourceList.forEach(ele -> list.add(ele.getType()));
 
         if (!list.contains(datasource.getType())) {
             DEException.throwException("Datasource type not supported.");
@@ -1180,7 +1168,6 @@ public class DatasourceServer implements DatasourceApi {
                 syncDsIds.add(datasource.getId());
                 commonThreadPool.addTask(() -> {
                     try {
-                        LicenseUtil.validate();
                         validate(datasource);
                     } catch (Exception e) {
                         LogUtil.error(e.getMessage(), e);

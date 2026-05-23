@@ -12,7 +12,6 @@ import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { activeWatermarkCheckUser, removeActiveWatermark } from '@/components/watermark/watermark'
 import { isMobile } from '@/utils/utils'
 import { isMainCanvas } from '@/utils/canvasUtils'
-import { XpackComponent } from '@/components/plugin'
 import DePreviewPopDialog from '@/components/visualization/DePreviewPopDialog.vue'
 import Icon from '../../icon-custom/src/Icon.vue'
 import replaceOutlined from '@/assets/svg/icon_replace_outlined.svg'
@@ -529,11 +528,7 @@ onBeforeUnmount(() => {
         :name="commonBackgroundSvgInner"
       ></Board>
     </div>
-    <XpackComponent
-      ref="openHandler"
-      jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvT3BlbkhhbmRsZXI="
-    />
-    <DePreviewPopDialog ref="dePreviewPopDialogRef"></DePreviewPopDialog>
+        <DePreviewPopDialog ref="dePreviewPopDialogRef"></DePreviewPopDialog>
   </div>
 </template>
 

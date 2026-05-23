@@ -8,7 +8,6 @@ import io.dataease.api.visualization.request.VisualizationWorkbranchQueryRequest
 import io.dataease.api.visualization.vo.VisualizationStoreVO;
 import io.dataease.constant.BusiResourceEnum;
 import io.dataease.exception.DEException;
-import io.dataease.license.config.XpackInteract;
 import io.dataease.utils.AuthUtils;
 import io.dataease.utils.CommonBeanFactory;
 import io.dataease.utils.CommunityUtils;
@@ -65,8 +64,6 @@ public class VisualizationStoreManage {
         queryWrapper.eq("uid", AuthUtils.getUser().getUserId());
         return coreStoreMapper.exists(queryWrapper);
     }
-
-    @XpackInteract(value = "perFilterManage", recursion = true, invalid = true)
     public IPage<VisualizationStoreVO> query(int pageNum, int pageSize, VisualizationWorkbranchQueryRequest request) {
         IPage<StorePO> storePOIPage = proxy().queryStorePage(pageNum, pageSize, request);
         if (ObjectUtils.isEmpty(storePOIPage)) return null;

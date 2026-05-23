@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class LiquidHandler extends NumericalChartHandler {
     @Getter
     private String type = "liquid";

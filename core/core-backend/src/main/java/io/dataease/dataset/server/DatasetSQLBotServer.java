@@ -5,6 +5,7 @@ import io.dataease.api.dataset.vo.DataSQLBotAssistantVO;
 import io.dataease.api.dataset.vo.DataSQLBotDatasetVO;
 import io.dataease.dataset.manage.DatasetSQLBotManage;
 import jakarta.annotation.Resource;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/sqlbot")
+@ConditionalOnProperty(prefix = "dataease.internal-lite", name = "enabled", havingValue = "false", matchIfMissing = true)
 public class DatasetSQLBotServer implements DataAssistantApi {
 
     @Resource

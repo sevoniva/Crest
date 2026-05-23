@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class ScatterHandler extends YoyChartHandler {
     @Getter
     private String type = "scatter";

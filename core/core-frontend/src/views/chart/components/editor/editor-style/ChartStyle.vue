@@ -26,8 +26,6 @@ import MiscStyleSelector from '@/views/chart/components/editor/editor-style/comp
 import IndicatorValueSelector from '@/views/chart/components/editor/editor-style/components/IndicatorValueSelector.vue'
 import IndicatorNameSelector from '@/views/chart/components/editor/editor-style/components/IndicatorNameSelector.vue'
 import QuadrantSelector from '@/views/chart/components/editor/editor-style/components/QuadrantSelector.vue'
-import FlowMapLineSelector from '@/views/chart/components/editor/editor-style/components/FlowMapLineSelector.vue'
-import FlowMapPointSelector from '@/views/chart/components/editor/editor-style/components/FlowMapPointSelector.vue'
 import CommonBorderSetting from '@/custom-component/common/CommonBorderSetting.vue'
 import { snapshotStoreWithOut } from '@/store/modules/data-visualization/snapshot'
 import BulletTargetSelector from '@/views/chart/components/editor/editor-style/components/bullet/BulletTargetSelector.vue'
@@ -128,8 +126,6 @@ const emit = defineEmits([
   'onIndicatorChange',
   'onIndicatorNameChange',
   'onChangeQuadrantForm',
-  'onChangeFlowMapLineForm',
-  'onChangeFlowMapPointForm'
 ])
 
 const indicatorValueRef = ref()
@@ -233,12 +229,6 @@ const onExtTooltipChange = val => {
 }
 const onChangeQuadrantForm = val => {
   emit('onChangeQuadrantForm', val)
-}
-const onChangeFlowMapLineForm = (val, prop) => {
-  emit('onChangeFlowMapLineForm', val, prop)
-}
-const onChangeFlowMapPointForm = val => {
-  emit('onChangeFlowMapPointForm', val)
 }
 watch(
   () => props.chart.id,
@@ -564,35 +554,6 @@ watch(
               :themes="themes"
               :chart="chart"
               @onChangeQuadrantForm="onChangeQuadrantForm"
-            />
-          </el-collapse-item>
-          <el-collapse-item
-            :effect="themes"
-            name="flowMapLineSelector"
-            :title="t('chart.line')"
-            v-if="showProperties('flow-map-line-selector')"
-          >
-            <flow-map-line-selector
-              class="attr-selector"
-              :property-inner="propertyInnerAll['flow-map-line-selector']"
-              :themes="themes"
-              :chart="chart"
-              @onChangeFlowMapLineForm="onChangeFlowMapLineForm"
-              @onBasicStyleChange="onBasicStyleChange"
-            />
-          </el-collapse-item>
-          <el-collapse-item
-            :effect="themes"
-            name="flowMapPointSelector"
-            :title="t('visualization.component_annotation')"
-            v-if="showProperties('flow-map-point-selector')"
-          >
-            <flow-map-point-selector
-              class="attr-selector"
-              :property-inner="propertyInnerAll['flow-map-point-selector']"
-              :themes="themes"
-              :chart="chart"
-              @onChangeFlowMapPointForm="onChangeFlowMapPointForm"
             />
           </el-collapse-item>
         </el-collapse>

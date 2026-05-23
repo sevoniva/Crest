@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component
+@SuppressWarnings("unchecked")
 public class BulletGraphHandler extends YoyChartHandler {
     @Getter
     private String type = "bullet-graph";

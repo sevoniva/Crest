@@ -50,7 +50,7 @@ DataEaseは、ユーザーがデータを迅速に分析し、ビジネスの洞
 curl -sSL https://dataease.oss-cn-hangzhou.aliyuncs.com/quick_start_v2.sh | bash
 
 # ユーザー名: admin
-# パスワード: DataEase@123456
+# パスワード: admin
 ```
 
 ## 技術スタック

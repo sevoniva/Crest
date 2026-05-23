@@ -6,9 +6,7 @@ import icon_app_outlined from '@/assets/svg/icon_app_outlined.svg'
 import icon_dashboard_outlined from '@/assets/svg/icon_dashboard_outlined.svg'
 import icon_database_outlined from '@/assets/svg/icon_database_outlined.svg'
 import icon_operationAnalysis_outlined from '@/assets/svg/icon_operation-analysis_outlined.svg'
-import dvDashboardSpineMobile from '@/assets/svg/dv-dashboard-spine-mobile.svg'
 import icon_pc_outlined from '@/assets/svg/icon_pc_outlined.svg'
-import dvDashboardSpineMobileDisabled from '@/assets/svg/dv-dashboard-spine-mobile-disabled.svg'
 import { useI18n } from '@/hooks/web/useI18n'
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import type { TabsPaneContext } from 'element-plus-secondary'
@@ -20,11 +18,8 @@ import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import { storeApi } from '@/api/visualization/dataVisualization'
 import { useCache } from '@/hooks/web/useCache'
 import { useUserStoreWithOut } from '@/store/modules/user'
-import ShareGrid from '@/views/share/share/ShareGrid.vue'
-import ShareHandler from '@/views/share/share/ShareHandler.vue'
 import { useAppStoreWithOut } from '@/store/modules/app'
 import { useEmbedded } from '@/store/modules/embedded'
-import { XpackComponent } from '@/components/plugin'
 const userStore = useUserStoreWithOut()
 const { resolve } = useRouter()
 const { t } = useI18n()
@@ -33,9 +28,7 @@ const { wsCache } = useCache()
 const appStore = useAppStoreWithOut()
 const embeddedStore = useEmbedded()
 
-import { useShareStoreWithOut } from '@/store/modules/share'
 import { cloneDeep } from 'lodash-es'
-const shareStore = useShareStoreWithOut()
 const { push } = useRouter()
 defineProps({
   expand: {
@@ -53,15 +46,12 @@ const state = reactive({
   tableColumn: []
 })
 const busiDataMap = computed(() => interactiveStore.getData)
-const shareDisable = computed(() => {
-  return shareStore.getShareDisable || desktop
-})
 const iconMap = {
   panel: icon_dashboard_outlined,
-  panelMobile: dvDashboardSpineMobile,
+  panelMobile: icon_dashboard_outlined,
   dashboard: icon_dashboard_outlined,
-  dashboardMobile: dvDashboardSpineMobile,
-  dashboardMobileDisabled: dvDashboardSpineMobileDisabled,
+  dashboardMobile: icon_dashboard_outlined,
+  dashboardMobileDisabled: icon_dashboard_outlined,
   screen: icon_operationAnalysis_outlined,
   dataV: icon_operationAnalysis_outlined,
   dataset: icon_app_outlined,
@@ -147,8 +137,7 @@ const loadTableData = () => {
 
 const baseTablePaneList = ref([
   { title: t('work_branch.my_collection'), name: 'store', disabled: false },
-  { title: t('work_branch.recently_used'), name: 'recent', disabled: false },
-  { title: t('visualization.share_out'), name: 'share', disabled: false }
+  { title: t('work_branch.recently_used'), name: 'recent', disabled: false }
 ])
 
 const dfTablePaneList = ref([])
@@ -227,10 +216,6 @@ const handleCellClick = row => {
   }
 }
 
-const setLoading = (val: boolean) => {
-  loading.value = val
-}
-
 const executeStore = rowInfo => {
   const param = {
     id: rowInfo.id,
@@ -289,7 +274,7 @@ const getEmptyDesc = (): string => {
   >
     <el-tabs v-model="activeName" class="dashboard-type-tabs" @tab-click="handleClick">
       <el-tab-pane
-        v-for="item in tablePaneList.filter(panel => !shareDisable || panel.name !== 'share')"
+        v-for="item in tablePaneList"
         :key="item.name"
         :disabled="item.disabled"
         :label="item.title"
@@ -310,7 +295,6 @@ const getEmptyDesc = (): string => {
       </el-tab-pane>
     </el-tabs>
     <template v-if="busiAuthList.length">
-      <share-grid v-if="!shareDisable" :active-name="activeName" @set-loading="setLoading" />
       <el-row v-if="activeName === 'recent' || activeName === 'store'">
         <el-col :span="12">
           <el-select
@@ -452,14 +436,6 @@ const getEmptyDesc = (): string => {
                       <Icon name="icon_pc_outlined"><icon_pc_outlined class="svg-icon" /></Icon>
                     </el-icon>
                   </el-tooltip>
-                  <ShareHandler
-                    v-if="!shareDisable"
-                    :in-grid="true"
-                    :disabled="checkDisabled(scope.row)"
-                    :weight="scope.row.weight"
-                    :resource-id="activeName === 'recent' ? scope.row.id : scope.row.resourceId"
-                    :resource-type="scope.row.type"
-                  />
                   <el-tooltip
                     v-if="activeName === 'store'"
                     effect="dark"
@@ -498,21 +474,13 @@ const getEmptyDesc = (): string => {
         </GridTable>
       </div>
     </template>
-    <XpackComponent
-      jsname="L21lbnUvZGF0YS9kYXRhLWZpbGxpbmcvZmlsbC9UYWJQYW5lVGFibGU="
-      v-if="activeName === 'data-filling'"
-    />
-  </div>
+      </div>
   <el-empty
     class="dashboard-type"
     v-else
     :description="t('work_branch.administrator_for_authorization')"
   />
-  <XpackComponent
-    jsname="L21lbnUvZGF0YS9kYXRhLWZpbGxpbmcvZmlsbC9UYWJQYW5l"
-    @loaded="loadedDataFilling"
-  />
-</template>
+  </template>
 
 <style lang="less" scoped>
 .dashboard-type {

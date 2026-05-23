@@ -5,9 +5,7 @@ import { storeToRefs } from 'pinia'
 import { findComponentAttr } from '../../utils/components'
 import DvSidebar from '../../components/visualization/DvSidebar.vue'
 import router from '@/router'
-import MobileConfigPanel from './MobileConfigPanel.vue'
 import { useAppStoreWithOut } from '@/store/modules/app'
-import { useEmitt } from '@/hooks/web/useEmitt'
 import DbToolbar from '@/components/dashboard/DbToolbar.vue'
 import ViewEditor from '@/views/chart/components/editor/index.vue'
 import { getDatasetTree } from '@/api/dataset'
@@ -18,12 +16,10 @@ import ChartStyleBatchSet from '@/views/chart/components/editor/editor-style/Cha
 import DeCanvas from '@/views/canvas/DeCanvas.vue'
 import { check, compareStorage } from '@/utils/CrossPermission'
 import { useCache } from '@/hooks/web/useCache'
-import { cloneDeep } from 'lodash-es'
 import { useEmbedded } from '@/store/modules/embedded'
 import { snapshotStoreWithOut } from '@/store/modules/data-visualization/snapshot'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import { watermarkFind } from '@/api/watermark'
-import { XpackComponent } from '@/components/plugin'
 import { Base64 } from 'js-base64'
 import CanvasCacheDialog from '@/components/visualization/CanvasCacheDialog.vue'
 import { deepCopy } from '@/utils/utils'
@@ -34,7 +30,6 @@ import eventBus from '@/utils/eventBus'
 import { useI18n } from '@/hooks/web/useI18n'
 import DashboardHiddenComponent from '@/components/dashboard/DashboardHiddenComponent.vue'
 import { recoverToPublished } from '@/api/visualization/dataVisualization'
-import SqlAssistant from '@/views/sqlbot/assistant.vue'
 import { contextmenuStoreWithOut } from '@/store/modules/data-visualization/contextmenu'
 const contextmenuStore = contextmenuStoreWithOut()
 const embeddedStore = useEmbedded()
@@ -120,30 +115,8 @@ const checkPer = async resourceId => {
   return check(wsCache.get('panel-weight'), resourceId, 4)
 }
 
-const mobileConfig = ref(false)
-
-const onMobileConfig = () => {
-  const canvasStyleDataCopy = cloneDeep(canvasStyleData.value)
-  if (!canvasStyleDataCopy.mobileSetting) {
-    canvasStyleDataCopy.mobileSetting = {
-      backgroundColorSelect: false,
-      background: '',
-      color: '#ffffff',
-      backgroundImageEnable: false,
-      customSetting: false
-    }
-  }
-  dvMainStore.setCanvasStyle(canvasStyleDataCopy)
-  nextTick(() => {
-    mobileConfig.value = true
-    dvMainStore.setCurComponent({ component: null, index: null })
-  })
-}
-
 const loadFinish = ref(false)
 const newWindowFromDiv = ref(false)
-let p = null
-const XpackLoaded = () => p(true)
 
 const doUseCache = flag => {
   const canvasCache = wsCache.get('DE-DV-CATCH-' + state.resourceId)
@@ -192,14 +165,7 @@ onMounted(async () => {
   if (window.location.hash.includes('#/dashboard')) {
     newWindowFromDiv.value = true
   }
-  await new Promise(r => (p = r))
   loadFinish.value = true
-  useEmitt({
-    name: 'mobileConfig',
-    callback: () => {
-      onMobileConfig()
-    }
-  })
   window.addEventListener('storage', eventCheck)
   window.addEventListener('message', winMsgHandle)
   const resourceId = embeddedStore.resourceId || router.currentRoute.value.query.resourceId
@@ -335,7 +301,7 @@ onUnmounted(() => {
     class="dv-common-layout dv-teleport-query"
     :class="isDataEaseBi && !newWindowFromDiv && 'dataease-w-h'"
     v-loading="requestStore.loadingMap[permissionStore.currentPath]"
-    v-if="loadFinish && !mobileConfig"
+    v-if="loadFinish"
   >
     <DbToolbar @recoverToPublished="doRecoverToPublished" />
     <el-container
@@ -343,7 +309,6 @@ onUnmounted(() => {
       :class="{ 'preview-content': editMode === 'preview' }"
       element-loading-background="rgba(0, 0, 0, 0)"
     >
-      <!--      <SqlAssistant></SqlAssistant>-->
       <!-- 中间画布 -->
       <main class="center" :class="{ 'de-screen-full': fullscreenFlag }">
         <de-canvas
@@ -412,16 +377,6 @@ onUnmounted(() => {
       </dv-sidebar>
     </el-container>
   </div>
-  <MobileConfigPanel
-    @pcMode="mobileConfig = false"
-    v-else-if="loadFinish && mobileConfig"
-  ></MobileConfigPanel>
-  <XpackComponent
-    jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvTmV3V2luZG93SGFuZGxlcg=="
-    @loaded="XpackLoaded"
-    @load-fail="XpackLoaded"
-  />
-  <xpack-component jsname="L2NvbXBvbmVudC90aHJlc2hvbGQtd2FybmluZy9UaHJlc2hvbGREaWFsb2c=" />
   <canvas-cache-dialog ref="canvasCacheOutRef" @doUseCache="doUseCache"></canvas-cache-dialog>
 </template>
 

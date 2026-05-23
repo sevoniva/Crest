@@ -9,7 +9,6 @@ import dvTab from '@/assets/svg/dv-tab.svg'
 import dvText from '@/assets/svg/dv-text.svg'
 import dvView from '@/assets/svg/dv-view.svg'
 import icon_params_setting from '@/assets/svg/icon_params_setting.svg'
-import icon_phone_outlined from '@/assets/svg/icon_phone_outlined.svg'
 import icon_copy_filled from '@/assets/svg/icon_copy_filled.svg'
 import icon_left_outlined from '@/assets/svg/icon_left_outlined.svg'
 import icon_undo_outlined from '@/assets/svg/icon_undo_outlined.svg'
@@ -51,7 +50,6 @@ import { copyStoreWithOut } from '@/store/modules/data-visualization/copy'
 import TabsGroup from '@/custom-component/component-group/TabsGroup.vue'
 import DeResourceGroupOpt from '@/views/common/DeResourceGroupOpt.vue'
 import OuterParamsSet from '@/components/visualization/OuterParamsSet.vue'
-import { XpackComponent } from '@/components/plugin'
 import DbMoreComGroup from '@/custom-component/component-group/DbMoreComGroup.vue'
 import { useCache } from '@/hooks/web/useCache'
 import DeFullscreen from '@/components/visualization/common/DeFullscreen.vue'
@@ -91,7 +89,6 @@ const outerParamsSetRef = ref(null)
 const { wsCache } = useCache('localStorage')
 const userStore = useUserStoreWithOut()
 const isIframe = computed(() => appStore.getIsIframe)
-const desktop = wsCache.get('app.desktop')
 const emits = defineEmits(['recoverToPublished'])
 
 defineProps({
@@ -374,14 +371,6 @@ const openDataBoardSetting = () => {
 
 const openHiddenList = () => {
   dvMainStore.setHiddenListStatus()
-}
-
-const openMobileSetting = () => {
-  if (!dvInfo.value.id || dvInfo.value.dataState === 'prepare') {
-    ElMessage.warning(t('components.current_page_first'))
-    return
-  }
-  useEmitt().emitter.emit('mobileConfig')
 }
 
 const batchDelete = () => {
@@ -684,21 +673,6 @@ const initOpenHandler = newWindow => {
               :icon-name="dvHidden"
             />
           </el-tooltip>
-          <div class="divider"></div>
-          <template v-if="!desktop">
-            <el-tooltip
-              :offset="14"
-              effect="dark"
-              :content="t('components.to_mobile_layout')"
-              placement="bottom"
-            >
-              <component-button
-                :tips="t('components.to_mobile_layout')"
-                @custom-click="openMobileSetting"
-                :icon-name="icon_phone_outlined"
-              />
-            </el-tooltip>
-          </template>
         </template>
 
         <el-dropdown v-if="editMode === 'edit'" trigger="hover">
@@ -846,8 +820,7 @@ const initOpenHandler = newWindow => {
     <outer-params-set ref="outerParamsSetRef"> </outer-params-set>
   </div>
   <de-fullscreen show-position="edit" ref="fullScreeRef"></de-fullscreen>
-  <XpackComponent ref="openHandler" jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvT3BlbkhhbmRsZXI=" />
-  <de-app-apply
+    <de-app-apply
     ref="resourceAppOpt"
     :component-data="componentData"
     :dv-info="dvInfo"

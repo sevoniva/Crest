@@ -1,9 +1,7 @@
 <script lang="ts" setup>
-import DataEase from '@/assets/svg/DataEase.svg'
 import { ref, reactive, onMounted, computed, nextTick } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { FormRules, FormInstance } from 'element-plus-secondary'
-import { Icon } from '@/components/icon-custom'
 import { loginApi, queryDekey } from '@/api/login'
 import { useCache } from '@/hooks/web/useCache'
 import { useAppStoreWithOut } from '@/store/modules/app'
@@ -13,9 +11,9 @@ import { useAppearanceStoreWithOut } from '@/store/modules/appearance'
 import { rsaEncryp } from '@/utils/encryption'
 import router from '@/router'
 import { ElMessage } from 'element-plus-secondary'
-import { XpackComponent } from '@/components/plugin'
 import { logoutHandler } from '@/utils/logout'
 import DeImage from '@/assets/login-desc-de.png'
+import crestLogo from '@/assets/img/crest-logo-horizontal-192h.png'
 import elementResizeDetectorMaker from 'element-resize-detector'
 import { cleanPlatformFlag } from '@/utils/utils'
 import xss from 'xss'
@@ -35,9 +33,7 @@ const loginImageUrl = ref(null)
 const slogan = ref(null)
 const footContent = ref(null)
 const loginErrorMsg = ref('')
-const xpackLoginHandler = ref()
 const showDempTips = ref(false)
-const xpackInvalidPwd = ref()
 const demoTips = computed(() => {
   if (!showDempTips.value) {
     return ''
@@ -73,16 +69,19 @@ const enterHandler = e => {
 }
 const formRef = ref<FormInstance | undefined>()
 const duringLogin = ref(true)
+const refreshDekey = async () => {
+  const res = await queryDekey()
+  if (res?.data) {
+    wsCache.set(appStore.getDekey, res.data)
+  }
+}
 const handleLogin = () => {
   if (!formRef.value) return
   formRef.value.validate(async (valid: boolean) => {
     if (valid) {
       const name = state.loginForm.username.trim()
       const pwd = state.loginForm.password
-      if (!wsCache.get(appStore.getDekey)) {
-        const res = await queryDekey()
-        wsCache.set(appStore.getDekey, res.data)
-      }
+      await refreshDekey()
       const param = { name: rsaEncryp(name), pwd: rsaEncryp(pwd) }
       const isLdap = activeName.value === 'ldap'
       if (isLdap) {
@@ -93,16 +92,7 @@ const handleLogin = () => {
       loginApi(param)
         .then(res => {
           const { token, exp, mfa } = res.data
-          if (!isLdap && !xpackLoadFail.value && xpackInvalidPwd.value?.invokeMethod) {
-            const param = {
-              methodName: 'init',
-              args: res.data
-            }
-            xpackInvalidPwd?.value.invokeMethod(param)
-            return
-          }
           if (!isLdap && mfa?.enabled) {
-            xpackLoginHandler.value?.invokeMethod({ methodName: 'toMfa', args: mfa })
             duringLogin.value = false
             return
           }
@@ -118,21 +108,6 @@ const handleLogin = () => {
     }
   })
 }
-const invalidPwdCb = cbParam => {
-  const val = cbParam['status']
-  duringLogin.value = !!val
-  if (val) {
-    const mfa = cbParam['mfa']
-    if (mfa?.enabled) {
-      xpackLoginHandler.value?.invokeMethod({ methodName: 'toMfa', args: mfa })
-      duringLogin.value = false
-      return
-    }
-    const queryRedirectPath = getCurLocation()
-    router.push({ path: queryRedirectPath })
-  }
-}
-const xpackLoadFail = ref(false)
 const loadingText = ref('加载中...')
 const loginContainer = ref()
 const loginContainerWidth = ref(0)
@@ -140,7 +115,7 @@ const showLoginImage = computed<boolean>(() => {
   return !(loginContainerWidth.value < 889)
 })
 
-const preheat = ref(true)
+const preheat = ref(false)
 const showLoginErrorMsg = () => {
   if (!loginErrorMsg.value) {
     return
@@ -238,11 +213,7 @@ onMounted(async () => {
     localStorage.removeItem('DE-GATEWAY-FLAG')
     logoutHandler(true)
   }
-  if (!wsCache.get(appStore.getDekey)) {
-    queryDekey().then(res => {
-      wsCache.set(appStore.getDekey, res.data)
-    })
-  }
+  refreshDekey()
   const erd = elementResizeDetectorMaker()
   erd.listenTo(loginContainer.value, () => {
     nextTick(() => {
@@ -281,14 +252,7 @@ onMounted(async () => {
             :disabled="preheat"
           >
             <div class="login-logo">
-              <Icon
-                v-if="!loginLogoUrl && axiosFinished"
-                className="login-logo-icon"
-                name="DataEase"
-              >
-                <DataEase class="login-logo-icon" />
-              </Icon>
-              <img v-if="loginLogoUrl && axiosFinished" :src="loginLogoUrl" alt="" />
+              <img v-if="axiosFinished" :src="loginLogoUrl || crestLogo" alt="Crest" />
             </div>
             <div v-if="showSlogan" class="login-welcome">
               {{ slogan || t('system.available_to_everyone') }}
@@ -339,19 +303,6 @@ onMounted(async () => {
                 </div>
               </div>
 
-              <XpackComponent
-                ref="xpackLoginHandler"
-                jsname="L2NvbXBvbmVudC9sb2dpbi9IYW5kbGVy"
-                @switch-tab="switchTab"
-                @auto-callback="autoCallback"
-                @load-fail="handlerFail"
-              />
-              <XpackComponent
-                ref="xpackInvalidPwd"
-                jsname="L2NvbXBvbmVudC9sb2dpbi9JbnZhbGlkUHdk"
-                @load-fail="() => (xpackLoadFail = true)"
-                @call-back="invalidPwdCb"
-              />
             </div>
 
             <div class="login-msg">

@@ -30,12 +30,7 @@
     :setting-data="templateListTime"
   />
   <!--    数据填报      -->
-  <XpackComponent
-    style="max-width: 100%; padding: 0 24px 8px"
-    :nodeInfo="xPackInfo"
-    jsname="L2NvbXBvbmVudC9kYXRhLWZpbGxpbmcvRGF0YXNvdXJjZURhdGFGaWxsaW5nSW5mbw=="
-  />
-</template>
+  </template>
 
 <script lang="ts" setup>
 import icon_down_outlined1 from '@/assets/svg/icon_down_outlined-1.svg'
@@ -50,7 +45,6 @@ import { getDeEngine } from '@/api/datasource'
 import request from '@/config/axios'
 import { querySymmetricKey } from '@/api/login'
 import { symmetricDecrypt } from '@/utils/encryption'
-import { XpackComponent } from '@/components/plugin'
 const { t } = useI18n()
 const typeMap = dsTypes.reduce((pre, next) => {
   pre[next.type] = next.name

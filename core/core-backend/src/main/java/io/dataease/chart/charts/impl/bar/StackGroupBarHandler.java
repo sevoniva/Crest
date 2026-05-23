@@ -16,6 +16,7 @@ import static io.dataease.extensions.view.dto.ChartAxis.extStack;
 import static io.dataease.extensions.view.dto.ChartAxis.xAxisExt;
 
 @Component
+@SuppressWarnings("unchecked")
 public class StackGroupBarHandler extends BarHandler {
     @Getter
     private String type = "bar-group-stack";

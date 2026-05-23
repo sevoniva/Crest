@@ -6,10 +6,7 @@ import { Icon } from '@/components/icon-custom'
 import { useUserStoreWithOut } from '@/store/modules/user'
 import { logoutApi } from '@/api/login'
 import { logoutHandler } from '@/utils/logout'
-import { XpackComponent } from '@/components/plugin'
 import { useI18n } from '@/hooks/web/useI18n'
-import { useEmitt } from '@/hooks/web/useEmitt'
-import AboutPage from '@/views/about/index.vue'
 import LangSelector from './LangSelector.vue'
 import router from '@/router'
 import { useCache } from '@/hooks/web/useCache'
@@ -26,10 +23,7 @@ interface LinkItem {
   link?: string
   method?: string
 }
-const linkList = ref([{ id: 5, label: t('common.about'), method: 'toAbout' }] as LinkItem[])
-if (!appearanceStore.getShowAbout) {
-  linkList.value.splice(0, 1)
-}
+const linkList = ref([] as LinkItem[])
 
 const inPlatformClient = computed(() => !!wsCache.get('de-platform-client'))
 
@@ -42,38 +36,12 @@ const linkLoaded = items => {
   items.forEach(item => linkList.value.push(item))
   linkList.value.sort(compare('id'))
 }
-const xpackLinkLoaded = items => {
-  let len = linkList.value.length
-  while (len--) {
-    if (linkList.value[len]?.id === 2 && linkList.value[len]?.link === '/modify-pwd/index') {
-      linkList.value.splice(len, 1)
-    }
-  }
-  items.forEach(item => linkList.value.push(item))
-  if (inPlatformClient.value) {
-    len = linkList.value.length
-    while (len--) {
-      if (linkList.value[len]?.id === 2) {
-        linkList.value.splice(len, 1)
-      }
-    }
-  }
-  linkList.value.sort(compare('id'))
-}
 
 const compare = (property: string) => {
   return (a, b) => a[property] - b[property]
 }
 
-const toAbout = () => {
-  useEmitt().emitter.emit('open-about-dialog')
-}
-
 const executeMethod = (item: LinkItem) => {
-  if (item?.method) {
-    toAbout()
-  }
-
   if (item.link) {
     router.push(item.link)
   }
@@ -175,9 +143,6 @@ if (uid.value === '1') {
       </div>
     </div>
   </el-popover>
-
-  <AboutPage />
-  <XpackComponent jsname="dWNlbnRlci1oYW5kbGVy" @loaded="xpackLinkLoaded" />
 </template>
 
 <style lang="less">

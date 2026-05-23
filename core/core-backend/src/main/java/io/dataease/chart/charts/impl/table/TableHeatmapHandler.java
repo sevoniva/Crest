@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class TableHeatmapHandler extends DefaultChartHandler {
 
     @Getter

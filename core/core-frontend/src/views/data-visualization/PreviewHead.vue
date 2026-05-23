@@ -17,12 +17,10 @@ import { useEmbedded } from '@/store/modules/embedded'
 import { storeApi, storeStatusApi } from '@/api/visualization/dataVisualization'
 import { ref, watch, computed } from 'vue'
 import ShareVisualHead from '@/views/share/share/ShareVisualHead.vue'
-import { XpackComponent } from '@/components/plugin'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import { useShareStoreWithOut } from '@/store/modules/share'
 import { exportPermission } from '@/utils/utils'
 import { useCache } from '@/hooks/web/useCache'
-import { isDesktop } from '@/utils/ModelUtil'
 
 const shareStore = useShareStoreWithOut()
 const { wsCache } = useCache('localStorage')
@@ -48,7 +46,7 @@ const preview = () => {
 }
 const isDataEaseBi = computed(() => appStore.getIsDataEaseBi)
 const isIframe = computed(() => appStore.getIsIframe)
-const shareDisable = computed(() => shareStore.getShareDisable || isDesktop())
+const shareDisable = computed(() => shareStore.getShareDisable)
 const exportPermissions = computed(() =>
   exportPermission(dvInfo.value['weight'], dvInfo.value['ext'])
 )
@@ -229,8 +227,7 @@ const initOpenHandler = newWindow => {
       </el-dropdown>
     </div>
   </div>
-  <XpackComponent ref="openHandler" jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvT3BlbkhhbmRsZXI=" />
-</template>
+  </template>
 
 <style lang="less">
 .pad12 {

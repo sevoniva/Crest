@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class HeatMapHandler extends DefaultChartHandler {
     @Getter
     private String type = "heat-map";

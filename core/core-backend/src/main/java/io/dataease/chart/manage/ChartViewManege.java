@@ -29,7 +29,6 @@ import io.dataease.extensions.view.dto.*;
 import io.dataease.extensions.view.filter.FilterTreeObj;
 import io.dataease.i18n.Lang;
 import io.dataease.i18n.Translator;
-import io.dataease.license.config.XpackInteract;
 import io.dataease.utils.BeanUtils;
 import io.dataease.utils.IDUtils;
 import io.dataease.utils.JsonUtil;
@@ -57,6 +56,7 @@ import java.util.stream.Collectors;
  * @Author Junjun
  */
 @Component
+@SuppressWarnings("unchecked")
 public class ChartViewManege {
     @Resource
     private CoreChartViewMapper coreChartViewMapper;
@@ -77,6 +77,8 @@ public class ChartViewManege {
 
     @Resource
     private DatasetTableFieldManage datasetTableFieldManage;
+    @Resource
+    private ChartViewOldDataMergeService chartViewOldDataMergeService;
     @Autowired(required = false)
     private PluginManageApi pluginManage;
 
@@ -111,24 +113,19 @@ public class ChartViewManege {
     public void delete(Long id) {
         coreChartViewMapper.deleteById(id);
     }
-
-    @XpackInteract(value = "chartViewManage")
     public void disuse(List<Long> chartIdList) {
     }
 
     //镜像操作发布
-    @XpackInteract(value = "chartViewManage")
     public void publishThreshold(Long resourceId, List<Long> chartIdList) {
     }
 
     //镜像操作删除
-    @XpackInteract(value = "chartViewManage")
     public void removeThreshold(Long resourceId, String resourceTable) {
 
     }
 
     //镜像操作恢复
-    @XpackInteract(value = "chartViewManage")
     public void restoreThreshold(Long resourceId, String resourceTable) {
     }
 
@@ -480,7 +477,7 @@ public class ChartViewManege {
         }
         dto.setSenior(JsonUtil.parse(record.getSenior(), Map.class));
         dto.setDrillFields(JsonUtil.parseList(record.getDrillFields(), tokenType));
-        dto.setCustomFilter(JsonUtil.parseObject(record.getCustomFilter(), FilterTreeObj.class));
+        dto.setCustomFilter(parseCustomFilter(record.getCustomFilter()));
         dto.setViewFields(JsonUtil.parseList(record.getViewFields(), tokenType));
         dto.setFlowMapStartName(JsonUtil.parseList(record.getFlowMapStartName(), tokenType));
         dto.setFlowMapEndName(JsonUtil.parseList(record.getFlowMapEndName(), tokenType));
@@ -490,6 +487,23 @@ public class ChartViewManege {
 
         return dto;
 
+    }
+
+    private FilterTreeObj parseCustomFilter(String customFilter) {
+        if (StringUtils.isBlank(customFilter)) {
+            return null;
+        }
+        String trimmed = customFilter.trim();
+        if (trimmed.startsWith("[")) {
+            TypeReference<List<ChartFieldCustomFilterDTO>> tokenType = new TypeReference<>() {
+            };
+            List<ChartFieldCustomFilterDTO> legacyFilters = JsonUtil.parseList(trimmed, tokenType);
+            if (CollectionUtils.isEmpty(legacyFilters)) {
+                return null;
+            }
+            return chartViewOldDataMergeService.transArr2Obj(legacyFilters);
+        }
+        return JsonUtil.parseObject(trimmed, FilterTreeObj.class);
     }
 
     public String checkSameDataSet(String viewIdSource, String viewIdTarget) {

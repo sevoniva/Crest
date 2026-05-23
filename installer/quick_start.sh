@@ -27,7 +27,7 @@ import json
 import re
 
 latest_release=""
-release_pattern="v2\.\d+\.\d+$"
+release_pattern=r'v2\.\d+\.\d+$'
 
 def get_releases(page):
    try:

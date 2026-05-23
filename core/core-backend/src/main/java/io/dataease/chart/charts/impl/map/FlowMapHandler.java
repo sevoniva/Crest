@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 @Component
+@SuppressWarnings("unchecked")
 public class FlowMapHandler extends GroupChartHandler {
     @Getter
     private String type = "flow-map";

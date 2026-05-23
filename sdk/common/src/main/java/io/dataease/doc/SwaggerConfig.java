@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@SuppressWarnings("deprecation")
 public class SwaggerConfig {
 
     @Value("${dataease.version}")
@@ -36,8 +37,7 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         Contact contact = new Contact();
         contact.setName("DataEase");
-        contact.setUrl("https://www.fit2cloud.com/dataease/index.html");
-        contact.setEmail("dataease@fit2cloud.com");
+        contact.setUrl("https://dataease.io");
         return new OpenAPI()
                 .info(new Info()
                         .title("DataEaseAPI")
@@ -72,24 +72,23 @@ public class SwaggerConfig {
     public GroupedOpenApi basicSettingApi() {
         String[] packageArray = {
                 "io.dataease.system",
-                "io.dataease.map",
         };
-        return GroupedOpenApi.builder().group("5-xpackpermission").displayName("系统设置").packagesToScan(packageArray).build();
+        return GroupedOpenApi.builder().group("5-permission").displayName("系统设置").packagesToScan(packageArray).build();
     }
 
     @Bean
-    public GroupedOpenApi baseXpackApi() {
-        return GroupedOpenApi.builder().group("6-xpackbase").displayName("基础xpack").packagesToScan("io.dataease.xpack.base").build();
+    public GroupedOpenApi baseApi() {
+        return GroupedOpenApi.builder().group("6-base").displayName("基础功能").packagesToScan("io.dataease.base").build();
     }
 
     @Bean
     public GroupedOpenApi systemApi() {
-        return GroupedOpenApi.builder().group("7-xpackpermission").displayName("权限相关xpack").packagesToScan("io.dataease.xpack.permissions").build();
+        return GroupedOpenApi.builder().group("7-permission").displayName("权限相关").packagesToScan("io.dataease.permissions").build();
     }
 
     @Bean
     public GroupedOpenApi syncApi() {
-        return GroupedOpenApi.builder().group("8-xpacksync").displayName("同步管理").packagesToScan("io.dataease.xpack.sync.task").build();
+        return GroupedOpenApi.builder().group("8-sync").displayName("同步管理").packagesToScan("io.dataease.sync.task").build();
     }
 
 

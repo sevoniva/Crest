@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 
+@SuppressWarnings("unchecked")
 public class CacheUtils {
 
     private static DECacheService deCacheService;

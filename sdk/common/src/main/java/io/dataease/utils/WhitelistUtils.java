@@ -25,11 +25,11 @@ public class WhitelistUtils {
     public static List<String> WHITE_PATH = List.of(
             "/login/localLogin",
             "/apisix/check",
+            "/actuator/health",
             "/dekey",
             "/symmetricKey",
             "/index.html",
             "/model",
-            "/xpackModel",
             "/swagger-resources",
             "/doc.html",
             "/panel.html",
@@ -74,12 +74,7 @@ public class WhitelistUtils {
                 || StringUtils.startsWithAny(requestURI, "/static-resource/")
                 || StringUtils.startsWithAny(requestURI, "/appearance/image/")
                 || StringUtils.startsWithAny(requestURI, "/share/proxyInfo")
-                || StringUtils.startsWithAny(requestURI, "/xpackComponent/content")
-                || StringUtils.startsWithAny(requestURI, "/xpackComponent/pluginStaticInfo")
-                || StringUtils.startsWithAny(requestURI, "/geo/")
-                || StringUtils.startsWithAny(requestURI, "/customGeo/")
                 || StringUtils.startsWithAny(requestURI, "/websocket")
-                || StringUtils.startsWithAny(requestURI, "/map/")
                 || StringUtils.startsWithAny(requestURI, "/oauth2/")
                 || StringUtils.startsWithAny(requestURI, "/mfa/qr/")
                 || StringUtils.startsWithAny(requestURI, "/mfa/login")

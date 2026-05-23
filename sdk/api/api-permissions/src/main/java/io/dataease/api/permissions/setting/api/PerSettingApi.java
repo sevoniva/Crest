@@ -2,7 +2,6 @@ package io.dataease.api.permissions.setting.api;
 
 import com.github.xiaoymin.knife4j.annotations.ApiSupport;
 import io.dataease.api.permissions.setting.vo.PerSettingItemVO;
-import io.dataease.license.config.XpackResource;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,7 +14,6 @@ import java.util.List;
 
 @Tag(name = "认证相关设置")
 @ApiSupport(order = 882)
-@XpackResource
 public interface PerSettingApi {
 
     @Operation(summary = "查询设置")

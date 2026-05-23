@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class GaugeHandler extends NumericalChartHandler {
     @Getter
     private String type = "gauge";

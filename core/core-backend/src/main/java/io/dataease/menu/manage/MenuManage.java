@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.dataease.api.menu.vo.MenuMeta;
 import io.dataease.api.menu.vo.MenuVO;
 import io.dataease.i18n.Translator;
-import io.dataease.license.config.XpackInteract;
 import io.dataease.menu.bo.MenuTreeNode;
 import io.dataease.menu.dao.auto.entity.CoreMenu;
 import io.dataease.menu.dao.auto.mapper.CoreMenuMapper;
@@ -12,12 +11,14 @@ import io.dataease.utils.BeanUtils;
 import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -27,13 +28,20 @@ public class MenuManage {
 
     private final static int ROOTID = 0;
 
+    private static final Set<Long> INTERNAL_LITE_MENU_IDS = Set.of(
+            1L, 2L, 3L, 4L, 5L, 6L, 11L, 12L, 15L, 16L, 64L, 66L
+    );
+
     @Resource
     private CoreMenuMapper coreMenuMapper;
 
-
-    @XpackInteract(value = "menuApi")
+    @Value("${dataease.internal-lite.enabled:false}")
+    private boolean internalLiteEnabled;
     public List<MenuVO> query(List<CoreMenu> coreMenus) {
-        List<MenuTreeNode> menuTreeNodes = new ArrayList<>(coreMenus.stream().map(menu -> BeanUtils.copyBean(new MenuTreeNode(), menu)).toList());
+        List<CoreMenu> menus = internalLiteEnabled
+                ? coreMenus.stream().filter(menu -> INTERNAL_LITE_MENU_IDS.contains(menu.getId())).toList()
+                : coreMenus;
+        List<MenuTreeNode> menuTreeNodes = new ArrayList<>(menus.stream().map(menu -> BeanUtils.copyBean(new MenuTreeNode(), menu)).toList());
         menuTreeNodes.sort(Comparator.comparing(MenuTreeNode::getMenuSort));
         List<MenuTreeNode> treeNodes = buildPOTree(menuTreeNodes);
         return convertTree(treeNodes);
@@ -85,11 +93,11 @@ public class MenuManage {
         meta.setIcon(coreMenu.getIcon());
         menuVO.setMeta(meta);
 
-        menuVO.setPlugin(isXpackMenu(coreMenu));
+        menuVO.setPlugin(!internalLiteEnabled && isCommercialMenu(coreMenu));
         return menuVO;
     }
 
-    private boolean isXpackMenu(CoreMenu coreMenu) {
+    private boolean isCommercialMenu(CoreMenu coreMenu) {
         if (coreMenu.getId().equals(21L)) return false;
         return coreMenu.getId().equals(7L)
                 || coreMenu.getPid().equals(7L)

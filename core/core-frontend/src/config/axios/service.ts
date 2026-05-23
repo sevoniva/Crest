@@ -184,18 +184,10 @@ service.interceptors.response.use(
     } else if (response.config.url.match(/^\/map|geo\/\d{3}\/\d+\.json$/)) {
       //   TODO 处理静态文件
       return response
-    } else if (
-      response.config.url.includes('DEXPack.umd.js') ||
-      response.config.url.includes('/i18n/custom_')
-    ) {
-      return response
-    } else if (response.config.url.startsWith('/xpackComponent/pluginStaticInfo/extensions-')) {
+    } else if (response.config.url.includes('/i18n/custom_')) {
       return response
     } else {
-      if (
-        !response?.config?.url.startsWith('/xpackComponent/content') &&
-        response?.data?.code !== 60003
-      ) {
+      if (response?.data?.code !== 60003) {
         ElMessage({
           type: 'error',
           message: response.data.msg,
@@ -209,10 +201,6 @@ service.interceptors.response.use(
           }
           router.push(`/login?redirect=${queryRedirectPath}`)
         }
-      } else if (response?.config?.url.startsWith('/xpackComponent/content')) {
-        console.error(
-          "never mind this error about '/xpackComponent/content', just a reminder to support the official license"
-        )
       }
 
       return Promise.reject(response.data.msg)
@@ -242,7 +230,6 @@ service.interceptors.response.use(
     }
     const header = error.response?.headers as AxiosHeaders
     if (
-      !error.config.url.startsWith('/xpackComponent/content') &&
       !header.has('DE-FORBIDDEN-FLAG') &&
       !header.has('DE-GATEWAY-FLAG')
     ) {
@@ -251,10 +238,6 @@ service.interceptors.response.use(
         message: error.response?.data?.msg ? error.response?.data?.msg : error.message,
         showClose: true
       })
-    } else if (error?.config?.url.startsWith('/xpackComponent/content')) {
-      console.error(
-        "never mind this error about '/xpackComponent/content', just a reminder to support the official license"
-      )
     }
 
     error.config.loading && tryHideLoading(permissionStore.getCurrentPath)

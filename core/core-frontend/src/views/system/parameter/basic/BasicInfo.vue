@@ -86,10 +86,6 @@ const tooltips = [
   {
     key: 'setting_basic.platformRid',
     val: t('system.and_platform_docking')
-  },
-  {
-    key: 'setting_basic.shareDisable',
-    val: t('setting_basic.share_disable_tips')
   }
 ]
 const loginSettings = [
@@ -153,6 +149,7 @@ const baseInfoSettings = computed(() =>
   state.templateList.filter(
     item =>
       !loginSettings.concat(thirdSettings).includes(item.pkey) &&
+      !['setting_basic.shareDisable', 'setting_basic.sharePeRequire'].includes(item.pkey) &&
       (!desktop || item.pkey !== 'setting_basic.defaultOpen')
   )
 )
@@ -179,8 +176,6 @@ const search = cb => {
         item.pkey === 'basic.autoCreateUser' ||
         item.pkey === 'basic.dip' ||
         item.pkey === 'basic.pwdStrategy' ||
-        item.pkey === 'basic.shareDisable' ||
-        item.pkey === 'basic.sharePeRequire' ||
         item.pkey === 'basic.loginLimit'
       ) {
         item.pval = item.pval === 'true' ? t('chart.open') : t('system.not_enabled')

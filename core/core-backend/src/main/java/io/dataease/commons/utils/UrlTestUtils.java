@@ -5,6 +5,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
+@SuppressWarnings("deprecation")
 public class UrlTestUtils {
 
     public static boolean testUrlWithTimeOut(String urlString, int timeOutMillSeconds) {

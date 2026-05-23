@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unchecked")
 public class AutoAdaptWidthStyleStrategy extends AbstractColumnWidthStyleStrategy {
 
     private Map<Integer, Map<Integer, Integer>> CACHE = new HashMap(8);

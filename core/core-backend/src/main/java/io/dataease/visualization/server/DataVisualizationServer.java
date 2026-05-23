@@ -46,8 +46,6 @@ import io.dataease.extensions.datasource.dto.DatasetTableDTO;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import io.dataease.extensions.view.dto.ChartViewDTO;
 import io.dataease.i18n.Translator;
-import io.dataease.license.config.XpackInteract;
-import io.dataease.license.manage.CoreLicManage;
 import io.dataease.log.DeLog;
 import io.dataease.menu.dao.auto.entity.CoreMenu;
 import io.dataease.model.BusiNodeRequest;
@@ -74,6 +72,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -148,8 +147,8 @@ public class DataVisualizationServer implements DataVisualizationApi {
     @Resource
     private CoreBusiManage coreBusiManage;
 
-    @Resource
-    private CoreLicManage coreLicManage;
+    @Value("${dataease.version}")
+    private String dataeaseVersion;
 
     @Resource
     private CoreUserManage coreUserManage;
@@ -193,7 +192,6 @@ public class DataVisualizationServer implements DataVisualizationApi {
     @DeLinkPermit("#p0.id")
     @DeLog(id = "#p0.id", ot = LogOT.READ, stExp = "#p0.busiFlag")
     @Override
-    @XpackInteract(value = "dataVisualizationServer", original = true)
     public DataVisualizationVO findById(DataVisualizationBaseRequest request) {
         Long dvId = request.getId();
         String busiFlag = request.getBusiFlag();
@@ -957,7 +955,7 @@ public class DataVisualizationServer implements DataVisualizationApi {
     public String updateCheckVersion(Long dvId) {
         DataVisualizationInfo updateInfo = new DataVisualizationInfo();
         updateInfo.setId(dvId);
-        updateInfo.setCheckVersion(coreLicManage.getVersion());
+        updateInfo.setCheckVersion(dataeaseVersion);
         visualizationInfoMapper.updateById(updateInfo);
         return "";
     }

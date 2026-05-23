@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 @ConditionalOnExpression("'${spring.cache.type}'.equals('redis')")
 @Component("dECacheService")
+@SuppressWarnings("unchecked")
 public class RedisCacheImpl implements DECacheService {
 
     private static final String SEPARATOR = "::";

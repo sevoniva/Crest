@@ -17,13 +17,6 @@ import { ElFormItem, ElInputNumber, ElMessage } from 'element-plus-secondary'
 import { svgStrToUrl } from '../../../js/util'
 import { numberToChineseUnderHundred } from '../../../js/panel/common/common_antv'
 import { useLocaleStoreWithOut } from '@/store/modules/locale'
-import { useMapStoreWithOut } from '@/store/modules/map'
-import { queryMapKeyApi } from '@/api/setting/sysParameter'
-import {
-  gaodeMapStyleOptions,
-  qqMapStyleOptions,
-  tdtMapStyleOptions
-} from '@/views/chart/components/js/panel/charts/map/common'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import { find } from 'lodash-es'
 
@@ -316,31 +309,13 @@ const symbolOptions = [
   { name: t('chart.line_symbol_diamond'), value: 'diamond' }
 ]
 
-const mapStore = useMapStoreWithOut()
-
-const getMapKey = async () => {
-  if (!mapStore.mapKey.key) {
-    await queryMapKeyApi().then(res => mapStore.setKey(res.data))
-  }
-  if (mapStore.mapKey.securityCode) {
-    window._AMapSecurityConfig = {
-      securityJsCode: mapStore.mapKey.securityCode
-    }
-  }
-  return mapStore.mapKey
-}
-
 const mapType = ref<string>(undefined)
 
 const mapStyleOptions = computed(() => {
-  switch (mapType.value) {
-    case 'tianditu':
-      return tdtMapStyleOptions
-    case 'qq':
-      return qqMapStyleOptions
-    default:
-      return gaodeMapStyleOptions
-  }
+  return [
+    { name: t('chart.map_style_normal'), value: 'normal' },
+    { name: t('chart.map_style_dark'), value: 'dark' }
+  ]
 })
 
 const heatMapTypeOptions = [
@@ -384,12 +359,7 @@ const validateInput = (value, field) => {
   }
   state.basicStyleForm[field] = num
 }
-onMounted(async () => {
-  await getMapKey().then(res => {
-    if (res) {
-      mapType.value = res.mapType
-    }
-  })
+onMounted(() => {
   init()
   useEmitt({
     name: 'chart-type-change',

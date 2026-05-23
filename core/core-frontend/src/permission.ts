@@ -8,7 +8,7 @@ import { usePermissionStoreWithOut, pathValid, getFirstAuthMenu } from '@/store/
 import { usePageLoading } from '@/hooks/web/usePageLoading'
 import { getRoleRouters } from '@/api/common'
 import { useCache } from '@/hooks/web/useCache'
-import { isMobile, checkPlatform, isLarkPlatform, isPlatformClient } from '@/utils/utils'
+import { checkPlatform } from '@/utils/utils'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import { useAppearanceStoreWithOut } from '@/store/modules/appearance'
 import { useEmbedded } from '@/store/modules/embedded'
@@ -25,11 +25,11 @@ const { start, done } = useNProgress()
 const { open } = useLoading()
 const { loadStart, loadDone } = usePageLoading()
 
-const whiteList = ['/login', '/de-link', '/chart-view', '/admin-login', '/401'] // 不重定向白名单
+const whiteList = ['/login', '/chart-view', '/admin-login', '/401'] // 不重定向白名单
 const embeddedWindowWhiteList = ['/dvCanvas', '/dashboard', '/preview', '/dataset-embedded-form']
 const embeddedRouteWhiteList = ['/dataset-embedded', '/dataset-form', '/dataset-embedded-form']
 router.beforeEach(async (to, from, next) => {
-  if (['/chart-view'].includes(to.path) || to.path.startsWith('/de-link/')) {
+  if (['/chart-view'].includes(to.path)) {
     open()
   }
   start()
@@ -40,52 +40,12 @@ router.beforeEach(async (to, from, next) => {
     await appStore.setAppModel()
     isDesktop = appStore.getDesktop
   }
-  if (isMobile() && !['/chart-view'].includes(to.path)) {
-    done()
-    loadDone()
-    if (to.name === 'link') {
-      let linkQuery = ''
-      if (Object.keys(to.query)) {
-        const tempQuery = Object.keys(to.query)
-          .map(key => key + '=' + to.query[key])
-          .join('&')
-        if (tempQuery) {
-          linkQuery = '?' + tempQuery
-        }
-      }
-      let pathname = window.location.pathname
-      pathname = pathname.replace('casbi/', '')
-      pathname = pathname.replace('oidc/', '')
-      pathname = pathname.substring(0, pathname.length - 1)
-      const prefix = window.origin + pathname
-      let toPath = to.fullPath
-      if (toPath.includes('?')) {
-        toPath = to.fullPath.substring(0, to.fullPath.lastIndexOf('?'))
-      }
-      window.location.href = (prefix + '/mobile.html#' + toPath + linkQuery).replace(/\+/g, '%2B')
-    } else if (
-      wsCache.get('user.token') ||
-      isDesktop ||
-      (!isPlatformClient() && !isLarkPlatform())
-    ) {
-      let pathname = window.location.pathname
-      pathname = pathname.substring(0, pathname.length - 1)
-      let url = window.origin + pathname + '/mobile.html#/index'
-      if (location.hash?.startsWith('#/preview')) {
-        url = window.origin + pathname + '/mobile.html' + location.hash
-      }
-      if (window.location.search) {
-        url += window.location.search
-      }
-      window.location.href = url
-    }
-  }
   await appearanceStore.setAppearance()
   await appearanceStore.setFontList()
   const defaultSort = await getDefaultSettings()
   wsCache.set('TreeSort-backend', defaultSort['basic.defaultSort'] ?? '1')
   wsCache.set('open-backend', defaultSort['basic.defaultOpen'] ?? '0')
-  if ((wsCache.get('user.token') || isDesktop) && !to.path.startsWith('/de-link/')) {
+  if (wsCache.get('user.token') || isDesktop) {
     if (!userStore.getUid) {
       await userStore.setUser()
     }
@@ -109,7 +69,7 @@ router.beforeEach(async (to, from, next) => {
             return pre
           }, {})
         }
-        if (!pathValid(to.path) && to.path !== '/404' && !to.path.startsWith('/de-link')) {
+        if (!pathValid(to.path) && to.path !== '/404') {
           if (to.path.startsWith('/sys-setting')) {
             await noAdminPermission()
           }
@@ -140,7 +100,7 @@ router.beforeEach(async (to, from, next) => {
       permissionStore.setIsAddRouters(true)
       await interactiveStore.initInteractive(true)
 
-      if (!pathValid(to.path) && to.path !== '/404' && !to.path.startsWith('/de-link')) {
+      if (!pathValid(to.path) && to.path !== '/404') {
         if (to.path.startsWith('/sys-setting')) {
           await noAdminPermission()
         }
@@ -165,8 +125,7 @@ router.beforeEach(async (to, from, next) => {
       next()
     } else if (
       (!platform && embeddedWindowWhiteList.includes(to.path)) ||
-      whiteList.includes(to.path) ||
-      to.path.startsWith('/de-link/')
+      whiteList.includes(to.path)
     ) {
       await appearanceStore.setFontList()
       permissionStore.setCurrentPath(to.path)

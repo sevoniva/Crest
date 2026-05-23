@@ -1,9 +1,7 @@
 import { isExternal } from '@/utils/validate'
 import { cloneDeep } from 'lodash'
-import { XpackComponent } from '@/components/plugin'
 const modules = import.meta.glob('../views/**/*.vue')
 export const Layout = () => import('@/layout/index.vue')
-const xpackComName = 'components/plugin'
 export const LayoutTransition = () => import('@/layout/components/LayoutTransition.vue')
 // 后端控制路由生成
 export const generateRoutesFn2 = (routes: AppCustomRouteRecordRaw[]): AppRouteRecordRaw[] => {
@@ -12,17 +10,12 @@ export const generateRoutesFn2 = (routes: AppCustomRouteRecordRaw[]): AppRouteRe
   for (const router of routes) {
     let route = { ...router }
 
-    if (route.top && route.inLayout) {
-      route = decorate(route)
+    if (route.plugin) {
+      continue
     }
 
-    if (route.plugin) {
-      const jsName = route.component
-      route.component = xpackComName
-      route.props = {
-        jsname: jsName,
-        inLayout: route.inLayout
-      }
+    if (route.top && route.inLayout) {
+      route = decorate(route)
     }
 
     const data: AppRouteRecordRaw = {
@@ -36,9 +29,7 @@ export const generateRoutesFn2 = (routes: AppCustomRouteRecordRaw[]): AppRouteRe
 
     if (route.component) {
       let comModule = null
-      if (route.component === xpackComName) {
-        comModule = XpackComponent
-      } else if (!route.component.startsWith('Layout')) {
+      if (!route.component.startsWith('Layout')) {
         comModule = modules[`../views/${route.component}/index.vue`]
       }
 

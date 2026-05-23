@@ -60,15 +60,14 @@ curl -sSL https://dataease.oss-cn-hangzhou.aliyuncs.com/quick_start_v2.sh | bash
 
 
 # 使用者名稱: admin
-# 密碼: DataEase@123456
+# 密碼: admin
 ```
 
 你也可以透過 [1Panel 應用商店](https://dataease.io/docs/v2/installation/1panel_installation/) 快速部署 DataEase。如果是用於生產環境，建議使用 [離線安裝包方式](https://dataease.io/docs/v2/installation/offline_INSTL_and_UPG/) 進行安裝部署。
 
-如你有更多問題，可以查看線上文件，或者透過論壇與我們交流。
+如你有更多問題，可以查看線上文件，或者在本 fork 的倉庫 Issue 中交流。
 
 -   [線上文件](https://dataease.io/docs/)
--   [社區論壇](https://bbs.fit2cloud.com/c/de/6)
 
 ## UI 展示
 

@@ -86,7 +86,6 @@ import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import treeSort from '@/utils/treeSortUtils'
 import { useCache } from '@/hooks/web/useCache'
 import { useEmbedded } from '@/store/modules/embedded'
-import { XpackComponent } from '@/components/plugin'
 import { iconFieldMap } from '@/components/icon-group/field-list'
 import { iconDatasourceMap } from '@/components/icon-group/datasource-list'
 import { querySymmetricKey } from '@/api/login'
@@ -1682,11 +1681,7 @@ const getMenuList = (val: boolean) => {
                 </template>
 
                 <!--    数据填报      -->
-                <XpackComponent
-                  :nodeInfo="nodeInfo"
-                  jsname="L2NvbXBvbmVudC9kYXRhLWZpbGxpbmcvRGF0YXNvdXJjZURhdGFGaWxsaW5nSW5mbw=="
-                />
-              </template>
+                              </template>
               <template v-if="['es'].includes(nodeInfo.type) && nodeInfo.weight >= 7">
                 <el-row :gutter="24">
                   <el-col :span="12">
@@ -1989,11 +1984,7 @@ const getMenuList = (val: boolean) => {
     </el-dialog>
     <relationChart ref="relationChartRef"></relationChart>
 
-    <XpackComponent
-      jsname="L2NvbXBvbmVudC9wbHVnaW5zLWhhbmRsZXIvRHNDYXRlZ29yeUhhbmRsZXI="
-      @load-ds-plugin="loadDsPlugin"
-    />
-  </div>
+      </div>
 </template>
 
 <style lang="less" scoped>

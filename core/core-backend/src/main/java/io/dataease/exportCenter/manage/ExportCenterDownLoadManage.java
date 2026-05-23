@@ -11,8 +11,6 @@ import io.dataease.api.dataset.union.DatasetGroupInfoDTO;
 import io.dataease.api.dataset.union.UnionDTO;
 import io.dataease.api.permissions.dataset.dto.DataSetRowPermissionsTreeDTO;
 import io.dataease.api.permissions.user.vo.UserFormVO;
-import io.dataease.api.xpack.dataFilling.DataFillingApi;
-import io.dataease.api.xpack.dataFilling.dto.DataFillFormTableDataRequest;
 import io.dataease.auth.bo.TokenUserBO;
 import io.dataease.chart.dao.auto.mapper.CoreChartViewMapper;
 import io.dataease.chart.server.ChartDataServer;
@@ -43,7 +41,6 @@ import io.dataease.extensions.view.dto.ChartViewFieldDTO;
 import io.dataease.extensions.view.dto.ColumnPermissionItem;
 import io.dataease.extensions.view.dto.DatasetRowPermissionsTreeObj;
 import io.dataease.i18n.Translator;
-import io.dataease.license.utils.LicenseUtil;
 import io.dataease.log.DeLog;
 import io.dataease.model.ExportTaskDTO;
 import io.dataease.utils.*;
@@ -123,13 +120,6 @@ public class ExportCenterDownLoadManage {
     @Resource
     private DatasetDataManage datasetDataManage;
     private final Long sheetLimit = 1000000L;
-    @Autowired(required = false)
-    private DataFillingApi dataFillingApi = null;
-
-    private DataFillingApi getDataFillingApi() {
-        return dataFillingApi;
-    }
-
     @PostConstruct
     public void init() {
         scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(core);
@@ -164,39 +154,6 @@ public class ExportCenterDownLoadManage {
         if (exportTaskDTO.getExportFromType().equalsIgnoreCase("dataset")) {
             exportTaskDTO.setExportFromName(coreDatasetGroupMapper.selectById(exportTaskDTO.getExportFrom()).getName());
         }
-        if (exportTaskDTO.getExportFromType().equalsIgnoreCase("data_filling")) {
-            exportTaskDTO.setExportFromName(getDataFillingApi().get(exportTaskDTO.getExportFrom()).getName());
-        }
-    }
-
-    @DeLog(id = "#p0.exportFrom", ot = LogOT.EXPORT, st = LogST.DATA_FILLING)
-    public void startDataFillingTask(CoreExportTask exportTask, HashMap<String, Object> request) {
-        if (ObjectUtils.isEmpty(getDataFillingApi())) {
-            return;
-        }
-        String dataPath = exportData_path + exportTask.getId();
-        File directory = new File(dataPath);
-        boolean isCreated = directory.mkdir();
-        TokenUserBO tokenUserBO = AuthUtils.getUser();
-        Future future = scheduledThreadPoolExecutor.submit(() -> {
-            AuthUtils.setUser(tokenUserBO);
-            try {
-                exportTask.setExportStatus("IN_PROGRESS");
-                exportTaskMapper.updateById(exportTask);
-                getDataFillingApi().writeExcel(dataPath + "/" + exportTask.getId() + ".xlsx", new DataFillFormTableDataRequest().setId(exportTask.getExportFrom()).setWithoutLogs(true), exportTask.getUserId(), Long.parseLong(request.get("org").toString()));
-                exportTask.setExportProgress("100");
-                exportTask.setExportStatus("SUCCESS");
-
-                setFileSize(dataPath + "/" + exportTask.getId() + ".xlsx", exportTask);
-            } catch (Exception e) {
-                exportTask.setMsg(e.getMessage());
-                LogUtil.error("Failed to export data", e);
-                exportTask.setExportStatus("FAILED");
-            } finally {
-                exportTaskMapper.updateById(exportTask);
-            }
-        });
-        Running_Task.put(exportTask.getId(), future);
     }
 
     @DeLog(id = "#p0.exportFrom", ot = LogOT.EXPORT, st = LogST.DATASET)
@@ -210,7 +167,6 @@ public class ExportCenterDownLoadManage {
 
         TokenUserBO tokenUserBO = AuthUtils.getUser();
         Future future = scheduledThreadPoolExecutor.submit(() -> {
-            LicenseUtil.validate();
             AuthUtils.setUser(tokenUserBO);
             try {
                 exportTask.setExportStatus("IN_PROGRESS");
@@ -466,7 +422,6 @@ public class ExportCenterDownLoadManage {
         boolean isCreated = directory.mkdir();
         TokenUserBO tokenUserBO = AuthUtils.getUser();
         Future future = scheduledThreadPoolExecutor.submit(() -> {
-            LicenseUtil.validate();
             AuthUtils.setUser(tokenUserBO);
             try {
                 exportTask.setExportStatus("IN_PROGRESS");
@@ -876,4 +831,3 @@ public class ExportCenterDownLoadManage {
         }
     }
 }
-

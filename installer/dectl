@@ -4,7 +4,6 @@ target=$2
 
 DE_BASE=/opt
 DE_RUNNING_BASE=${DE_BASE}/dataease2.0
-need_init_apisix=false
 compose_files="-f docker-compose.yml"
 compose_cmd="docker-compose"
 server_url=""
@@ -15,6 +14,7 @@ set -a
 source ${DE_RUNNING_BASE}/.env
 set +a
 export COMPOSE_HTTP_TIMEOUT=180
+DE_INTERNAL_LITE=${DE_INTERNAL_LITE:-true}
 
 docker-compose version >/dev/null 2>&1
 if [ $? -ne 0 ]; then
@@ -49,11 +49,10 @@ function usage() {
    echo "  version               查看 DATAEASE 版本"
 }
 function _generate_compose_file_args() {
+   if [[ "$DE_INTERNAL_LITE" == "true" ]];then
+      return
+   fi
    if [[ $DE_INSTALL_MODE != "community" ]];then
-      if [[ -f $DE_RUNNING_BASE/docker-compose-apisix.yml ]] && [[ "$DE_EXTERNAL_APISIX" != "true" ]];then
-         compose_files="${compose_files} -f docker-compose-apisix.yml"
-      fi
-      
       if [[ -f $DE_RUNNING_BASE/docker-compose-task.yml ]] && [[ "$DE_EXTERNAL_SYNC_TASK" != "true" ]];then
          compose_files="${compose_files} -f docker-compose-task.yml"
       fi
@@ -61,22 +60,6 @@ function _generate_compose_file_args() {
       if [[ -f $DE_RUNNING_BASE/docker-compose-playwright.yml ]] && [[ "$DE_EXTERNAL_PLAYWRIGHT" != "true" ]];then
          compose_files="${compose_files} -f docker-compose-playwright.yml"
       fi
-   fi
-}
-function _check_apisix_init() {
-   if [[ $DE_INSTALL_MODE != "community" ]] && [[ "$DE_EXTERNAL_APISIX" != "true" ]];then
-      _prepare_apisix
-   fi
-}
-function _prepare_apisix() {
-   if [[ -z $DE_APISIX_KEY ]];then
-      need_init_apisix=true
-      DE_APISIX_KEY=$(head -c 32 /dev/urandom | base64 | sed 's#/#+#g')
-      export DE_APISIX_KEY=$DE_APISIX_KEY
-      cd $DE_RUNNING_BASE
-      env | grep DE_ >.env
-      sed -i -e "s/DE_APISIX_KEY/${DE_APISIX_KEY}/g" $DE_RUNNING_BASE/apisix/apisix_conf/config.yaml
-      sed -i -e "s/DE_APISIX_KEY/${DE_APISIX_KEY}/g" $DE_RUNNING_BASE/conf/application.yml
    fi
 }
 function _healthcheck() {
@@ -219,7 +202,6 @@ function status() {
 }
 function start() {
    echo
-   _check_apisix_init
    _generate_compose_file_args
    cd ${DE_RUNNING_BASE}
    ${compose_cmd} ${compose_files} up -d
@@ -256,7 +238,7 @@ function upgrade() {
       exit 0
    else
       if [[ ! "$latest_version" =~ ^v2.* ]];then
-         echo "获取到的最新版本与当前版本不匹配，请访问 https://community.fit2cloud.com/#/products/dataease/downloads 下载离线安装包"
+         echo "获取到的最新版本与当前版本不匹配，请使用当前仓库 Release 或内部发布物中的离线安装包"
          exit 1
       else
          echo "检测到 ${server_url} 上最新版本为 ${latest_version} 即将执行在线升级..."

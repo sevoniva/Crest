@@ -23,13 +23,12 @@ import type { Param } from './ExcelDetail.vue'
 import type { Configuration, ApiConfiguration, SyncSetting } from './option'
 import { dsTypes, typeList, nameMap } from './option'
 import { useRouter } from 'vue-router_2'
-import { uuid } from 'vue-uuid'
+import { v1 as uuidV1 } from 'uuid'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import FinishPage from '../FinishPage.vue'
 import { cloneDeep } from 'lodash-es'
 import { useCache } from '@/hooks/web/useCache'
 import Icon from '@/components/icon-custom/src/Icon.vue'
-import { XpackComponent, PluginComponent } from '@/components/plugin'
 import { iconDatasourceMap } from '@/components/icon-group/datasource-list'
 import ExcelRemoteDetail from '@/views/visualized/data/datasource/form/ExcelRemoteDetail.vue'
 
@@ -80,7 +79,7 @@ state.datasourceTree = typeList.map(ele => {
 
 const activeStep = ref(0)
 const detail = ref()
-const xpack = ref()
+const pluginBridge = ref()
 const excel = ref()
 const excelRemote = ref()
 const latestUseTypes = ref([])
@@ -97,7 +96,7 @@ const selectDsType = (type: string) => {
   activeApiStep.value = 1
   nextTick(() => {
     detail?.value?.initForm(type, pluginDs.value, pluginIndex.value, isPlugin.value) ||
-      xpack?.value?.invokeMethod({
+      pluginBridge?.value?.invokeMethod({
         methodName: 'initForm',
         args: type
       })
@@ -376,7 +375,7 @@ const validateDS = () => {
     request.configuration = Base64.encode(JSON.stringify(request.configuration))
   }
   if (isPlugin.value && !currentDsType.value.includes('API')) {
-    xpack?.value?.invokeMethod({
+    pluginBridge?.value?.invokeMethod({
       methodName: 'submitForm',
       args: [{ eventName: 'validateDs', args: request }]
     })
@@ -523,7 +522,7 @@ const saveDS = () => {
           'api_' +
           request.apiConfiguration[i].name +
           '_' +
-          uuid.v1().replaceAll('-', '').substring(0, 10)
+          uuidV1().replaceAll('-', '').substring(0, 10)
       }
       request.apiConfiguration[i].jsonFields = []
       for (let j = 0; j < request.apiConfiguration[i].fields.length; j++) {
@@ -542,7 +541,7 @@ const saveDS = () => {
     request.configuration = Base64.encode(JSON.stringify(request.configuration))
   }
   if (isPlugin.value && !currentDsType.value.includes('API')) {
-    xpack?.value?.invokeMethod({
+    pluginBridge?.value?.invokeMethod({
       methodName: 'submitForm',
       args: [{ eventName: 'saveDs', args: request }]
     })
@@ -717,7 +716,7 @@ const init = (nodeInfo: Form | Param, id?: string, res?: object, supportSetKey: 
       nextTick(() => {
         detail?.value?.clearForm()
         excelRemote?.value?.clearForm()
-        xpack?.value?.invokeMethod({
+        pluginBridge?.value?.invokeMethod({
           methodName: 'clearForm',
           args: []
         })
@@ -903,24 +902,7 @@ defineExpose({
               (!isPlugin || currentDsType.startsWith('API'))
             "
           ></editor-detail>
-          <plugin-component
-            :jsname="getPluginStatic(currentDsType)"
-            ref="xpack"
-            :form="form"
-            :editDs="editDs"
-            :active-step="activeApiStep"
-            @submitForm="handleSubmit"
-            v-if="
-              activeStep !== 0 &&
-              currentDsType &&
-              currentDsType !== 'Excel' &&
-              visible &&
-              isPlugin &&
-              !currentDsType.startsWith('API')
-            "
-          >
-          </plugin-component>
-          <template v-if="activeStep !== 0 && currentDsType == 'Excel'">
+                    <template v-if="activeStep !== 0 && currentDsType == 'Excel'">
             <excel-detail
               :editDs="editDs"
               :is-supportSetKey="isSupportSetKey"
@@ -990,11 +972,7 @@ defineExpose({
         v-if="showFinishPage"
       ></FinishPage>
 
-      <XpackComponent
-        jsname="L2NvbXBvbmVudC9wbHVnaW5zLWhhbmRsZXIvRHNDYXRlZ29yeUhhbmRsZXI="
-        @load-ds-plugin="loadDsPlugin"
-      />
-    </div>
+          </div>
   </el-drawer>
   <creat-ds-group
     @handle-show-finish-page="handleShowFinishPage"

@@ -1,7 +1,6 @@
 package io.dataease.job.schedule;
 
 import io.dataease.commons.utils.CronUtils;
-import io.dataease.license.config.XpackInteract;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.ObjectUtils;
 import org.quartz.JobDataMap;
@@ -26,13 +25,9 @@ public class DeTaskExecutor {
 
     @Resource
     private ScheduleManager scheduleManager;
-
-    @XpackInteract(value = "xpackTaskExecutor", replace = true)
     public boolean execute(Map<String, Object> taskData) {
         return false;
     }
-
-    @XpackInteract(value = "xpackTaskExecutor", replace = true)
     public void init() {
     }
 
@@ -44,7 +39,7 @@ public class DeTaskExecutor {
         jobDataMap.put("taskId", taskId);
         jobDataMap.put("threshold", taskId);
         Date startDate = new Date();
-        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeXpackScheduleJob.class, cron, startDate, null, jobDataMap);
+        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeTaskScheduleJob.class, cron, startDate, null, jobDataMap);
     }
 
     public void addOrUpdateTask(Long taskId, String cron, Long startTime, Long endTime) {
@@ -59,7 +54,7 @@ public class DeTaskExecutor {
         jobDataMap.put(IS_TEMP_TASK, false);
         Date end = null;
         if (ObjectUtils.isNotEmpty(endTime)) end = new Date(endTime);
-        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeXpackScheduleJob.class, cron, new Date(startTime), end, jobDataMap);
+        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeTaskScheduleJob.class, cron, new Date(startTime), end, jobDataMap);
     }
 
     public void addRetryTask(Long taskId, Integer retryLimit, Integer retryInterval, Object retryParam) {
@@ -81,7 +76,7 @@ public class DeTaskExecutor {
         jobDataMap.put("retryParam", retryParam);
         Date end = null;
         if (ObjectUtils.isNotEmpty(endTime)) end = new Date(endTime);
-        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeXpackScheduleJob.class, cron, new Date(now), end, jobDataMap);
+        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeTaskScheduleJob.class, cron, new Date(now), end, jobDataMap);
     }
 
     public boolean fireNow(Long taskId) throws Exception {
@@ -102,7 +97,7 @@ public class DeTaskExecutor {
         jobDataMap.put(IS_TEMP_TASK, true);
         String cron = CronUtils.tempCron();
         jobDataMap.put("taskId", taskId);
-        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeXpackScheduleJob.class, cron, new Date(startTime), null, jobDataMap);
+        scheduleManager.addOrUpdateCronJob(jobKey, triggerKey, DeTaskScheduleJob.class, cron, new Date(startTime), null, jobDataMap);
     }
 
     public void removeTask(Long taskId, boolean isTemp) {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.dataease.exception.DEException;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,9 @@ import java.util.regex.Pattern;
 import static java.awt.SystemColor.info;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Component("redshift")
+@SuppressWarnings("deprecation")
 public class Redshift extends DatasourceConfiguration {
     private String driver = "com.amazon.redshift.jdbc42.Driver";
     private String extraParams = "";

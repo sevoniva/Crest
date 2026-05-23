@@ -28,7 +28,6 @@ function prop {
 function check_and_prepare_env_params() {
    log "当前时间 : $(date)"
    log_title "检查安装环境并初始化环境变量"
-   DE_APISIX_PORT=9080
 
    cd ${CURRENT_DIR}
    if [ -f /usr/bin/dectl ]; then
@@ -75,6 +74,7 @@ function check_and_prepare_env_params() {
       log_content "全新安装"
    fi
    set +a
+   DE_INTERNAL_LITE=${DE_INTERNAL_LITE:-true}
 
    read available_disk <<< $(df -H --output=avail "${DE_BASE}" | tail -1)
    disk_num=${available_disk%[KMGTP]}
@@ -109,10 +109,12 @@ function prepare_de_run_base() {
    env | grep DE_ >.env
 
    mkdir -p ${DE_RUN_BASE}/{cache,logs,conf}
-   mkdir -p ${DE_RUN_BASE}/data/{mysql,static-resource,map,etcd_data,geo,appearance,exportData,plugin,font,i18n}
-   mkdir -p ${DE_RUN_BASE}/apisix/logs
-   mkdir -p ${DE_RUN_BASE}/task/logs
-   chmod 777 ${DE_RUN_BASE}/apisix/logs ${DE_RUN_BASE}/data/etcd_data ${DE_RUN_BASE}/task/logs
+   mkdir -p ${DE_RUN_BASE}/data/{mysql,static-resource,appearance,exportData,font,i18n}
+
+   if [[ "${DE_INTERNAL_LITE}" != "true" ]]; then
+      mkdir -p ${DE_RUN_BASE}/task/logs
+      chmod 777 ${DE_RUN_BASE}/task/logs
+   fi
 
    if [ "${DE_EXTERNAL_MYSQL}" = "false" ]; then
       sed -i -e "s/^      DE_MYSQL_HOST/      ${DE_MYSQL_HOST}/g" docker-compose.yml
@@ -134,10 +136,6 @@ function prepare_de_run_base() {
       fi
    done
 
-   log_content "复制地图文件"
-   if [ -d ${DE_RUN_BASE}/data/map ] || [ -d ${DE_RUN_BASE}/mapFiles ]; then
-      mv ${DE_RUN_BASE}/mapFiles/* ${DE_RUN_BASE}/data/map/
-   fi
 }
 
 function update_dectl() {
@@ -189,7 +187,7 @@ function install_docker() {
          chmod 644 /etc/systemd/system/docker.service
       else
          log_content "在线安装 docker"
-         curl -fsSL https://resource.fit2cloud.com/get-docker-linux.sh -o get-docker.sh 2>&1 | tee -a ${CURRENT_DIR}/install.log
+         curl -fsSL https://get.docker.com -o get-docker.sh 2>&1 | tee -a ${CURRENT_DIR}/install.log
          if [[ ! -f get-docker.sh ]];then
             log_content "docker 在线安装脚本下载失败，请稍候重试"
             exit 1
@@ -243,7 +241,7 @@ function install_docker_compose() {
             chmod +x /usr/bin/docker-compose
          else
             log_content "在线安装 docker-compose"
-            curl -L https://resource.fit2cloud.com/docker/compose/releases/download/v2.16.0/docker-compose-$(uname -s | tr A-Z a-z)-$(uname -m) -o /usr/local/bin/docker-compose 2>&1 | tee -a ${CURRENT_DIR}/install.log
+            curl -L https://github.com/docker/compose/releases/download/v2.16.0/docker-compose-$(uname -s | tr A-Z a-z)-$(uname -m) -o /usr/local/bin/docker-compose 2>&1 | tee -a ${CURRENT_DIR}/install.log
             if [[ ! -f /usr/local/bin/docker-compose ]];then
                log_content "docker-compose 下载失败，请稍候重试"
                exit 1
@@ -285,8 +283,7 @@ function load_de_images() {
          fi
       done
    else
-      DEVERSION=$(cat ${CURRENT_DIR}/dataease/templates/version)
-      curl -sfL https://resource.fit2cloud.com/installation-log.sh | sh -s de ${INSTALL_TYPE} ${DEVERSION}
+      log_content "未检测到离线镜像目录，后续将从 docker-compose.yml 中定义的镜像仓库拉取"
    fi
 }
 
@@ -329,14 +326,10 @@ function start_de_service() {
    systemctl start dataease 2>&1 | tee -a ${CURRENT_DIR}/install.log
 
    access_port=$DE_PORT
-   if [[ $DE_INSTALL_MODE != "community" ]];then
-      access_port=$DE_APISIX_PORT
-   fi
-
    echo
    if [[ $INSTALL_TYPE != "upgrade" ]];then
       echo -e "======================= 安装完成 =======================\n" 2>&1 | tee -a ${CURRENT_DIR}/install.log
-      echo -e "系统登录信息如下:\n\t访问地址: http://服务器IP:$access_port\n\t用户名: admin\n\t初始密码: DataEase@123456" 2>&1 | tee -a ${CURRENT_DIR}/install.log
+      echo -e "系统登录信息如下:\n\t访问地址: http://服务器IP:$access_port\n\t用户名: admin\n\t初始密码: admin" 2>&1 | tee -a ${CURRENT_DIR}/install.log
    else
       echo -e "======================= 升级完成 =======================\n" 2>&1 | tee -a ${CURRENT_DIR}/install.log
    fi

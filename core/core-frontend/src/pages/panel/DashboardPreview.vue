@@ -1,12 +1,9 @@
 <script lang="ts" setup>
 import { ref, reactive, onBeforeMount, nextTick, inject } from 'vue'
-import { initCanvasData, initCanvasDataMobile, onInitReady } from '@/utils/canvasUtils'
+import { initCanvasData, onInitReady } from '@/utils/canvasUtils'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
-import router from '@/router/mobile'
 import { useEmbedded } from '@/store/modules/embedded'
-import { isMobile } from '@/utils/utils'
 import { check } from '@/utils/CrossPermission'
-import { useEmitt } from '@/hooks/web/useEmitt'
 import { useCache } from '@/hooks/web/useCache'
 import { getOuterParamsInfo } from '@/api/visualization/outerParams'
 import { ElMessage } from 'element-plus-secondary'
@@ -83,10 +80,7 @@ onBeforeMount(async () => {
     attachParams = Object.assign({}, attachParams, tokenInfo)
   }
 
-  isPc.value = !isMobile()
-  const req = isPc.value ? initCanvasData : initCanvasDataMobile
-
-  req(
+  initCanvasData(
     embeddedParams.dvId,
     { busiFlag: embeddedParams.busiFlag },
     function ({

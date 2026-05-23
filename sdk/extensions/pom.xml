@@ -6,13 +6,13 @@
     <parent>
         <groupId>io.dataease</groupId>
         <artifactId>sdk</artifactId>
-        <version>${dataease.version}</version>
+        <version>2.10.22</version>
     </parent>
 
     <packaging>pom</packaging>
     <modules>
-        <module>extensions-view</module>
         <module>extensions-datasource</module>
+        <module>extensions-view</module>
         <module>extensions-datafilling</module>
     </modules>
 
@@ -26,15 +26,15 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.dataease</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>io.dataease</groupId>
-            <artifactId>dataease-license-sdk</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
 </project>

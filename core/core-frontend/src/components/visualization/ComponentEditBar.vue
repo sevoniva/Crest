@@ -169,13 +169,7 @@
             >{{ t('visualization.hidden') }}</el-dropdown-item
           >
 
-          <xpack-component
-            :chart="element"
-            resource-table="snapshot"
-            jsname="L2NvbXBvbmVudC90aHJlc2hvbGQtd2FybmluZy9FZGl0QmFySGFuZGxlcg=="
-            @close-item="closeItem"
-          />
-          <el-dropdown-item divided @click="deleteComponent" v-if="barShowCheck('delete')">{{
+                    <el-dropdown-item divided @click="deleteComponent" v-if="barShowCheck('delete')">{{
             t('visualization.delete')
           }}</el-dropdown-item>
         </el-dropdown-menu>
@@ -249,7 +243,6 @@ import { RefreshLeft } from '@element-plus/icons-vue'
 import { ElMessage, ElTooltip, ElButton } from 'element-plus-secondary'
 import CustomTabsSort from '@/custom-component/de-tabs/CustomTabsSort.vue'
 import { exportPivotExcel } from '@/views/chart/components/js/panel/common/common_table'
-import { XpackComponent } from '@/components/plugin'
 import { exportPermission, isMobile } from '@/utils/utils'
 import { isMainCanvas } from '@/utils/canvasUtils'
 const dvMainStore = dvMainStoreWithOut()

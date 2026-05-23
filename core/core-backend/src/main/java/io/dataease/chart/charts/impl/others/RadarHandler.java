@@ -9,6 +9,7 @@ import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("unchecked")
 public class RadarHandler extends YoyChartHandler {
     @Getter
     private String type = "radar";

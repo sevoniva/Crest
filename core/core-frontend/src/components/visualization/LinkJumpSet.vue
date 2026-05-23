@@ -615,11 +615,7 @@
         </el-button>
       </el-row>
     </div>
-    <XpackComponent
-      ref="openHandler"
-      jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvT3BlbkhhbmRsZXI="
-    />
-  </el-dialog>
+      </el-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -654,7 +650,6 @@ import EmptyBackground from '@/components/empty-background/src/EmptyBackground.v
 import { filterEmptyFolderTree } from '@/utils/canvasUtils'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import { useAppStoreWithOut } from '@/store/modules/app'
-import { XpackComponent } from '@/components/plugin'
 import { useCache } from '@/hooks/web/useCache'
 import { useEmbedded } from '@/store/modules/embedded'
 import { guid } from '@/views/visualized/data/dataset/form/util'

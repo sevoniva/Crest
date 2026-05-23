@@ -5,7 +5,7 @@
     <parent>
         <artifactId>core</artifactId>
         <groupId>io.dataease</groupId>
-        <version>${dataease.version}</version>
+        <version>2.10.22</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -26,17 +26,17 @@
         <dependency>
             <groupId>io.dataease</groupId>
             <artifactId>api-base</artifactId>
-            <version>${dataease.version}</version>
+            <version>2.10.22</version>
         </dependency>
         <dependency>
             <groupId>io.dataease</groupId>
             <artifactId>api-permissions</artifactId>
-            <version>${dataease.version}</version>
+            <version>2.10.22</version>
         </dependency>
         <dependency>
             <groupId>io.dataease</groupId>
             <artifactId>api-sync</artifactId>
-            <version>${dataease.version}</version>
+            <version>2.10.22</version>
         </dependency>
         <dependency>
             <groupId>com.mysql</groupId>
@@ -84,15 +84,8 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.fit2cloud</groupId>
-            <artifactId>quartz-spring-boot-starter</artifactId>
-            <version>1.0.8</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-quartz</artifactId>
         </dependency>
     </dependencies>
 
@@ -127,7 +120,7 @@
                 </dependency>
                 <dependency>
                     <groupId>com.itextpdf</groupId>
-                    <artifactId>itext7-core</artifactId>
+                    <artifactId>itext-core</artifactId>
                     <version>${itextpdf.version}</version>
                     <type>pom</type>
                 </dependency>
@@ -135,6 +128,12 @@
                     <groupId>com.vladsch.flexmark</groupId>
                     <artifactId>flexmark-all</artifactId>
                     <version>${flexmark.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>commons-logging</groupId>
+                            <artifactId>commons-logging</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
             </dependencies>
 
@@ -180,95 +179,10 @@
             </build>
         </profile>
 
-        <!-- 简单版(桌面版/社区版) 使用substitute包内的替补权限实现 -->
-        <profile>
-            <id>desktop</id>
-            <properties>
-                <profiles.active>desktop</profiles.active>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>com.h2database</groupId>
-                    <artifactId>h2</artifactId>
-                </dependency>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-clean-plugin</artifactId>
-                        <configuration>
-                            <filesets>
-                                <fileset>
-                                    <directory>src/main/resources/static</directory>
-                                    <includes>
-                                        <include>**</include>
-                                    </includes>
-                                    <followSymlinks>false</followSymlinks>
-                                </fileset>
-                            </filesets>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy-front-2-back</id>
-                                <phase>generate-resources</phase>
-                                <configuration>
-                                    <target>
-                                        <move todir="src/main/resources/static">
-                                            <fileset dir="../core-frontend/dist">
-                                                <include name="**"/>
-                                            </fileset>
-                                        </move>
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <!-- 分布式版(企业版) -->
-        <profile>
-            <id>distributed</id>
-            <properties>
-                <profiles.active>distributed</profiles.active>
-            </properties>
-            <dependencies>
-                <!-- 分布式版(企业版) 引入分布式组件 -->
-                <dependency>
-                    <groupId>io.dataease</groupId>
-                    <artifactId>distributed</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <configuration>
-                            <excludes>
-                                <!-- 分布式版(企业版) 需要排除权限替补实现 否则就会出现多个权限实现 报错 -->
-                                <exclude>io/dataease/substitute/**</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
 
     <build>
+        <finalName>CoreApplication</finalName>
         <!-- 打包时必须要包含resources下配置文件 -->
         <resources>
             <resource>
@@ -306,7 +220,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <finalName>CoreApplication</finalName>
                     <layout>ZIP</layout>
                 </configuration>
                 <executions>
@@ -320,12 +233,4 @@
         </plugins>
     </build>
 
-    <repositories>
-        <repository>
-            <id>fit2cloud-public</id>
-            <name>Fit2cloud Public</name>
-            <url>https://repository.fit2cloud.com/repository/fit2cloud-public/</url>
-        </repository>
-
-    </repositories>
 </project>

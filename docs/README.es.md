@@ -47,7 +47,7 @@ DataEase es una herramienta de BI de código abierto diseñada para ayudar a los
 # Prepara un servidor Linux con al menos 2 CPUs y 4GB de RAM, luego ejecuta el siguiente script de instalación con un solo clic como usuario root:
 curl -sSL https://dataease.oss-cn-hangzhou.aliyuncs.com/quick_start_v2.sh | bash
 # Nombre de usuario: admin
-# Contraseña: DataEase@123456
+# Contraseña: admin
 ```
 
 ## Pila Tecnológica

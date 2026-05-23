@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.dataease.api.chart.request.ChartExcelRequest;
 import io.dataease.api.dataset.dto.DataSetExportRequest;
 import io.dataease.api.export.BaseExportApi;
-import io.dataease.api.xpack.dataFilling.DataFillingApi;
 import io.dataease.commons.utils.ExcelWatermarkUtils;
 import io.dataease.constant.LogOT;
 import io.dataease.constant.LogST;
@@ -17,7 +16,6 @@ import io.dataease.exportCenter.dao.auto.entity.CoreExportTask;
 import io.dataease.exportCenter.dao.auto.mapper.CoreExportDownloadTaskMapper;
 import io.dataease.exportCenter.dao.auto.mapper.CoreExportTaskMapper;
 import io.dataease.exportCenter.dao.ext.mapper.ExportTaskExtMapper;
-import io.dataease.license.config.XpackInteract;
 import io.dataease.log.DeLog;
 import io.dataease.model.ExportTaskDTO;
 import io.dataease.system.manage.SysParameterManage;
@@ -31,7 +29,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -73,14 +70,6 @@ public class ExportCenterManage implements BaseExportApi {
     private ExtDataVisualizationMapper visualizationMapper;
     static private List<String> STATUS = Arrays.asList("SUCCESS", "FAILED", "PENDING", "IN_PROGRESS", "ALL");
     private Map<String, Future> Running_Task = new HashMap<>();
-    @Autowired(required = false)
-    private DataFillingApi dataFillingApi = null;
-
-    private DataFillingApi getDataFillingApi() {
-        return dataFillingApi;
-    }
-
-
     public void download(String id, HttpServletResponse response) throws Exception {
         if (coreExportDownloadTaskMapper.selectById(id) == null) {
             DEException.throwException("任务不存在");
@@ -150,10 +139,6 @@ public class ExportCenterManage implements BaseExportApi {
             DataSetExportRequest request = JsonUtil.parseObject(exportTask.getParams(), DataSetExportRequest.class);
             exportCenterDownLoadManage.startDatasetTask(exportTask, request);
         }
-        if (exportTask.getExportFromType().equalsIgnoreCase("data_filling")) {
-            HashMap request = JsonUtil.parseObject(exportTask.getParams(), HashMap.class);
-            exportCenterDownLoadManage.startDataFillingTask(exportTask, request);
-        }
     }
 
     public IPage<ExportTaskDTO> pager(Page<ExportTaskDTO> page, String status) {
@@ -210,7 +195,6 @@ public class ExportCenterManage implements BaseExportApi {
         return result;
     }
 
-    @XpackInteract(value = "exportCenter", before = false)
     public void setOrg(ExportTaskDTO exportTaskDTO) {
     }
 
@@ -225,13 +209,6 @@ public class ExportCenterManage implements BaseExportApi {
         if (exportTaskDTO.getExportFromType().equalsIgnoreCase("dataset")) {
             List<String> fullName = new ArrayList<>();
             datasetGroupManage.geFullName(Long.valueOf(exportTaskDTO.getExportFrom()), fullName);
-            Collections.reverse(fullName);
-            List<String> finalFullName = fullName;
-            exportTaskDTO.setExportFromName(String.join("/", finalFullName));
-        }
-        if (exportTaskDTO.getExportFromType().equalsIgnoreCase("data_filling")) {
-            List<String> fullName = new ArrayList<>();
-            getDataFillingApi().geFullName(Long.valueOf(exportTaskDTO.getExportFrom()), fullName);
             Collections.reverse(fullName);
             List<String> finalFullName = fullName;
             exportTaskDTO.setExportFromName(String.join("/", finalFullName));
@@ -302,9 +279,6 @@ public class ExportCenterManage implements BaseExportApi {
         exportTask.setParams(JsonUtil.toJSONString(request).toString());
         exportTask.setExportMachineName(hostName());
         exportTaskMapper.insert(exportTask);
-        if (StringUtils.equals(exportFromType, "data_filling")) {
-            exportCenterDownLoadManage.startDataFillingTask(exportTask, request);
-        }
     }
 
     public void cleanLog() {
@@ -368,4 +342,3 @@ public class ExportCenterManage implements BaseExportApi {
         Long createTime;
     }
 }
-

@@ -186,10 +186,6 @@ export function cutTargetTree(tree: BusiTreeNode[], targetId: string | number) {
   })
 }
 
-export const isLink = () => {
-  return window.location.hash.startsWith('#/de-link/')
-}
-
 export const isNull = arg => {
   return typeof arg === 'undefined' || arg === null || arg === 'null'
 }

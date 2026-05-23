@@ -1,9 +1,5 @@
 export function isExternal(path) {
-  return (
-    /^(https?:|mailto:|tel:)/.test(path) ||
-    /^(http?:|mailto:|tel:)/.test(path) ||
-    path.startsWith('/api/pluginCommon/staticInfo')
-  )
+  return /^(https?:|mailto:|tel:)/.test(path) || /^(http?:|mailto:|tel:)/.test(path)
 }
 
 export function validUsername(str) {

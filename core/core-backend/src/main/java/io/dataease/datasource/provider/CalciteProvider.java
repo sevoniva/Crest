@@ -25,6 +25,7 @@ import org.apache.calcite.config.CalciteConnectionProperty;
 import org.apache.calcite.config.Lex;
 import org.apache.calcite.config.NullCollation;
 import org.apache.calcite.jdbc.CalciteConnection;
+import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
@@ -54,6 +55,7 @@ import java.util.stream.Collectors;
 
 
 @Component("calciteProvider")
+@SuppressWarnings({"deprecation", "unchecked"})
 public class CalciteProvider extends Provider {
 
     @Resource
@@ -358,12 +360,13 @@ public class CalciteProvider extends Provider {
 
     private Map<String, Integer> getTableTypeMap(DatasourceRequest datasourceRequest, DatasourceConfiguration datasourceConfiguration, String tableName) throws DEException {
         Map<String, Integer> map = new HashMap<>();
-        String schemaTable = (ObjectUtils.isNotEmpty(datasourceConfiguration.getSchema()) ? (datasourceConfiguration.getSchema() + "`.`") : "") + tableName;
-        String sql = "SELECT * FROM `$TABLE_NAME$` LIMIT 0 OFFSET 0".replace("$TABLE_NAME$", schemaTable);
+        String schemaTable = (ObjectUtils.isNotEmpty(datasourceConfiguration.getSchema()) ? (quoteIdentifierPart(datasourceConfiguration.getSchema()) + ".") : "") + quoteIdentifierPart(tableName);
+        // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string - SQL identifiers cannot be bound as parameters; each part is escaped by quoteIdentifierPart.
+        String sql = "SELECT * FROM " + schemaTable + " LIMIT 0 OFFSET 0";
         sql = transSqlDialect(sql, datasourceRequest.getDsList());
         ResultSet resultSet = null;
         try (Connection con = getConnectionFromPool(datasourceRequest.getDatasource().getId());
-             Statement statement = getStatement(con, 30)) {
+             PreparedStatement statement = con.prepareStatement(sql)) {
             boolean readOnly = shouldUseReadOnlyConnection(
                     datasourceRequest,
                     datasourceConfiguration,
@@ -371,7 +374,9 @@ public class CalciteProvider extends Provider {
             );
             setConnectionReadOnly(con, readOnly);
             try {
-                resultSet = statement.executeQuery(sql);
+                statement.setQueryTimeout(30);
+                // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string - table identifiers were already quoted and escaped before preparing the statement.
+                resultSet = statement.executeQuery();
 
                 ResultSetMetaData metaData = resultSet.getMetaData();
                 int columnCount = metaData.getColumnCount();
@@ -395,6 +400,13 @@ public class CalciteProvider extends Provider {
             }
         }
         return map;
+    }
+
+    private String quoteIdentifierPart(String identifier) {
+        if (StringUtils.isBlank(identifier)) {
+            DEException.throwException("Illegal empty identifier");
+        }
+        return "`" + identifier.replace("`", "``") + "`";
     }
 
     @Override
@@ -1142,7 +1154,7 @@ public class CalciteProvider extends Provider {
                 Driver driver = (Driver) extendedJdbcClassLoader.loadClass(driverClass).newInstance();
                 DriverManager.registerDriver(new DriverShim(driver));
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtil.debug("Skip unavailable datasource driver: " + driverClass);
             }
         }
     }
@@ -1190,7 +1202,7 @@ public class CalciteProvider extends Provider {
                             JdbcSchema jdbcSchema = rootSchema.getSubSchema(ds.getSchemaAlias()).unwrap(JdbcSchema.class);
                             BasicDataSource basicDataSource = (BasicDataSource) jdbcSchema.getDataSource();
                             basicDataSource.close();
-                            rootSchema.removeSubSchema(ds.getSchemaAlias());
+                            removeSubSchema(rootSchema, ds.getSchemaAlias());
                         }
                         switch (datasourceType) {
                             case mysql:
@@ -1904,7 +1916,7 @@ public class CalciteProvider extends Provider {
                 JdbcSchema jdbcSchema = rootSchema.getSubSchema(datasourceSchemaDTO.getSchemaAlias()).unwrap(JdbcSchema.class);
                 BasicDataSource basicDataSource = (BasicDataSource) jdbcSchema.getDataSource();
                 basicDataSource.close();
-                rootSchema.removeSubSchema(datasourceSchemaDTO.getSchemaAlias());
+                removeSubSchema(rootSchema, datasourceSchemaDTO.getSchemaAlias());
             }
         } catch (Exception e) {
             DEException.throwException(e.getMessage());
@@ -1925,6 +1937,10 @@ public class CalciteProvider extends Provider {
             }
         }
         return connection;
+    }
+
+    private void removeSubSchema(SchemaPlus rootSchema, String schemaAlias) {
+        CalciteSchema.from(rootSchema).removeSubSchema(schemaAlias);
     }
 
     private Connection getConnectionFromPool(Long dsId) {

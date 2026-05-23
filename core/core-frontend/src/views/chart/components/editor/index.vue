@@ -29,7 +29,7 @@ import { useAppStoreWithOut } from '@/store/modules/app'
 import { useI18n } from '@/hooks/web/useI18n'
 import { Tree } from '../../../visualized/data/dataset/form/CreatDsGroup.vue'
 import { useEmitt } from '@/hooks/web/useEmitt'
-import { ElMessage, ElTreeSelect } from 'element-plus-secondary'
+import { ElMessage } from 'element-plus-secondary'
 import draggable from 'vuedraggable'
 import DimensionItem from './drag-item/DimensionItem.vue'
 import { fieldType } from '@/utils/attr'
@@ -57,14 +57,11 @@ import CalcFieldEdit from '@/views/visualized/data/dataset/form/CalcFieldEdit.vu
 import { getFieldName, guid } from '@/views/visualized/data/dataset/form/util'
 import { cloneDeep, forEach, get, debounce, set, concat, keys, merge } from 'lodash-es'
 import { deleteField, saveField } from '@/api/dataset'
-import { getWorldTree, listCustomGeoArea } from '@/api/map'
 import chartViewManager from '@/views/chart/components/js/panel'
 import DatasetSelect from '@/views/chart/components/editor/dataset-select/DatasetSelect.vue'
 import { useDraggable } from '@vueuse/core'
-import { PluginComponent } from '@/components/plugin'
 import { Field, getFieldByDQ, copyChartField, deleteChartField } from '@/api/chart'
 import ChartTemplateInfo from '@/views/chart/components/editor/common/ChartTemplateInfo.vue'
-import { XpackComponent } from '@/components/plugin'
 import { useEmbedded } from '@/store/modules/embedded'
 import { iconChartMap } from '@/components/icon-group/chart-list'
 import { iconFieldMap } from '@/components/icon-group/field-list'
@@ -249,8 +246,6 @@ const state = reactive({
   customSortList: [],
   customSortField: {},
   currEditField: {},
-  worldTree: [],
-  areaId: '',
   chartTypeOptions: [],
   useless: null
 })
@@ -324,43 +319,14 @@ const chartViewInstance = computed(() => {
   return chartViewManager.getChartView(view.value.render, view.value.type)
 })
 const showAxis = (axis: AxisType) => chartViewInstance.value?.axis?.includes(axis)
-const areaSelect = ref()
-const expandKeys = ref([])
 watch(
   () => [view.value.type, view.value],
   newVal => {
-    if (showAxis('area')) {
-      if (!state.worldTree?.length) {
-        getWorldTree().then(async res => {
-          const customAreaList = (await listCustomGeoArea()).data
-          const customRoot = {
-            id: 'customRoot',
-            name: '自定义区域',
-            disabled: true
-          }
-          if (customAreaList.length) {
-            customRoot.children = customAreaList
-          }
-          state.worldTree.splice(0, state.worldTree.length, res.data, customRoot)
-          state.areaId = view.value?.customAttr?.map?.id
-        })
-      } else {
-        state.areaId = view.value?.customAttr?.map?.id
-      }
-      areaSelect.value?.blur()
-      expandKeys.value.splice(0)
-      areaSelect.value?.setCurrentKey(state.areaId)
-    }
     state.chartTypeOptions.splice(0, state.chartTypeOptions.length, getViewConfig(newVal[0]))
     state.useless = newVal[0]
   },
   { immediate: true, deep: false }
 )
-const treeProps = {
-  label: 'name',
-  children: 'children',
-  disabled: 'disabled'
-}
 
 const recordSnapshotInfo = type => {
   view.value['dataFrom'] = 'calc'
@@ -371,13 +337,6 @@ const changeDataset = () => {
   // change dataset, do clear field or other thing
   view.value['calParams'] = []
   recordSnapshotInfo('calcData')
-}
-
-const filterNode = (value, data) => {
-  if (!value) {
-    return true
-  }
-  return data.name?.includes(value)
 }
 
 const allFields = computed(() => {
@@ -1004,14 +963,6 @@ const renderChart = view => {
   }
 }
 
-const onAreaChange = val => {
-  if (val.id === 'customRoot') {
-    return
-  }
-  view.value.customAttr.map = { id: val.id, level: val.level }
-  renderChart(view.value)
-}
-
 const onTypeChange = (render, type) => {
   const viewConf = getViewConfig(type)
   if (viewConf.isPlugin) {
@@ -1281,12 +1232,6 @@ const onThresholdChange = val => {
   } else {
     renderChart(view.value)
   }
-}
-
-const onMapMappingChange = (val, useGlobalAreaMapping = false) => {
-  view.value.senior.areaMapping = val
-  view.value.senior.useGlobalAreaMapping = useGlobalAreaMapping
-  renderChart(view.value)
 }
 
 const onScrollCfgChange = val => {
@@ -2070,15 +2015,7 @@ const chartStyleScroll = (val: any) => {
             :themes="themes"
           />
           <template v-else-if="view.plugin?.isPlugin">
-            <plugin-component
-              :jsname="view.plugin.staticMap['editor-style']"
-              :view="view"
-              :dimension="state.dimension"
-              :quota="state.quota"
-              :themes="themes"
-              :emitter="emitter"
-            />
-          </template>
+                      </template>
           <template v-else>
             <chart-style
               v-if="chartStyleShow"
@@ -2250,46 +2187,8 @@ const chartStyleScroll = (val: any) => {
                         </el-popover>
                       </el-row>
                       <template v-if="view.plugin?.isPlugin">
-                        <plugin-component
-                          :jsname="view.plugin.staticMap['editor-data']"
-                          :view="view"
-                          :dimension="state.dimension"
-                          :quota="state.quota"
-                          :themes="themes"
-                          :emitter="emitter"
-                          @onDimensionItemChange="dimensionItemChange"
-                          @onDimensionItemRemove="dimensionItemRemove"
-                          @onNameEdit="showRename"
-                          @onCustomSort="onCustomSort"
-                          @valueFormatter="valueFormatter"
-                        />
-                      </template>
+                                              </template>
                       <template v-else>
-                        <!--area-->
-                        <el-row v-if="showAxis('area')" class="padding-lr drag-data">
-                          <span class="data-area-label">
-                            {{ t('chart.area') }}
-                            <i class="required"></i>
-                          </span>
-                          <div class="area-tree-select">
-                            <el-tree-select
-                              ref="areaSelect"
-                              v-model="state.areaId"
-                              :effect="themes"
-                              :data="state.worldTree"
-                              :props="treeProps"
-                              :filterNodeMethod="filterNode"
-                              :current-node-key="state.areaId"
-                              :teleported="false"
-                              :default-expanded-keys="expandKeys"
-                              empty-text="请选择区域"
-                              node-key="id"
-                              check-strictly
-                              filterable
-                              @node-click="onAreaChange"
-                            />
-                          </div>
-                        </el-row>
                         <!--xAxis-->
                         <template v-if="view.type !== 'multi-scatter'">
                           <el-row v-if="showAxis('xAxis')" class="padding-lr drag-data">
@@ -3498,15 +3397,7 @@ const chartStyleScroll = (val: any) => {
                       class="drag_main_area"
                     >
                       <template v-if="view.plugin?.isPlugin">
-                        <plugin-component
-                          :jsname="view.plugin.staticMap['editor-style']"
-                          :view="view"
-                          :dimension="state.dimension"
-                          :quota="state.quota"
-                          :themes="themes"
-                          :emitter="emitter"
-                        />
-                      </template>
+                                              </template>
                       <template v-else>
                         <chart-style
                           v-if="chartStyleShow"
@@ -3558,15 +3449,7 @@ const chartStyleScroll = (val: any) => {
                   <el-container direction="vertical">
                     <el-scrollbar class="drag_main_area">
                       <template v-if="view.plugin?.isPlugin">
-                        <plugin-component
-                          :jsname="view.plugin.staticMap['editor-senior']"
-                          :view="view"
-                          :dimension="state.dimension"
-                          :quota="state.quota"
-                          :themes="themes"
-                          :emitter="emitter"
-                        />
-                      </template>
+                                              </template>
                       <template v-else>
                         <senior
                           :chart="view"
@@ -3581,7 +3464,6 @@ const chartStyleScroll = (val: any) => {
                           @onAssistLineChange="onAssistLineChange"
                           @onScrollCfgChange="onScrollCfgChange"
                           @onThresholdChange="onThresholdChange"
-                          @onMapMappingChange="onMapMappingChange"
                           @onBubbleAnimateChange="onBubbleAnimateChange"
                         />
                       </template>
@@ -4227,8 +4109,7 @@ const chartStyleScroll = (val: any) => {
     </el-dialog>
   </div>
   <FilterTree ref="filterTree" @filter-data="changeFilterData" />
-  <XpackComponent ref="openHandler" jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvT3BlbkhhbmRsZXI=" />
-  <Teleport v-if="componentNameEdit" :to="'#component-name'">
+    <Teleport v-if="componentNameEdit" :to="'#component-name'">
     <input
       ref="componentNameInput"
       v-model="inputComponentName.name"

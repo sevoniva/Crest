@@ -9,6 +9,7 @@ import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("unchecked")
 public class MapHandler extends ExtQuotaChartHandler {
     @Getter
     private String type = "map";

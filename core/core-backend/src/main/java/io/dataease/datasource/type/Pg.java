@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.dataease.exception.DEException;
 import io.dataease.extensions.datasource.vo.DatasourceConfiguration;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +14,9 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Component("pg")
+@SuppressWarnings("deprecation")
 public class Pg extends DatasourceConfiguration {
     private String driver = "org.postgresql.Driver";
     private String extraParams = "";

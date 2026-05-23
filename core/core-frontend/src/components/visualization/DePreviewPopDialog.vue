@@ -24,13 +24,11 @@
       />
     </div>
   </el-dialog>
-  <XpackComponent ref="xpackIframe" jsname="L2NvbXBvbmVudC9lbWJlZGRlZC1pZnJhbWUvSWZyYW1lU2VsZg==" />
-</template>
+  </template>
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { useEmbedded } from '@/store/modules/embedded'
-import { XpackComponent } from '@/components/plugin'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
 import ChartCarouselTooltip from '@/views/chart/components/js/g2plot_tooltip_carousel'
@@ -44,7 +42,6 @@ const state = reactive({
   width: '70vw',
   height: '70%'
 })
-const xpackIframe = ref()
 const embeddedStore = useEmbedded()
 const dialogStyle = computed(() => {
   if (state.fullscreen) {
@@ -79,15 +76,7 @@ const previewInit = params => {
     state.height = '65%'
   }
   state.dialogShow = true
-  if (embeddedStore.getToken && state.url.includes('#/preview?dvId=')) {
-    if (xpackIframe?.value) {
-      const pm = {
-        methodName: 'iframeInit',
-        args: null
-      }
-      xpackIframe.value.invokeMethod(pm)
-    }
-  }
+  void embeddedStore
 }
 // 监听弹窗显示隐藏，控制tooltip显示隐藏，避免遮挡弹窗
 watch(

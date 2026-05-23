@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
  * yAxisExt: 明暗指标字段
  */
 @Component
+@SuppressWarnings("unchecked")
 public class MultiScatterHandler extends DefaultChartHandler {
     @Getter
     private String type = "multi-scatter";

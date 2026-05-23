@@ -1,0 +1,9 @@
+{
+  "name": "size-sensor",
+  "version": "1.0.3",
+  "description": "DOM element size sensor.",
+  "main": "lib/index.js",
+  "module": "esm/index.js",
+  "types": "index.d.ts",
+  "license": "ISC"
+}

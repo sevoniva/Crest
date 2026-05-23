@@ -157,7 +157,7 @@ export class CirclePacking extends G2PlotChartView<CirclePackingOptions, G2Circl
       ...options,
       hierarchyConfig: {
         ...options.hierarchyConfig,
-        padding: padding / 100 ?? 0
+        padding: (padding ?? 0) / 100
       },
       pointStyle
     }
