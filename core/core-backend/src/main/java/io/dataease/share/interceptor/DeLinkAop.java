@@ -1,7 +1,5 @@
 package io.dataease.share.interceptor;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import io.dataease.auth.DeLinkPermit;
 import io.dataease.constant.AuthConstant;
 import io.dataease.exception.DEException;
@@ -46,8 +44,11 @@ public class DeLinkAop {
                 value = SPRING_EL_FLAG + PARAM_VARIABLE_PREFIX + "0";
             }
             Long id = getExpression(params, value);
-            DecodedJWT jwt = JWT.decode(linkToken);
-            Long resourceId = jwt.getClaim("resourceId").asLong();
+            Object resourceIdAttr = ServletUtils.request().getAttribute(AuthConstant.LINK_RESOURCE_ID_ATTR);
+            if (ObjectUtils.isEmpty(resourceIdAttr)) {
+                DEException.throwException("link token invalid");
+            }
+            Long resourceId = Long.parseLong(resourceIdAttr.toString());
             if (!id.equals(resourceId)) {
                 DEException.throwException("link token invalid");
                 return false;

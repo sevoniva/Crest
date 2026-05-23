@@ -15,6 +15,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component("mysql")
+@SuppressWarnings("deprecation")
 public class Mysql extends DatasourceConfiguration {
     private String driver = "com.mysql.cj.jdbc.Driver";
     private String extraParams = "characterEncoding=UTF-8&connectTimeout=5000&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull";

@@ -50,7 +50,7 @@ DataEase는 사용자가 신속하게 데이터를 분석하고 비즈니스 통
 컬 -sSL https://dataease.oss-cn-hangzhou.aliyuncs.com/quick_start_v2.sh | 파티
 
 # 사용자 이름:관리
-# 암호:DataEase@123456
+# 암호:admin
 ```
 
 ## 기술 스택

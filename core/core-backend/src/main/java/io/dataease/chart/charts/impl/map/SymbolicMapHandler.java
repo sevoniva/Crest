@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@SuppressWarnings("unchecked")
 public class SymbolicMapHandler extends GroupChartHandler {
     @Resource
     private DatasetDataManage datasetDataManage;

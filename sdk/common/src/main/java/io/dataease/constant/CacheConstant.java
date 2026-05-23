@@ -34,10 +34,4 @@ public class CacheConstant {
         public static final String GLOBAL_HMAC_CACHE = "de_v2_global_hmac";
     }
 
-    public static class LicenseCacheConstant {
-        public static final String cacheName = "de_v2_lic_cache_db";
-        public static final String LIC_RESULT_CACHE = "de_v2_lic_cache_result";
-
-        public static final String cacheKey = "de_v2_lic_key";
-    }
 }

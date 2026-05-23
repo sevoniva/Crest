@@ -35,7 +35,7 @@
 - 内部版品牌资源替换为 Crest，包括顶部 logo、登录页 logo 和浏览器图标。
 - 离线安装默认只部署 DataEase 与 MySQL，同步任务服务和 Playwright 按需外接。
 - 部署镜像和安装模板改为使用 GitHub Container Registry。
-- 构建依赖改为优先使用公共 Maven、npm 镜像源。
+- 构建依赖改为使用公开 Maven 坐标和官方 npm registry。
 
 ## OB Oracle 数据源
 
@@ -286,23 +286,23 @@ docker login ghcr.io
 依赖源：
 
 - Maven 使用仓库内 `.mvn/settings.xml`，公共依赖走阿里云 Maven 公共镜像；
-- 前端使用 `core/core-frontend/.npmrc` 中的 `registry.npmmirror.com`；
+- 前端使用 `core/core-frontend/.npmrc` 中的 `registry.npmjs.org`；
 - 不维护私有 Maven 静态仓库，后端依赖必须来自公开 Maven 坐标或本仓库源码；
-- 前端依赖以 `package-lock.json` 为准。
+- 前端主工程依赖以 `pnpm-lock.yaml` 为准，`flushbonading` 子包以自己的 `package-lock.json` 为准。
 
 常用命令：
 
 ```bash
 # 前端构建
 cd core/core-frontend
-npm ci
-npm run build:base
+pnpm install --frozen-lockfile
+pnpm run build:base
 
 # 严格检查或预压缩资源按需执行
-npm run lint:check
-npm run build:lite:check
-npm run build:base:strict
-npm run build:base:gzip
+pnpm run lint:check
+pnpm run build:lite:check
+pnpm run build:base:strict
+pnpm run build:base:gzip
 
 # 后端打包
 cd ../..
@@ -312,7 +312,7 @@ mvn -s .mvn/settings.xml -pl :core-backend -am clean package -Pstandalone -Dskip
 docker build -t dataease-2.10.22-ob:local .
 ```
 
-默认前端构建跳过 Vite 阶段的 ESLint、Stylelint 和 gzip 预压缩，减少本地与 CI 打包耗时。提交前需要完整检查时执行 `npm run lint:check` 或 `npm run build:base:strict`。构建完成后执行 `npm run build:lite:check`，用于确认源码、依赖声明和构建产物中没有重新引入地图接口、Mapbox、L7、L7Plot、Maplibre 或 PMTiles。后端从根目录构建 `:core-backend`，Maven 会同时编译本仓库的 `sdk` 源码，不需要从外部 Maven 仓库拉取 DataEase API 包。
+默认前端构建跳过 Vite 阶段的 ESLint、Stylelint 和 gzip 预压缩，减少本地与 CI 打包耗时。提交前需要完整检查时执行 `pnpm run lint:check` 或 `pnpm run build:base:strict`。构建完成后执行 `pnpm run build:lite:check`，用于确认源码、依赖声明和构建产物中没有重新引入地图接口、Mapbox、L7、L7Plot、Maplibre 或 PMTiles。后端从根目录构建 `:core-backend`，Maven 会同时编译本仓库的 `sdk` 源码，不需要从外部 Maven 仓库拉取 DataEase API 包。
 
 ## 目录说明
 

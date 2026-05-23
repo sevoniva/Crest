@@ -33,6 +33,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@SuppressWarnings("unchecked")
 public class TableInfoHandler extends DefaultChartHandler {
     @Getter
     private String type = "table-info";

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
+@SuppressWarnings("unchecked")
 public class ScheduleManager {
 
     @Resource

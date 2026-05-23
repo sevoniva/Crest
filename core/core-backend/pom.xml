@@ -128,6 +128,12 @@
                     <groupId>com.vladsch.flexmark</groupId>
                     <artifactId>flexmark-all</artifactId>
                     <version>${flexmark.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>commons-logging</groupId>
+                            <artifactId>commons-logging</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
             </dependencies>
 

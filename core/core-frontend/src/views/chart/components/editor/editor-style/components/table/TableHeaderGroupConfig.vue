@@ -28,7 +28,7 @@ import {
 import { ElMessageBox } from 'element-plus-secondary'
 import { cloneDeep, debounce, isEqual, isNumber } from 'lodash-es'
 import { computed, nextTick, onMounted, onUnmounted, PropType } from 'vue'
-import { uuid } from 'vue-uuid'
+import { v4 as uuidV4 } from 'uuid'
 import { useI18n } from '@/hooks/web/useI18n'
 import {
   getColumns,
@@ -483,7 +483,7 @@ const renderTable = (chart: ChartObj) => {
         })
           .then(res => {
             if (parent?.id === 'root') {
-              const newKey = uuid.v4()
+              const newKey = uuidV4()
               curColumns?.splice(startIndex, endIndex - startIndex + 1, {
                 key: newKey,
                 children: totalColumns
@@ -501,7 +501,7 @@ const renderTable = (chart: ChartObj) => {
               s2.render(true)
             } else {
               const [parentColumn] = getColumns([parent.field], curColumns)
-              const newKey = uuid.v4()
+              const newKey = uuidV4()
               parentColumn.children?.splice(startIndex, endIndex - startIndex + 1, {
                 key: newKey,
                 children: totalColumns

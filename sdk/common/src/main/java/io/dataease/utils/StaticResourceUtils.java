@@ -11,6 +11,7 @@ import java.util.Base64;
 
 import static io.dataease.constant.StaticResourceConstants.*;
 
+@SuppressWarnings("deprecation")
 public class StaticResourceUtils {
 
     private final static String FILE_BASE_PATH = USER_HOME + FILE_SEPARATOR + UPLOAD_URL_PREFIX;

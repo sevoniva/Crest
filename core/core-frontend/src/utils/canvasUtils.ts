@@ -1105,9 +1105,10 @@ export function onInitReady(params, eventName = 'canvas_init_ready') {
       eventName: eventName,
       args: params
     }
-    window.parent.postMessage(targetPm, '*')
+    const targetOrigin = document.referrer ? new URL(document.referrer).origin : window.location.origin
+    window.parent.postMessage(targetPm, targetOrigin)
   } catch (e) {
-    console.warn('de_inner_params send error')
+    console.debug('de_inner_params send error')
   }
 }
 

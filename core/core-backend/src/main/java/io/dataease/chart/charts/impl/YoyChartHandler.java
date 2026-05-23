@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 /**
  * 带同环比计算的图表处理器
  */
+@SuppressWarnings("unchecked")
 public class YoyChartHandler extends DefaultChartHandler {
     @Override
     public <T extends CustomFilterResult> T customFilter(ChartViewDTO view, List<ChartExtFilterDTO> filterList, AxisFormatResult formatResult) {

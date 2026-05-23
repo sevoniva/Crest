@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"deprecation", "unchecked"})
 public class TreeUtils {
 
     public final static String DEFAULT_ROOT = "root";

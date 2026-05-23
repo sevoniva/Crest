@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class DualLineMixHandler extends GroupMixHandler {
     @Getter
     private final String type = "chart-mix-dual-line";

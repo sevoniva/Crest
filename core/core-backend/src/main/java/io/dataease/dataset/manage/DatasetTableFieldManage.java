@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
  */
 @Component
 @Transactional
+@SuppressWarnings("unchecked")
 public class DatasetTableFieldManage {
     @Resource
     private CoreDatasetTableFieldMapper coreDatasetTableFieldMapper;

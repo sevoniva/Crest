@@ -9,6 +9,7 @@ import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("unchecked")
 public class WordCloudHandler extends ExtQuotaChartHandler {
     @Getter
     private String type = "word-cloud";

@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
  * @Author Junjun
  */
 @Component
+@SuppressWarnings("unchecked")
 public class ChartDataManage {
     @Resource
     private DatasetTableFieldManage datasetTableFieldManage;

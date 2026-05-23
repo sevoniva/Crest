@@ -35,6 +35,7 @@ import static io.dataease.datasource.server.DatasourceTaskServer.ScheduleType.CR
 import static io.dataease.datasource.server.DatasourceTaskServer.ScheduleType.MANUAL;
 
 @Component
+@SuppressWarnings({"deprecation", "unchecked"})
 public class DatasourceSyncManage {
 
     @Resource

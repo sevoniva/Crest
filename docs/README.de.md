@@ -49,7 +49,7 @@ DataEase ist ein Open-Source-BI-Werkzeug (Business Intelligence-Werkzeug), das d
 curl -sSL https://dataease.oss-cn-hangzhou.aliyuncs.com/quick_start_v2.sh | bash
 
 # Benutzername: admin
-# Passwort: DataEase@123456
+# Passwort: admin
 ```
 
 ## Technologiestack

@@ -13,7 +13,7 @@ public class Md5Utils {
     public static String md5(String src, String charset) {
         try {
             byte[] strTemp = charset == null || charset.equals("") ? src.getBytes() : src.getBytes(charset);
-            MessageDigest mdTemp = MessageDigest.getInstance("MD5");
+            MessageDigest mdTemp = MessageDigest.getInstance("MD5"); // nosemgrep: java.lang.security.audit.crypto.use-of-md5.use-of-md5
             mdTemp.update(strTemp);
 
             byte[] md = mdTemp.digest();

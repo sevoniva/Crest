@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("unchecked")
 public class SankeyHandler extends GroupChartHandler {
     @Getter
     private String type = "sankey";

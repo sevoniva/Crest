@@ -360,12 +360,13 @@ public class CalciteProvider extends Provider {
 
     private Map<String, Integer> getTableTypeMap(DatasourceRequest datasourceRequest, DatasourceConfiguration datasourceConfiguration, String tableName) throws DEException {
         Map<String, Integer> map = new HashMap<>();
-        String schemaTable = (ObjectUtils.isNotEmpty(datasourceConfiguration.getSchema()) ? (datasourceConfiguration.getSchema() + "`.`") : "") + tableName;
-        String sql = "SELECT * FROM `$TABLE_NAME$` LIMIT 0 OFFSET 0".replace("$TABLE_NAME$", schemaTable);
+        String schemaTable = (ObjectUtils.isNotEmpty(datasourceConfiguration.getSchema()) ? (quoteIdentifierPart(datasourceConfiguration.getSchema()) + ".") : "") + quoteIdentifierPart(tableName);
+        // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string - SQL identifiers cannot be bound as parameters; each part is escaped by quoteIdentifierPart.
+        String sql = "SELECT * FROM " + schemaTable + " LIMIT 0 OFFSET 0";
         sql = transSqlDialect(sql, datasourceRequest.getDsList());
         ResultSet resultSet = null;
         try (Connection con = getConnectionFromPool(datasourceRequest.getDatasource().getId());
-             Statement statement = getStatement(con, 30)) {
+             PreparedStatement statement = con.prepareStatement(sql)) {
             boolean readOnly = shouldUseReadOnlyConnection(
                     datasourceRequest,
                     datasourceConfiguration,
@@ -373,7 +374,9 @@ public class CalciteProvider extends Provider {
             );
             setConnectionReadOnly(con, readOnly);
             try {
-                resultSet = statement.executeQuery(sql);
+                statement.setQueryTimeout(30);
+                // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string - table identifiers were already quoted and escaped before preparing the statement.
+                resultSet = statement.executeQuery();
 
                 ResultSetMetaData metaData = resultSet.getMetaData();
                 int columnCount = metaData.getColumnCount();
@@ -397,6 +400,13 @@ public class CalciteProvider extends Provider {
             }
         }
         return map;
+    }
+
+    private String quoteIdentifierPart(String identifier) {
+        if (StringUtils.isBlank(identifier)) {
+            DEException.throwException("Illegal empty identifier");
+        }
+        return "`" + identifier.replace("`", "``") + "`";
     }
 
     @Override

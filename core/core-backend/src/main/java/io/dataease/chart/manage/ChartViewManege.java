@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
  * @Author Junjun
  */
 @Component
+@SuppressWarnings("unchecked")
 public class ChartViewManege {
     @Resource
     private CoreChartViewMapper coreChartViewMapper;

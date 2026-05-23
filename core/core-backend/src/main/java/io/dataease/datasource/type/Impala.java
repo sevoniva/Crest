@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component("impala")
+@SuppressWarnings("deprecation")
 public class Impala extends DatasourceConfiguration {
     private String driver = "com.cloudera.impala.jdbc.Driver";
     private String extraParams = "";

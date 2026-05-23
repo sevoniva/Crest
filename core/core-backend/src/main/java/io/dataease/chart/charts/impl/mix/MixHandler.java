@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@SuppressWarnings("unchecked")
 public class MixHandler extends YoyChartHandler {
     @Getter
     private final String type = "chart-mix";

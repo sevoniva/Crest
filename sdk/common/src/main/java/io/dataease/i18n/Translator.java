@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class Translator {
 
     private static final String JSON_SYMBOL = "\":";

@@ -19,6 +19,7 @@ import static java.awt.SystemColor.info;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component("redshift")
+@SuppressWarnings("deprecation")
 public class Redshift extends DatasourceConfiguration {
     private String driver = "com.amazon.redshift.jdbc42.Driver";
     private String extraParams = "";

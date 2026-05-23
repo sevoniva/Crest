@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("unchecked")
 public class RichTextHandler extends YoyChartHandler {
     @Getter
     private String type = "rich-text";

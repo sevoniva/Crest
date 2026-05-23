@@ -43,7 +43,7 @@ export default {
     : [],
   build: {
     reportCompressedSize: false,
-    chunkSizeWarningLimit: 3000,
+    chunkSizeWarningLimit: 10000,
     rollupOptions: {
       output: {
         // 用于命名代码拆分时创建的共享块的输出命名

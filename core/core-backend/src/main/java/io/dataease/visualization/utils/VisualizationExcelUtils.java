@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("deprecation")
 public class VisualizationExcelUtils {
 
     private static final String suffix = ".xlsx";

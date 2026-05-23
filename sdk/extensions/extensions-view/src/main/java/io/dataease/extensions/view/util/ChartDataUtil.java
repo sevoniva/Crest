@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
+@SuppressWarnings("deprecation")
 public class ChartDataUtil {
     // 对结果排序
     public static List<String[]> resultCustomSort(List<ChartViewFieldDTO> xAxis,List<ChartViewFieldDTO> yAxis, List<SortAxis> sortPriority, List<String[]> data) {

@@ -16,6 +16,7 @@ import java.util.Locale;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component("obOracle")
+@SuppressWarnings("deprecation")
 public class ObOracle extends DatasourceConfiguration {
     private String driver = "com.oceanbase.jdbc.Driver";
     private String extraParams = "";

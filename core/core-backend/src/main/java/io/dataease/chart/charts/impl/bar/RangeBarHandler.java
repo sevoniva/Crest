@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class RangeBarHandler extends YoyChartHandler {
     @Getter
     private final String type = "bar-range";

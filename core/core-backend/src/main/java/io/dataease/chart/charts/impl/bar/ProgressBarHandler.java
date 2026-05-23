@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class ProgressBarHandler extends BarHandler {
     @Getter
     private String type = "progress-bar";

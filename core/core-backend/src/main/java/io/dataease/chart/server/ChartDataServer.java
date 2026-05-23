@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/chartData")
+@SuppressWarnings("unchecked")
 public class ChartDataServer implements ChartDataApi {
     @Resource
     private ChartDataManage chartDataManage;

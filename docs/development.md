@@ -5,7 +5,7 @@ This repository is a fork of `https://github.com/dataease/dataease.git` based on
 ## Repository Layout
 
 - `core/core-backend`: Spring Boot backend and packaged application.
-- `core/core-frontend`: Vue frontend. Use the checked-in `package-lock.json`.
+- `core/core-frontend`: Vue frontend. Use the checked-in `pnpm-lock.yaml`.
 - `sdk/extensions/extensions-datasource`: datasource extension interfaces and JDBC datasource definitions.
 - `drivers`: fork-managed JDBC driver jars. Only `oceanbase-client-2.4.17.jar` is intentionally tracked here.
 - `installer`: deployment templates.
@@ -23,7 +23,7 @@ This repository is a fork of `https://github.com/dataease/dataease.git` based on
 
 Maven uses the repository-local `.mvn/settings.xml`, which mirrors Maven Central through Aliyun public Maven. Keep public dependencies in normal Maven coordinates or source modules in this repository; do not add private static Maven artifacts.
 
-Frontend dependencies use `core/core-frontend/.npmrc` and `registry.npmmirror.com`. Keep `package-lock.json` updated whenever frontend dependencies change.
+Frontend dependencies use `core/core-frontend/.npmrc` and `registry.npmjs.org`. Keep `core/core-frontend/pnpm-lock.yaml` updated for the main frontend, and keep `core/core-frontend/flushbonading/package-lock.json` updated for the `flushbonading` subpackage.
 
 ## Common Commands
 
@@ -39,8 +39,8 @@ Build the frontend:
 
 ```bash
 cd core/core-frontend
-npm ci
-npm run build:base
+pnpm install --frozen-lockfile
+pnpm run build:base
 ```
 
 Build the backend package:

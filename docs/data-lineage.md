@@ -25,7 +25,7 @@ http://localhost:8100
 默认账号：
 
 ```text
-admin / DataEase@123456
+admin / admin
 ```
 
 页面默认选中 DataEase 内置的 `Demo` 数据源，方便直接查看效果。

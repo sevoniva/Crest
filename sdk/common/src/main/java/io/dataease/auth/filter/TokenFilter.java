@@ -27,6 +27,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+@SuppressWarnings("deprecation")
 public class TokenFilter implements Filter {
     private static final String headName = "DE-GATEWAY-FLAG";
 
@@ -81,7 +82,8 @@ public class TokenFilter implements Filter {
                 if (StringUtils.length(linkToken) < 100) {
                     DEException.throwException("token is invalid");
                 }
-                DecodedJWT jwt = JWT.decode(linkToken);
+                // Decode is used only to look up the signing secret; verifier.verify() below enforces integrity.
+                DecodedJWT jwt = JWT.decode(linkToken); // nosemgrep: java.java-jwt.security.audit.jwt-decode-without-verify.java-jwt-decode-without-verify
                 Long userId = jwt.getClaim("uid").asLong();
                 Long oid = jwt.getClaim("oid").asLong();
                 Long resourceId = jwt.getClaim("resourceId").asLong();
@@ -101,6 +103,7 @@ public class TokenFilter implements Filter {
                 algorithm.verify(decode);
                 verifier.verify(linkToken);
 
+                request.setAttribute(AuthConstant.LINK_RESOURCE_ID_ATTR, resourceId);
                 UserUtils.setUserInfo(new TokenUserBO(userId, oid));
                 filterChain.doFilter(servletRequest, servletResponse);
                 return;

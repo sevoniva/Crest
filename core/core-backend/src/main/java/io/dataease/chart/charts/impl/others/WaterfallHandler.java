@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("unchecked")
 public class WaterfallHandler extends ExtQuotaChartHandler {
     @Getter
     private String type = "waterfall";

@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component("sqlServer")
+@SuppressWarnings("deprecation")
 public class Sqlserver extends DatasourceConfiguration {
     private String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     private String extraParams = "";

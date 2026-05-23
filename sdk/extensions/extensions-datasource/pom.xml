@@ -26,6 +26,10 @@
                     <artifactId>commons-io</artifactId>
                     <groupId>commons-io</groupId>
                 </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>

@@ -36,7 +36,7 @@ public class SubstituleLoginConfig {
         ObjectMapper objectMapper = new ObjectMapper();
         File jsonFile = new File(jsonFilePath);
         if (!jsonFile.exists()) {
-            pwd = CommonBeanFactory.getBean(Environment.class).getProperty("dataease.default-pwd", "DataEase@123456");
+            pwd = CommonBeanFactory.getBean(Environment.class).getProperty("dataease.default-pwd", "admin");
             modifyPwd(pwd);
         }
         return objectMapper.readValue(jsonFile, Map.class);

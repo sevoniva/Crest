@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("unchecked")
 public class AreaHandler extends LineHandler {
     @Getter
     private String type = "area";

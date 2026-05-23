@@ -19,6 +19,7 @@ import java.util.List;
  * @date : 2023/11/13 13:25
  */
 @Service
+@SuppressWarnings("unchecked")
 public class VisualizationTemplateExtendDataManage {
 
     @Resource

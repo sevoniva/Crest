@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Component("pg")
+@SuppressWarnings("deprecation")
 public class Pg extends DatasourceConfiguration {
     private String driver = "org.postgresql.Driver";
     private String extraParams = "";

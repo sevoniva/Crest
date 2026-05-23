@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@SuppressWarnings("unchecked")
 public class GroupBarHandler extends BarHandler {
     @Getter
     private String type = "bar-group";

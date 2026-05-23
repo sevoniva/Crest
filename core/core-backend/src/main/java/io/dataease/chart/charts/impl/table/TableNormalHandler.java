@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
  * @date 2024/9/11 11:37
  **/
 @Component
+@SuppressWarnings("unchecked")
 public class TableNormalHandler extends DefaultChartHandler {
     @Getter
     private final String type = "table-normal";

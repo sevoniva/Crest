@@ -67,6 +67,7 @@ import static io.dataease.dataset.utils.TableUtils.format;
  * @Author Junjun
  */
 @Component
+@SuppressWarnings("unchecked")
 public class DatasetDataManage {
     @Resource
     private DatasetSQLManage datasetSQLManage;

@@ -23,7 +23,7 @@ import type { Param } from './ExcelDetail.vue'
 import type { Configuration, ApiConfiguration, SyncSetting } from './option'
 import { dsTypes, typeList, nameMap } from './option'
 import { useRouter } from 'vue-router_2'
-import { uuid } from 'vue-uuid'
+import { v1 as uuidV1 } from 'uuid'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import FinishPage from '../FinishPage.vue'
 import { cloneDeep } from 'lodash-es'
@@ -522,7 +522,7 @@ const saveDS = () => {
           'api_' +
           request.apiConfiguration[i].name +
           '_' +
-          uuid.v1().replaceAll('-', '').substring(0, 10)
+          uuidV1().replaceAll('-', '').substring(0, 10)
       }
       request.apiConfiguration[i].jsonFields = []
       for (let j = 0; j < request.apiConfiguration[i].fields.length; j++) {

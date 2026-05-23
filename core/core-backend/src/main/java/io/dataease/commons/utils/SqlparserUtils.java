@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 import static io.dataease.chart.manage.ChartDataManage.START_END_SEPARATOR;
 import static org.apache.calcite.sql.SqlKind.*;
 
+@SuppressWarnings("deprecation")
 public class SqlparserUtils {
     public static final String regex = "\\$\\{(.*?)\\}";
     public static final String regex2 = "\\$f2cde\\[(.*?)\\]";
@@ -783,4 +784,3 @@ public class SqlparserUtils {
         }
     }
 }
-

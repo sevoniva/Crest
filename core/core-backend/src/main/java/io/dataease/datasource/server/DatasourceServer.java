@@ -72,7 +72,7 @@ import static io.dataease.datasource.server.DatasourceTaskServer.ScheduleType.RI
 
 @RestController
 @RequestMapping("/datasource")
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"deprecation", "unchecked"})
 public class DatasourceServer implements DatasourceApi {
     private static final Pattern ORACLE_RECYCLE_BIN_TABLE_PATTERN = Pattern.compile("^BIN\\$.*\\$[0-9]+$", Pattern.CASE_INSENSITIVE);
 

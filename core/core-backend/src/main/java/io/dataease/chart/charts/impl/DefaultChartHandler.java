@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Component
+@SuppressWarnings("unchecked")
 public class DefaultChartHandler extends AbstractChartPlugin {
     public static Logger logger = LoggerFactory.getLogger(ChartDataManage.class);
     @Resource

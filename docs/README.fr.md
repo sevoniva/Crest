@@ -50,7 +50,7 @@ DataEase est un outil BI open-source conçu pour aider les utilisateurs à analy
 curl -sSL https://dataease.oss-cn-hangzhou.aliyuncs.com/quick_start_v2.sh | bash
 
 # Username: admin
-# Password: DataEase@123456
+# Password: admin
 ```
 
 ## Pile technologique

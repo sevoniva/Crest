@@ -34,20 +34,20 @@
 安装依赖：
 
 ```bash
-npm ci
+pnpm install --frozen-lockfile
 ```
 
 构建内部版前端：
 
 ```bash
-npm run build:distributed
+pnpm run build:base
 ```
 
 常规检查：
 
 ```bash
-npm run lint:check
-npm run build:lite:check
+pnpm run lint:check
+pnpm run build:lite:check
 ```
 
 后端打包时会把前端 `dist` 拷贝到后端静态资源目录。只改前端后，如果要在 `http://localhost:8100` 的打包服务里看到效果，需要重新执行前端构建和后端打包。

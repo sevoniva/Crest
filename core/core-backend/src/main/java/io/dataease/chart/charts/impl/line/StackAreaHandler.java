@@ -22,6 +22,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
+@SuppressWarnings("unchecked")
 public class StackAreaHandler extends YoyChartHandler {
     @Getter
     private String type = "area-stack";

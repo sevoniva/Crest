@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@SuppressWarnings("deprecation")
 public class SysParameterManage {
 
     @Value("${dataease.show-demo-tips:false}")

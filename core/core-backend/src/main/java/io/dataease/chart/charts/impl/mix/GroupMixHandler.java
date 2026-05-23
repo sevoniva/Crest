@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
+@SuppressWarnings("unchecked")
 public class GroupMixHandler extends MixHandler {
     @Getter
     private final String type = "chart-mix-group";

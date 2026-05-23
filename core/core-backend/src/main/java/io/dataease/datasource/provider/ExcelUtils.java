@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
+@SuppressWarnings("deprecation")
 public class ExcelUtils {
     public static final String UFEFF = "\uFEFF";
     private static String path = getExcelPath();

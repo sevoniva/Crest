@@ -18,7 +18,7 @@ import java.util.List;
 @ConditionalOnExpression("'${spring.cache.type}'.equals('redis')")
 @Component
 @Order(100)
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation", "unchecked"})
 public class RedisCacheListener implements ApplicationListener<ApplicationReadyEvent> {
 
     @Resource

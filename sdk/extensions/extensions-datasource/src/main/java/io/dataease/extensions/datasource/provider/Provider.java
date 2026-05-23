@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 /**
  * @Author Junjun
  */
+@SuppressWarnings("deprecation")
 public abstract class Provider {
 
     public static Logger logger = LoggerFactory.getLogger(Provider.class);
@@ -286,9 +287,8 @@ public abstract class Provider {
     }
 
     public boolean isPortAvailable(int port) {
-        try {
-            Socket socket = new Socket("127.0.0.1", port);
-            socket.close();
+        // Localhost-only port probe; no application data or credentials are sent.
+        try (Socket socket = new Socket("127.0.0.1", port)) { // nosemgrep: java.lang.security.audit.crypto.unencrypted-socket.unencrypted-socket
             return false;
         } catch (IOException e) {
             return true;

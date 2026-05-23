@@ -25,6 +25,7 @@ public class WhitelistUtils {
     public static List<String> WHITE_PATH = List.of(
             "/login/localLogin",
             "/apisix/check",
+            "/actuator/health",
             "/dekey",
             "/symmetricKey",
             "/index.html",

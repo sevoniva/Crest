@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
  */
 @Component
 @Transactional(rollbackFor = Exception.class)
+@SuppressWarnings("unchecked")
 public class DatasetGroupManage {
     @Resource
     private CoreDatasetGroupMapper coreDatasetGroupMapper;
