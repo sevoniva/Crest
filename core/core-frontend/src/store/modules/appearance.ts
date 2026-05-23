@@ -276,6 +276,7 @@ export const useAppearanceStore = defineStore('appearanceStore', {
         this.showDemoTips = data.showDemoTips
         this.demoTipsContent = data.demoTipsContent
         this.loaded = true
+        applyDocumentTitle(data.siteTitle)
         setLinkIcon()
         return
       }
@@ -339,16 +340,21 @@ export const useAppearanceStore = defineStore('appearanceStore', {
       this.footContent = data.footContent
       if (isDataEaseBi) return
       if (this.name) {
-        document.title = this.name
-        setTitle(this.name)
+        applyDocumentTitle(this.name)
       } else {
-        document.title = 'Crest'
-        setTitle('Crest')
+        applyDocumentTitle(data.siteTitle)
       }
       setLinkIcon(this.web)
     }
   }
 })
+
+const applyDocumentTitle = (siteTitle?: string) => {
+  const normalized = siteTitle?.trim()
+  const title = normalized && normalized !== 'Crest' ? `Crest-${normalized}` : 'Crest'
+  document.title = title
+  setTitle(title)
+}
 
 const setLinkIcon = (linkWeb?: string) => {
   let link = document.querySelector('link[rel="icon"]')

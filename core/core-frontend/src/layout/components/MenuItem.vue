@@ -20,6 +20,9 @@ import icon_font from '@/assets/svg/icon_font.svg'
 import icon_free from '@/assets/svg/icon_free.svg'
 import icon_security from '@/assets/svg/icon_security.svg'
 import icon_webhook from '@/assets/svg/icon_webhook.svg'
+import iconShareLabelOutlined from '@/assets/svg/icon_share-label_outlined.svg'
+import tabTitle from '@/assets/svg/tab-title.svg'
+import iconMemberFilled from '@/assets/svg/icon_member_filled.svg'
 import log from '@/assets/svg/log.svg'
 
 const iconMap = {
@@ -35,6 +38,9 @@ const iconMap = {
   icon_free: icon_free,
   icon_security,
   icon_webhook,
+  'icon_share-label_outlined': iconShareLabelOutlined,
+  'tab-title': tabTitle,
+  icon_member_filled: iconMemberFilled,
   auth: auth,
   association: association,
   threshold: threshold,

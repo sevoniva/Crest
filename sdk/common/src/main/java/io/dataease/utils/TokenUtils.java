@@ -9,12 +9,16 @@ import io.dataease.auth.config.SubstituleLoginConfig;
 import io.dataease.exception.DEException;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.ReflectionUtils;
+
+import java.lang.reflect.Method;
 
 public class TokenUtils {
 
 
     public static TokenUserBO userBOByToken(String token) {
-        Algorithm algorithm = Algorithm.HMAC256(Md5Utils.md5(SubstituleLoginConfig.getPwd()));
+        String secret = userSecret(token);
+        Algorithm algorithm = Algorithm.HMAC256(secret);
         JWTVerifier verifier = JWT.require(algorithm).build();
         DecodedJWT jwt = verifier.verify(token);
         Long userId = jwt.getClaim("uid").asLong();
@@ -34,6 +38,21 @@ public class TokenUtils {
             DEException.throwException("token is invalid");
         }
         return userBOByToken(token);
+    }
+
+    private static String userSecret(String token) {
+        try {
+            DecodedJWT jwt = JWT.decode(token);
+            Long uid = jwt.getClaim("uid").asLong();
+            Object userManage = CommonBeanFactory.getBean("crestUserManage");
+            Method method = DeReflectUtil.findMethod(userManage.getClass(), "secretByUid");
+            Object secret = ReflectionUtils.invokeMethod(method, userManage, uid);
+            if (secret != null && StringUtils.isNotBlank(secret.toString())) {
+                return secret.toString();
+            }
+        } catch (Exception ignored) {
+        }
+        return Md5Utils.md5(SubstituleLoginConfig.getPwd());
     }
 
 

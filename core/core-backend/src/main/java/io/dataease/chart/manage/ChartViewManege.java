@@ -11,7 +11,9 @@ import io.dataease.chart.dao.auto.mapper.CoreChartViewMapper;
 import io.dataease.chart.dao.ext.entity.ChartBasePO;
 import io.dataease.chart.dao.ext.mapper.ExtChartViewMapper;
 import io.dataease.constant.CommonConstants;
+import io.dataease.dataset.dao.auto.entity.CoreDatasetGroup;
 import io.dataease.dataset.dao.auto.entity.CoreDatasetTableField;
+import io.dataease.dataset.dao.auto.mapper.CoreDatasetGroupMapper;
 import io.dataease.dataset.dao.auto.mapper.CoreDatasetTableFieldMapper;
 import io.dataease.dataset.manage.DatasetTableFieldManage;
 import io.dataease.dataset.manage.PermissionManage;
@@ -30,6 +32,7 @@ import io.dataease.extensions.view.filter.FilterTreeObj;
 import io.dataease.i18n.Lang;
 import io.dataease.i18n.Translator;
 import io.dataease.utils.BeanUtils;
+import io.dataease.utils.CrestPermissionUtils;
 import io.dataease.utils.IDUtils;
 import io.dataease.utils.JsonUtil;
 import io.dataease.utils.LogUtil;
@@ -67,6 +70,8 @@ public class ChartViewManege {
     @Resource
     private CoreDatasetTableFieldMapper coreDatasetTableFieldMapper;
     @Resource
+    private CoreDatasetGroupMapper coreDatasetGroupMapper;
+    @Resource
     private PermissionManage permissionManage;
 
     @Resource
@@ -95,6 +100,7 @@ public class ChartViewManege {
         }
         SnapshotCoreChartView coreChartView = snapshotCoreChartViewMapper.selectById(id);
         SnapshotCoreChartView record = transDTO2Record(chartViewDTO);
+        requireChartAccess(record.getCreateBy(), record.getSceneId(), record.getTableId());
         if (ObjectUtils.isEmpty(coreChartView)) {
             snapshotCoreChartViewMapper.deleteById(record.getId());
             snapshotCoreChartViewMapper.insert(record);
@@ -144,6 +150,7 @@ public class ChartViewManege {
             if (ObjectUtils.isEmpty(snapshotCoreChartView)) {
                 return null;
             }
+            requireChartAccess(snapshotCoreChartView.getCreateBy(), snapshotCoreChartView.getSceneId(), snapshotCoreChartView.getTableId());
             coreChartView = new CoreChartView();
             BeanUtils.copyBean(coreChartView, snapshotCoreChartView);
         } else {
@@ -151,6 +158,7 @@ public class ChartViewManege {
             if (ObjectUtils.isEmpty(coreChartView)) {
                 return null;
             }
+            requireChartAccess(coreChartView.getCreateBy(), coreChartView.getSceneId(), coreChartView.getTableId());
         }
         ChartViewDTO dto = transRecord2DTO(coreChartView);
         return dto;
@@ -160,6 +168,7 @@ public class ChartViewManege {
      * sceneId 为仪表板或者数据大屏id
      */
     public List<ChartViewDTO> listBySceneId(Long sceneId, String resourceTable) {
+        requireSceneAccess(sceneId);
         QueryWrapper<CoreChartView> wrapper = new QueryWrapper<>();
         wrapper.eq("scene_id", sceneId);
         List<ChartViewDTO> chartViewDTOS = transChart(extChartViewMapper.selectListCustom(sceneId, resourceTable));
@@ -249,6 +258,13 @@ public class ChartViewManege {
     }
 
     public Map<String, List<ChartViewFieldDTO>> listByDQ(Long id, Long chartId, ChartViewDTO chartViewDTO) {
+        requireDatasetAccess(id);
+        if (chartId != null) {
+            CoreChartView chart = coreChartViewMapper.selectById(chartId);
+            if (chart != null) {
+                requireChartAccess(chart.getCreateBy(), chart.getSceneId(), chart.getTableId());
+            }
+        }
         QueryWrapper<CoreDatasetTableField> wrapper = new QueryWrapper<>();
         wrapper.eq("dataset_group_id", id);
         wrapper.eq("checked", true);
@@ -317,6 +333,13 @@ public class ChartViewManege {
 
     public void copyField(Long id, Long chartId) {
         CoreDatasetTableField coreDatasetTableField = coreDatasetTableFieldMapper.selectById(id);
+        if (coreDatasetTableField != null) {
+            requireDatasetAccess(coreDatasetTableField.getDatasetGroupId());
+        }
+        CoreChartView chart = coreChartViewMapper.selectById(chartId);
+        if (chart != null) {
+            requireChartAccess(chart.getCreateBy(), chart.getSceneId(), chart.getTableId());
+        }
         QueryWrapper<CoreDatasetTableField> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("dataset_group_id", coreDatasetTableField.getDatasetGroupId());
         List<CoreDatasetTableField> coreDatasetTableFields = coreDatasetTableFieldMapper.selectList(queryWrapper);
@@ -344,13 +367,58 @@ public class ChartViewManege {
     }
 
     public void deleteField(Long id) {
+        CoreDatasetTableField field = coreDatasetTableFieldMapper.selectById(id);
+        if (field != null) {
+            requireDatasetAccess(field.getDatasetGroupId());
+        }
         coreDatasetTableFieldMapper.deleteById(id);
     }
 
     public void deleteFieldByChartId(Long chartId) {
+        CoreChartView chart = coreChartViewMapper.selectById(chartId);
+        if (chart != null) {
+            requireChartAccess(chart.getCreateBy(), chart.getSceneId(), chart.getTableId());
+        }
         QueryWrapper<CoreDatasetTableField> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("chart_id", chartId);
         coreDatasetTableFieldMapper.delete(queryWrapper);
+    }
+
+    private void requireChartAccess(String createBy, Long sceneId, Long tableId) {
+        if (CrestPermissionUtils.canAccessCreator(createBy)) {
+            return;
+        }
+        if (sceneId != null && canAccessScene(sceneId)) {
+            return;
+        }
+        if (tableId != null && canAccessDataset(tableId)) {
+            return;
+        }
+        CrestPermissionUtils.requireCreator(createBy);
+    }
+
+    private void requireSceneAccess(Long sceneId) {
+        if (sceneId == null || canAccessScene(sceneId)) {
+            return;
+        }
+        CrestPermissionUtils.requireCreator(null);
+    }
+
+    private boolean canAccessScene(Long sceneId) {
+        DataVisualizationInfo scene = visualizationInfoMapper.selectById(sceneId);
+        return scene != null && CrestPermissionUtils.canAccessCreator(scene.getCreateBy());
+    }
+
+    private void requireDatasetAccess(Long datasetId) {
+        if (datasetId == null || canAccessDataset(datasetId)) {
+            return;
+        }
+        CrestPermissionUtils.requireCreator(null);
+    }
+
+    private boolean canAccessDataset(Long datasetId) {
+        CoreDatasetGroup dataset = coreDatasetGroupMapper.selectById(datasetId);
+        return dataset != null && CrestPermissionUtils.canAccessCreator(dataset.getCreateBy());
     }
 
     public ChartBaseVO chartBaseInfo(Long id, String resourceTable) {

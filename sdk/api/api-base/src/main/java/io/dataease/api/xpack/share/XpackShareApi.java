@@ -1,5 +1,6 @@
 package io.dataease.api.xpack.share;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.dataease.api.xpack.share.request.*;
 import io.dataease.api.visualization.request.VisualizationWorkbranchQueryRequest;
 import io.dataease.api.xpack.share.vo.XpackShareGridVO;
@@ -46,6 +47,10 @@ public interface XpackShareApi {
     @Operation(summary = "查询分享列表")
     @PostMapping("/query")
     List<XpackShareGridVO> query(@RequestBody VisualizationWorkbranchQueryRequest request);
+
+    @Operation(summary = "分页查询分享列表")
+    @PostMapping("/pager/{goPage}/{pageSize}")
+    IPage<XpackShareGridVO> pager(@PathVariable("goPage") int goPage, @PathVariable("pageSize") int pageSize, @RequestBody VisualizationWorkbranchQueryRequest request);
 
     @Operation(summary = "查询分享代理信息")
     @PostMapping("/proxyInfo")

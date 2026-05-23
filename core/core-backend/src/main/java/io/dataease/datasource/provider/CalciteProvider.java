@@ -1384,7 +1384,7 @@ public class CalciteProvider extends Provider {
                                 rootSchema.add(ds.getSchemaAlias(), schema);
                         }
                     } catch (Exception e) {
-                        LogUtil.error("Fail to create connection: " + ds.getName(), e);
+                        LogUtil.info("Skip unavailable datasource pool: " + ds.getName());
                     }
                 } catch (Exception e) {
                 }
@@ -1841,7 +1841,10 @@ public class CalciteProvider extends Provider {
     public void initConnectionPool() {
         LogUtil.info("Begin to init datasource pool...");
         QueryWrapper<CoreDatasource> datasourceQueryWrapper = new QueryWrapper();
-        List<CoreDatasource> coreDatasources = coreDatasourceMapper.selectList(datasourceQueryWrapper).stream().filter(coreDatasource -> !Arrays.asList("folder", "API", "Excel", "ExcelRemote").contains(coreDatasource.getType())).collect(Collectors.toList());
+        List<CoreDatasource> coreDatasources = coreDatasourceMapper.selectList(datasourceQueryWrapper).stream()
+                .filter(coreDatasource -> !Arrays.asList("folder", "API", "Excel", "ExcelRemote").contains(coreDatasource.getType()))
+                .filter(coreDatasource -> StringUtils.equalsIgnoreCase(coreDatasource.getStatus(), "Success"))
+                .collect(Collectors.toList());
         CoreDatasource engine = engineManage.deEngine();
         if (engine != null) {
             coreDatasources.add(engine);

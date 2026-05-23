@@ -110,6 +110,7 @@ public class CoreVisualizationManage {
         if (ObjectUtils.isEmpty(info)) {
             DEException.throwException("resource not exist");
         }
+        requireVisualizationTreeAccess(id);
         Set<Long> delIds = new LinkedHashSet<>();
         Stack<Long> stack = new Stack<>();
         stack.add(id);
@@ -143,6 +144,10 @@ public class CoreVisualizationManage {
     }
     public void move(DataVisualizationBaseRequest request) {
         if (!request.getMoveFromUpdate()) {
+            requireVisualizationAccess(request.getId());
+            if (ObjectUtils.isNotEmpty(request.getPid()) && !isTopNode(request.getPid())) {
+                requireVisualizationAccess(request.getPid());
+            }
             DataVisualizationInfo visualizationInfo = new DataVisualizationInfo();
             BeanUtils.copyBean(visualizationInfo, request);
             if (ObjectUtils.isEmpty(visualizationInfo.getId())) {
@@ -157,6 +162,9 @@ public class CoreVisualizationManage {
         }
     }
     public Long innerSave(DataVisualizationInfo visualizationInfo) {
+        if (ObjectUtils.isNotEmpty(visualizationInfo.getPid()) && !isTopNode(visualizationInfo.getPid()) && !Objects.equals(visualizationInfo.getPid(), -1L)) {
+            requireVisualizationAccess(visualizationInfo.getPid());
+        }
         visualizationInfo.setVersion(3);
         return preInnerSave(visualizationInfo);
     }
@@ -182,6 +190,7 @@ public class CoreVisualizationManage {
         return visualizationInfo.getId();
     }
     public void innerEdit(DataVisualizationInfo visualizationInfo) {
+        requireVisualizationAccess(visualizationInfo.getId());
         // 镜像和主表保持名称一致
         visualizationInfo.setUpdateTime(System.currentTimeMillis());
         visualizationInfo.setUpdateBy(AuthUtils.getUser().getUserId().toString());
@@ -202,6 +211,26 @@ public class CoreVisualizationManage {
         coreVisualizationInfo.setVersion(3);
         mapper.updateById(coreVisualizationInfo);
         coreOptRecentManage.saveOpt(visualizationInfo.getId(), OptConstants.OPT_RESOURCE_TYPE.VISUALIZATION, OptConstants.OPT_TYPE.UPDATE);
+    }
+
+    private DataVisualizationInfo requireVisualizationAccess(Long id) {
+        if (ObjectUtils.isEmpty(id)) {
+            DEException.throwException("resource not exist");
+        }
+        DataVisualizationInfo info = mapper.selectById(id);
+        if (ObjectUtils.isEmpty(info)) {
+            DEException.throwException("resource not exist");
+        }
+        CrestPermissionUtils.requireCreator(info.getCreateBy());
+        return info;
+    }
+
+    private void requireVisualizationTreeAccess(Long id) {
+        requireVisualizationAccess(id);
+        List<Long> childrenIdList = extMapper.queryChildrenId(id);
+        if (CollectionUtils.isNotEmpty(childrenIdList)) {
+            childrenIdList.forEach(this::requireVisualizationTreeAccess);
+        }
     }
 
     private boolean isTopNode(Long pid) {

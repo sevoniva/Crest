@@ -4,6 +4,7 @@ import io.dataease.utils.LogUtil;
 import io.dataease.template.manage.TemplateLocalParseManage;
 import io.dataease.visualization.manage.CoreVisualizationManage;
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
@@ -16,8 +17,15 @@ public class VisualizationInitListener implements ApplicationListener<Applicatio
     @Resource
     private CoreVisualizationManage coreVisualizationManage;
 
+    @Value("${dataease.internal-lite.enabled:false}")
+    private boolean internalLiteEnabled;
+
     @Override
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
+        if (internalLiteEnabled) {
+            LogUtil.info("=====Visualization init skipped in internal lite mode=====");
+            return;
+        }
         try{
             coreVisualizationManage.dataVisualizationInit();
         }catch (Exception e){

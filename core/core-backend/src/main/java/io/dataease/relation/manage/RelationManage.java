@@ -22,6 +22,7 @@ import io.dataease.relation.dto.RelationNodeDTO;
 import io.dataease.relation.dto.RelationResourceDTO;
 import io.dataease.relation.dto.RelationResourceRequest;
 import io.dataease.relation.dto.RelationSummaryDTO;
+import io.dataease.utils.CrestPermissionUtils;
 import io.dataease.utils.JsonUtil;
 import io.dataease.visualization.dao.auto.entity.DataVisualizationInfo;
 import io.dataease.visualization.dao.auto.mapper.DataVisualizationInfoMapper;
@@ -234,12 +235,16 @@ public class RelationManage implements RelationApi {
         context.datasources = coreDatasourceMapper.selectList(null).stream()
                 .filter(item -> item.getId() != null)
                 .filter(item -> !"folder".equalsIgnoreCase(item.getType()))
+                .filter(item -> CrestPermissionUtils.canAccessCreator(item.getCreateBy()))
                 .collect(Collectors.toMap(CoreDatasource::getId, Function.identity(), (left, right) -> left, LinkedHashMap::new));
         context.datasets = coreDatasetGroupMapper.selectList(new QueryWrapper<CoreDatasetGroup>().eq("node_type", TYPE_DATASET)).stream()
                 .filter(item -> item.getId() != null)
+                .filter(item -> CrestPermissionUtils.canAccessCreator(item.getCreateBy()))
                 .collect(Collectors.toMap(CoreDatasetGroup::getId, Function.identity(), (left, right) -> left, LinkedHashMap::new));
         List<CoreDatasetTable> tables = coreDatasetTableMapper.selectList(null).stream()
                 .filter(item -> item.getDatasetGroupId() != null)
+                .filter(item -> context.datasets.containsKey(item.getDatasetGroupId()))
+                .filter(item -> item.getDatasourceId() == null || context.datasources.containsKey(item.getDatasourceId()))
                 .toList();
         context.tables = tables.stream()
                 .filter(item -> item.getId() != null)
@@ -251,6 +256,7 @@ public class RelationManage implements RelationApi {
         List<CoreDatasetTableField> fields = coreDatasetTableFieldMapper.selectList(null).stream()
                 .filter(item -> item.getId() != null)
                 .filter(item -> item.getDatasetGroupId() != null)
+                .filter(item -> context.datasets.containsKey(item.getDatasetGroupId()))
                 .filter(item -> item.getChecked() == null || item.getChecked())
                 .toList();
         context.fields = fields.stream()
@@ -260,9 +266,18 @@ public class RelationManage implements RelationApi {
         context.fieldsByDatasetTable = fields.stream()
                 .filter(item -> item.getDatasetTableId() != null)
                 .collect(Collectors.groupingBy(CoreDatasetTableField::getDatasetTableId, LinkedHashMap::new, Collectors.toList()));
+        context.visualizations = dataVisualizationInfoMapper.selectList(null).stream()
+                .filter(item -> item.getId() != null)
+                .filter(item -> item.getDeleteFlag() == null || !item.getDeleteFlag())
+                .filter(item -> !"folder".equalsIgnoreCase(item.getNodeType()))
+                .filter(item -> CrestPermissionUtils.canAccessCreator(item.getCreateBy()))
+                .collect(Collectors.toMap(DataVisualizationInfo::getId, Function.identity(), (left, right) -> left, LinkedHashMap::new));
         context.charts = coreChartViewMapper.selectList(null).stream()
                 .filter(item -> item.getId() != null)
                 .filter(item -> item.getTableId() != null)
+                .filter(item -> CrestPermissionUtils.canAccessCreator(item.getCreateBy())
+                        || context.datasets.containsKey(item.getTableId())
+                        || context.visualizations.containsKey(item.getSceneId()))
                 .collect(Collectors.toMap(CoreChartView::getId, Function.identity(), (left, right) -> left, LinkedHashMap::new));
         context.chartsByDataset = context.charts.values().stream()
                 .filter(item -> item.getTableId() != null)
@@ -270,11 +285,6 @@ public class RelationManage implements RelationApi {
         context.chartsByDv = context.charts.values().stream()
                 .filter(item -> item.getSceneId() != null)
                 .collect(Collectors.groupingBy(CoreChartView::getSceneId, LinkedHashMap::new, Collectors.toList()));
-        context.visualizations = dataVisualizationInfoMapper.selectList(null).stream()
-                .filter(item -> item.getId() != null)
-                .filter(item -> item.getDeleteFlag() == null || !item.getDeleteFlag())
-                .filter(item -> !"folder".equalsIgnoreCase(item.getNodeType()))
-                .collect(Collectors.toMap(DataVisualizationInfo::getId, Function.identity(), (left, right) -> left, LinkedHashMap::new));
         return context;
     }
 

@@ -10,6 +10,7 @@ import io.dataease.constant.XpackSettingConstants;
 import io.dataease.exception.DEException;
 import io.dataease.system.dao.auto.entity.CoreSysSetting;
 import io.dataease.system.manage.SysParameterManage;
+import io.dataease.utils.CrestPermissionUtils;
 import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -48,6 +49,7 @@ public class SysParameterServer implements SysParameterApi {
 
     @Override
     public void saveBasicSetting(List<SettingItemVO> settingItemVOS) {
+        CrestPermissionUtils.requireAdmin();
         sysParameterManage.saveBasic(settingItemVOS);
     }
 

@@ -5,14 +5,13 @@ import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
 import io.dataease.api.permissions.login.dto.PwdLoginDTO;
 import io.dataease.auth.bo.TokenUserBO;
-import io.dataease.auth.config.SubstituleLoginConfig;
 import io.dataease.auth.vo.TokenVO;
 import io.dataease.exception.DEException;
-import io.dataease.i18n.Translator;
+import io.dataease.substitute.permissions.user.CrestUserManage;
+import io.dataease.substitute.permissions.user.model.CrestUser;
 import io.dataease.utils.LogUtil;
-import io.dataease.utils.Md5Utils;
 import io.dataease.utils.RsaUtils;
-import org.apache.commons.lang3.StringUtils;
+import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +21,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping
 public class SubstituleLoginServer {
+
+    @Resource
+    private CrestUserManage crestUserManage;
 
     @PostMapping("/login/localLogin")
     public TokenVO localLogin(@RequestBody PwdLoginDTO dto) {
@@ -34,17 +36,17 @@ public class SubstituleLoginServer {
         dto.setName(name);
         dto.setPwd(pwd);
 
-        if (!StringUtils.equals("admin", name)) {
-            DEException.throwException("仅admin账号可用");
+        CrestUser user = crestUserManage.queryByAccount(name);
+        if (user == null || !crestUserManage.passwordMatches(user, pwd)) {
+            DEException.throwException("用户名或密码错误");
         }
-        if (!StringUtils.equals(pwd, SubstituleLoginConfig.getPwd())) {
-            DEException.throwException(Translator.get("i18n_login_name_pwd_err"));
+        if (Boolean.FALSE.equals(user.getEnable())) {
+            DEException.throwException("用户已停用");
         }
         TokenUserBO tokenUserBO = new TokenUserBO();
-        tokenUserBO.setUserId(1L);
+        tokenUserBO.setUserId(user.getId());
         tokenUserBO.setDefaultOid(1L);
-        String md5Pwd = Md5Utils.md5(pwd);
-        return generate(tokenUserBO, md5Pwd);
+        return generate(tokenUserBO, user.getPasswordHash());
     }
 
 

@@ -207,6 +207,9 @@ public class DataVisualizationServer implements DataVisualizationApi {
         }
         DataVisualizationVO result = extDataVisualizationMapper.findDvInfo(dvId, busiFlag, resourceTable);
         if (result != null) {
+            if (CrestPermissionUtils.currentUserId() != null) {
+                CrestPermissionUtils.requireCreator(result.getCreateBy());
+            }
             // get creator
             String userName = coreUserManage.getUserName(Long.valueOf(result.getCreateBy()));
             if (StringUtils.isNotBlank(userName)) {
@@ -912,6 +915,13 @@ public class DataVisualizationServer implements DataVisualizationApi {
         Long copyId = IDUtils.snowID() / 100; // 本次复制执行ID
         // 复制仪表板
         DataVisualizationInfo newDv = visualizationInfoMapper.selectById(sourceDvId);
+        CrestPermissionUtils.requireCreator(newDv.getCreateBy());
+        if (request.getPid() != null && request.getPid() > 0) {
+            DataVisualizationInfo parent = visualizationInfoMapper.selectById(request.getPid());
+            if (parent != null) {
+                CrestPermissionUtils.requireCreator(parent.getCreateBy());
+            }
+        }
         newDv.setName(request.getName());
         newDv.setId(newDvId);
         newDv.setPid(request.getPid());

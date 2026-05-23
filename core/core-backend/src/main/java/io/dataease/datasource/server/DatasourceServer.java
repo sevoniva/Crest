@@ -197,7 +197,9 @@ public class DatasourceServer implements DatasourceApi {
         if (Objects.equals(dataSourceDTO.getId(), dataSourceDTO.getPid())) {
             DEException.throwException(Translator.get("i18n_pid_not_eq_id"));
         }
+        requireDatasourceAccess(dataSourceDTO.getId());
         if (dataSourceDTO.getPid() != 0) {
+            requireDatasourceAccess(dataSourceDTO.getPid());
             List<Long> pidList = dataSourceManage.getPidList(dataSourceDTO.getPid());
             if (pidList.contains(dataSourceDTO.getId())) {
                 DEException.throwException(Translator.get("i18n_pid_not_eq_id"));
@@ -214,6 +216,7 @@ public class DatasourceServer implements DatasourceApi {
         if (StringUtils.isEmpty(dataSourceDTO.getName())) {
             DEException.throwException("名称不能为空！");
         }
+        requireDatasourceAccess(dataSourceDTO.getId());
         CoreDatasource datasource = dataSourceManage.getDatasource(dataSourceDTO.getId());
         datasource.setName(dataSourceDTO.getName());
         dataSourceDTO.setPid(datasource.getPid());
@@ -227,6 +230,9 @@ public class DatasourceServer implements DatasourceApi {
     public DatasourceDTO createFolder(BusiCreateFolderRequest busiDsRequest) {
         DatasourceDTO dataSourceDTO = new DatasourceDTO();
         BeanUtils.copyBean(dataSourceDTO, busiDsRequest);
+        if (ObjectUtils.isNotEmpty(dataSourceDTO.getPid()) && !Objects.equals(dataSourceDTO.getPid(), 0L)) {
+            requireDatasourceAccess(dataSourceDTO.getPid());
+        }
         dataSourceDTO.setCreateTime(System.currentTimeMillis());
         dataSourceDTO.setUpdateTime(System.currentTimeMillis());
         dataSourceDTO.setType(dataSourceDTO.getNodeType());
@@ -248,6 +254,9 @@ public class DatasourceServer implements DatasourceApi {
         if (StringUtils.isNotEmpty(dataSourceDTO.getConfiguration())) {
             dataSourceDTO.setConfiguration(new String(Base64.getDecoder().decode(dataSourceDTO.getConfiguration())));
         }
+        if (ObjectUtils.isNotEmpty(dataSourceDTO.getPid()) && !Objects.equals(dataSourceDTO.getPid(), 0L)) {
+            requireDatasourceAccess(dataSourceDTO.getPid());
+        }
         preCheckDs(dataSourceDTO);
         dataSourceDTO.setId(IDUtils.snowID());
         dataSourceDTO.setCreateTime(System.currentTimeMillis());
@@ -264,6 +273,11 @@ public class DatasourceServer implements DatasourceApi {
         CoreDatasource coreDatasource = new CoreDatasource();
         BeanUtils.copyBean(coreDatasource, dataSourceDTO);
         dataSourceManage.innerSave(dataSourceDTO);
+
+        if (!dataSourceDTO.getType().contains(DatasourceConfiguration.DatasourceType.API.name())
+                && !dataSourceDTO.getType().contains(DatasourceConfiguration.DatasourceType.Excel.name())) {
+            calciteProvider.update(dataSourceDTO);
+        }
 
         if (dataSourceDTO.getType().equals(DatasourceConfiguration.DatasourceType.Excel.name())) {
             DatasourceRequest datasourceRequest = new DatasourceRequest();
@@ -367,6 +381,7 @@ public class DatasourceServer implements DatasourceApi {
             return save(busiDsRequest);
         }
         DatasourceDTO sourceData = dataSourceManage.getDs(pk);
+        requireDatasourceAccess(pk);
         dataSourceDTO.setConfiguration(new String(Base64.getDecoder().decode(dataSourceDTO.getConfiguration())));
         dataSourceDTO.setPid(sourceData.getPid());
         preCheckDs(dataSourceDTO);
@@ -528,7 +543,7 @@ public class DatasourceServer implements DatasourceApi {
 
     @Override
     public DatasourceDTO getSimpleDs(Long datasourceId) throws DEException {
-        CoreDatasource datasource = dataSourceManage.getCoreDatasource(datasourceId);
+        CoreDatasource datasource = requireDatasourceAccess(datasourceId);
         if (datasource == null) {
             DEException.throwException(Translator.get("i18n_datasource_not_exists"));
         }
@@ -639,6 +654,7 @@ public class DatasourceServer implements DatasourceApi {
     @DeLog(id = "#p0", ot = LogOT.DELETE, st = LogST.DATASOURCE)
     @Override
     public void delete(Long datasourceId) throws DEException {
+        requireDatasourceAccess(datasourceId);
         Objects.requireNonNull(io.dataease.utils.CommonBeanFactory.getBean(DatasourceServer.class)).recursionDel(datasourceId);
     }
 
@@ -735,7 +751,7 @@ public class DatasourceServer implements DatasourceApi {
 
     @Override
     public List<DatasetTableDTO> getTables(DatasetTableDTO datasetTableDTO) throws DEException {
-        CoreDatasource coreDatasource = dataSourceManage.getCoreDatasource(datasetTableDTO.getDatasourceId());
+        CoreDatasource coreDatasource = requireDatasourceAccess(datasetTableDTO.getDatasourceId());
         if (coreDatasource == null) {
             DEException.throwException("无效数据源！");
         }
@@ -1059,8 +1075,10 @@ public class DatasourceServer implements DatasourceApi {
 
     private void preCheckDs(DatasourceDTO datasource) throws DEException {
         List<String> list = datasourceTypes().stream().map(DatasourceConfiguration.DatasourceType::getType).collect(Collectors.toList());
-        List<XpackPluginsDatasourceVO> pluginDatasourceList = pluginManage.queryPluginDs();
-        pluginDatasourceList.forEach(ele -> list.add(ele.getType()));
+        if (pluginManage != null) {
+            List<XpackPluginsDatasourceVO> pluginDatasourceList = pluginManage.queryPluginDs();
+            pluginDatasourceList.forEach(ele -> list.add(ele.getType()));
+        }
 
         if (!list.contains(datasource.getType())) {
             DEException.throwException("Datasource type not supported.");
@@ -1100,6 +1118,7 @@ public class DatasourceServer implements DatasourceApi {
         if (ObjectUtils.isEmpty(tableName) || ObjectUtils.isEmpty(id)) {
             return null;
         }
+        requireDatasourceAccess(id);
         DatasetTableDTO datasetTableDTO = new DatasetTableDTO();
         datasetTableDTO.setDatasourceId(id);
         if (!getTables(datasetTableDTO).stream().map(DatasetTableDTO::getTableName).collect(Collectors.toList()).contains(tableName)) {
@@ -1292,7 +1311,7 @@ public class DatasourceServer implements DatasourceApi {
     }
 
     private DatasourceDTO getDatasourceDTOById(Long datasourceId, boolean hidePw) throws DEException {
-        CoreDatasource datasource = dataSourceManage.getCoreDatasource(datasourceId);
+        CoreDatasource datasource = requireDatasourceAccess(datasourceId);
         if (datasource == null) {
             DEException.throwException(Translator.get("i18n_datasource_not_exists"));
         }
@@ -1403,7 +1422,7 @@ public class DatasourceServer implements DatasourceApi {
     @Override
     public DsSimpleVO simple(Long id) {
         if (ObjectUtils.isEmpty(id)) DEException.throwException("id is null");
-        CoreDatasource coreDatasource = dataSourceManage.getCoreDatasource(id);
+        CoreDatasource coreDatasource = requireDatasourceAccess(id);
         if (ObjectUtils.isEmpty(coreDatasource)) return null;
         DsSimpleVO vo = new DsSimpleVO();
         vo.setName(coreDatasource.getName());
@@ -1420,6 +1439,15 @@ public class DatasourceServer implements DatasourceApi {
         }
         vo.setHost(host);
         return vo;
+    }
+
+    private CoreDatasource requireDatasourceAccess(Long datasourceId) {
+        CoreDatasource datasource = dataSourceManage.getCoreDatasource(datasourceId);
+        if (datasource == null) {
+            DEException.throwException(Translator.get("i18n_datasource_not_exists"));
+        }
+        CrestPermissionUtils.requireCreator(datasource.getCreateBy());
+        return datasource;
     }
 
     @Override

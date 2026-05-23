@@ -124,6 +124,8 @@ router.beforeEach(async (to, from, next) => {
       permissionStore.setCurrentPath(to.path)
       next()
     } else if (
+      to.name === 'link' ||
+      to.path.startsWith('/de-link/') ||
       (!platform && embeddedWindowWhiteList.includes(to.path)) ||
       whiteList.includes(to.path)
     ) {

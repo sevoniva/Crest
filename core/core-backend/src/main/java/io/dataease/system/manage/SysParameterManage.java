@@ -76,6 +76,8 @@ public class SysParameterManage {
         result.add(buildSettingItem("community", true));
         result.add(buildSettingItem("showDemoTips", showDemoTips));
         result.add(buildSettingItem("demoTipsContent", demoTipsContent));
+        String siteTitle = singleVal("basic.siteTitle");
+        result.add(buildSettingItem("siteTitle", StringUtils.defaultIfBlank(siteTitle, "Crest")));
         return result;
     }
     public Integer defaultLogin() {

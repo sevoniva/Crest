@@ -8,6 +8,7 @@ import io.dataease.menu.bo.MenuTreeNode;
 import io.dataease.menu.dao.auto.entity.CoreMenu;
 import io.dataease.menu.dao.auto.mapper.CoreMenuMapper;
 import io.dataease.utils.BeanUtils;
+import io.dataease.utils.CrestPermissionUtils;
 import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,8 +30,9 @@ public class MenuManage {
     private final static int ROOTID = 0;
 
     private static final Set<Long> INTERNAL_LITE_MENU_IDS = Set.of(
-            1L, 2L, 3L, 4L, 5L, 6L, 11L, 12L, 15L, 16L, 64L, 66L
+            1L, 2L, 3L, 4L, 5L, 6L, 11L, 12L, 15L, 16L, 64L, 66L, 67L, 68L, 69L
     );
+    private static final Set<Long> ADMIN_MENU_IDS = Set.of(15L, 16L, 64L, 67L, 68L, 69L);
 
     @Resource
     private CoreMenuMapper coreMenuMapper;
@@ -41,6 +43,9 @@ public class MenuManage {
         List<CoreMenu> menus = internalLiteEnabled
                 ? coreMenus.stream().filter(menu -> INTERNAL_LITE_MENU_IDS.contains(menu.getId())).toList()
                 : coreMenus;
+        if (!CrestPermissionUtils.currentUserIsAdmin()) {
+            menus = menus.stream().filter(menu -> !ADMIN_MENU_IDS.contains(menu.getId())).toList();
+        }
         List<MenuTreeNode> menuTreeNodes = new ArrayList<>(menus.stream().map(menu -> BeanUtils.copyBean(new MenuTreeNode(), menu)).toList());
         menuTreeNodes.sort(Comparator.comparing(MenuTreeNode::getMenuSort));
         List<MenuTreeNode> treeNodes = buildPOTree(menuTreeNodes);

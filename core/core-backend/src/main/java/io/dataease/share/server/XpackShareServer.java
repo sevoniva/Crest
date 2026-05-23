@@ -1,5 +1,6 @@
 package io.dataease.share.server;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.dataease.api.visualization.request.VisualizationWorkbranchQueryRequest;
 import io.dataease.api.xpack.share.XpackShareApi;
 import io.dataease.api.xpack.share.request.*;
@@ -54,6 +55,11 @@ public class XpackShareServer implements XpackShareApi {
     @Override
     public List<XpackShareGridVO> query(VisualizationWorkbranchQueryRequest request) {
         return xpackShareManage.query(1, 20, request).getRecords();
+    }
+
+    @Override
+    public IPage<XpackShareGridVO> pager(int goPage, int pageSize, VisualizationWorkbranchQueryRequest request) {
+        return xpackShareManage.query(goPage, pageSize, request);
     }
 
     @Override

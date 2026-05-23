@@ -8,10 +8,18 @@ import jakarta.servlet.ServletResponse;
 
 import java.io.IOException;
 
+import io.dataease.utils.CommunityUtils;
+import io.dataease.utils.CrestPermissionUtils;
+
 public class CommunityTokenFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        filterChain.doFilter(servletRequest, servletResponse);
+        try {
+            CommunityUtils.setInfo(CrestPermissionUtils.communityScopeSql());
+            filterChain.doFilter(servletRequest, servletResponse);
+        } finally {
+            CommunityUtils.removeInfo();
+        }
     }
 }

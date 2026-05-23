@@ -84,7 +84,9 @@ public class XpackShareManage {
     public XpackShare queryByResource(Long resourceId) {
         Long userId = AuthUtils.getUser().getUserId();
         QueryWrapper<XpackShare> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("creator", userId);
+        if (!CrestPermissionUtils.currentUserIsAdmin()) {
+            queryWrapper.eq("creator", userId);
+        }
         queryWrapper.eq("resource_id", resourceId);
         return xpackShareMapper.selectOne(queryWrapper);
     }
@@ -169,7 +171,9 @@ public class XpackShareManage {
     public IPage<XpackSharePO> querySharePage(int goPage, int pageSize, VisualizationWorkbranchQueryRequest request) {
         Long uid = AuthUtils.getUser().getUserId();
         QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("s.creator", uid);
+        if (!CrestPermissionUtils.currentUserIsAdmin()) {
+            queryWrapper.eq("s.creator", uid);
+        }
         if (StringUtils.isNotBlank(request.getType())) {
             BusiResourceEnum busiResourceEnum = BusiResourceEnum.valueOf(request.getType().toUpperCase());
             if (ObjectUtils.isEmpty(busiResourceEnum)) {

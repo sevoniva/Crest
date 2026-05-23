@@ -13,4 +13,8 @@ public class CommunityUtils {
         return COMMUNITY_INFO.get();
     }
 
+    public static void removeInfo() {
+        COMMUNITY_INFO.remove();
+    }
+
 }
