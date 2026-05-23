@@ -68,11 +68,17 @@ public class DataSourceManage {
             }
         }
         if (ObjectUtils.isEmpty(flag)) {
-            List<XpackPluginsDatasourceVO> pluginDatasourceList = pluginManage.queryPluginDs();
-            List<XpackPluginsDatasourceVO> list = pluginDatasourceList.stream().filter(ele -> StringUtils.equals(ele.getType(), type)).toList();
-            if (ObjectUtils.isNotEmpty(list)) {
-                XpackPluginsDatasourceVO first = list.getFirst();
-                flag = first.getFlag();
+            try {
+                if (pluginManage != null) {
+                    List<XpackPluginsDatasourceVO> pluginDatasourceList = pluginManage.queryPluginDs();
+                    List<XpackPluginsDatasourceVO> list = pluginDatasourceList.stream().filter(ele -> StringUtils.equals(ele.getType(), type)).toList();
+                    if (ObjectUtils.isNotEmpty(list)) {
+                        XpackPluginsDatasourceVO first = list.getFirst();
+                        flag = first.getFlag();
+                    }
+                }
+            } catch (Exception ignored) {
+                flag = 27;
             }
         }
         if (ObjectUtils.isEmpty(flag)) {

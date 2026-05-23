@@ -8,6 +8,7 @@ import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,12 +30,16 @@ public class CoreBusiManage {
         for (Map.Entry<String, BusiNodeRequest> entry : requestMap.entrySet()) {
             BusiNodeRequest busiNodeRequest = entry.getValue();
             String key = entry.getKey();
-            if (StringUtils.equalsIgnoreCase(key, "datasource")) {
-                result.put(key, dataSourceManage.tree(busiNodeRequest));
-            } else if (StringUtils.equalsIgnoreCase(key, "dataset")) {
-                result.put(key, datasetGroupManage.tree(busiNodeRequest));
-            } else if (StringUtils.equalsAnyIgnoreCase(key, "dashboard", "dataV")) {
-                result.put(key, coreVisualizationManage.tree(busiNodeRequest));
+            try {
+                if (StringUtils.equalsIgnoreCase(key, "datasource")) {
+                    result.put(key, dataSourceManage.tree(busiNodeRequest));
+                } else if (StringUtils.equalsIgnoreCase(key, "dataset")) {
+                    result.put(key, datasetGroupManage.tree(busiNodeRequest));
+                } else if (StringUtils.equalsAnyIgnoreCase(key, "dashboard", "dataV")) {
+                    result.put(key, coreVisualizationManage.tree(busiNodeRequest));
+                }
+            } catch (Exception ignored) {
+                result.put(key, new ArrayList<>());
             }
         }
         return result;

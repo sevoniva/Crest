@@ -57,3 +57,5 @@ core/core-frontend/src/assets/fsSvg.html
 mapFiles/156/*.json
 !mapFiles/156/156.json
 reports/perf/
+__pycache__/
+*.pyc

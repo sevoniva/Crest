@@ -21,24 +21,31 @@ public class GlobalExceptionHandler {
         ObjectError objectError = e.getBindingResult().getAllErrors().get(0);
         String msg = objectError.getDefaultMessage();
         msg = Translator.get(msg);
-        LogUtil.error(msg);
+        LogUtil.info(msg);
         return new ResultMessage(ResultCode.PARAM_IS_INVALID.code(), msg);
     }
 
     @ExceptionHandler(DEException.class)
     public ResultMessage deExceptionHandler(DEException e) {
-        LogUtil.error(e.getMessage(), e);
+        LogUtil.info(e.getMessage());
         return new ResultMessage(e.getCode(), e.getMessage());
     }
 
     @ExceptionHandler(NullPointerException.class)
     public ResultMessage noUserExceptionHandler(Exception e) {
         String message = e.getMessage();
-        LogUtil.error(message, e);
+        LogUtil.info(message);
         if (StringUtils.contains(message, "Cannot invoke \"io.dataease.auth.bo.TokenUserBO.getUserId()\" because \"user\" is null")) {
             return new ResultMessage(ResultCode.USER_NOT_LOGGED_IN.code(), ResultCode.USER_NOT_LOGGED_IN.message());
         }
         return new ResultMessage(ResultCode.PARAM_IS_BLANK.code(), message);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResultMessage exceptionHandler(Exception e) {
+        String message = StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName());
+        LogUtil.info(message);
+        return new ResultMessage(ResultCode.SYSTEM_INNER_ERROR.code(), message);
     }
 
 }

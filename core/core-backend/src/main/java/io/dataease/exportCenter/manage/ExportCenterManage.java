@@ -75,6 +75,9 @@ public class ExportCenterManage implements BaseExportApi {
             DEException.throwException("任务不存在");
         }
         CoreExportTask exportTask = exportTaskMapper.selectById(id);
+        if (exportTask == null) {
+            DEException.throwException("任务不存在");
+        }
         exportCenterDownLoadManage.download(exportTask, response);
     }
 
