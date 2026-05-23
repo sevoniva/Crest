@@ -79,7 +79,7 @@ export default {
       getMetadata: function () {
         return {
           name: 'Vertical align',
-          url: 'https://dataease.io'
+          url: 'https://github.com/sevoniva/Crest'
         }
       }
     }

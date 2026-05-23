@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**DataEase 版本**
+**Crest 版本**
 
 
 **运行方式(安装包运行 or 源码运行 ?)**

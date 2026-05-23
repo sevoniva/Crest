@@ -14,7 +14,7 @@ const { t } = useI18n()
 const cardInfoList = [
   {
     name: t('api_pagination.help_documentation'),
-    url: help.value || 'https://dataease.io/docs/v2/',
+    url: help.value || 'https://github.com/sevoniva/Crest',
     icon: topHelpDoc
   }
 ]

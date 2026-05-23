@@ -335,7 +335,7 @@ const backHandler = (url: string) => {
       methodName: 'embeddedInteractive',
       args: {
         eventName: 'de-dashboard-editor-back',
-        args: 'Just a demo that descript dataease embedded interactive'
+        args: 'Just a demo that descript Crest embedded interactive'
       }
     }
     openHandler.value.invokeMethod(pm)

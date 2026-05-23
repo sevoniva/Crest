@@ -8,7 +8,7 @@ import { getLocale } from '@/utils/utils'
 import request from '@/config/axios'
 import { setElementPlusLocale } from '@/plugins/element-plus'
 
-// 合并DataEase的国际化配置到Element Plus的国际化结构中
+// 合并 Crest 的国际化配置到Element Plus的国际化结构中
 const mergeLocaleData = (baseLocale: any, customData: any) => {
   const merged = JSON.parse(JSON.stringify(baseLocale || {}))
 
@@ -33,7 +33,7 @@ const mergeLocaleData = (baseLocale: any, customData: any) => {
   return mergeRecursive(merged, customData)
 }
 
-// 加载DataEase的国际化配置
+// 加载 Crest 的国际化配置
 const loadCustomLocaleData = async (lang: string) => {
   try {
     const localeModule = await import(`../../locales/${lang}.ts`)

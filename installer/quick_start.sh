@@ -63,7 +63,7 @@ if [ ! -f /tmp/de_latest_release ]; then
 fi
 latest_version=$(cat /tmp/de_latest_release)
 
-echo "开始下载 DataEase ${latest_version} 版本在线安装包"
+echo "开始下载 Crest ${latest_version} 版本在线安装包"
 
 installer_file="dataease-online-installer-${latest_version}-ce.tar.gz"
 download_url="https://${server_url}/dataease/dataease/releases/download/${latest_version}/$installer_file"

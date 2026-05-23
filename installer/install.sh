@@ -33,16 +33,16 @@ function check_and_prepare_env_params() {
    if [ -f /usr/bin/dectl ]; then
       v2_version=$(dectl version | head -n 2 | grep "v2.")
       if [[ -z $v2_version ]];then
-         echo "系统当前版本不是 DataEase v2 版本系列，不支持升级到 v2，请检查离线包版本。"
+         echo "系统当前版本不是 Crest v2 版本系列，不支持升级到 v2，请检查离线包版本。"
          exit 1;
       fi
-      # 获取已安装的 DataEase 的运行目录
+      # 获取已安装的 Crest 的运行目录
       DE_BASE=$(grep "^DE_BASE=" /usr/bin/dectl | cut -d'=' -f2)
       DE_BASE_OLD=$DE_BASE
       sed -i -e "s#DE_BASE=.*#DE_BASE=${DE_BASE}#g" dectl
       \cp dectl /usr/local/bin && chmod +x /usr/local/bin/dectl
 
-      log_content "停止 DataEase 服务"
+      log_content "停止 Crest 服务"
       if [[ -f /etc/systemd/system/dataease.service ]];then
          systemctl stop dataease
       else
@@ -86,7 +86,7 @@ function check_and_prepare_env_params() {
      T) disk_gb=$(awk -v i="$disk_num" 'BEGIN{printf "%.0f\n", 1024 * i}') ;;
      *) disk_gb=${disk_num%.*} ;;
    esac
-   [[ $disk_gb -lt 20 ]] && log_content "\033[31m[警告] DataEase 运行目录所在磁盘剩余空间不足 20G 可能无法正常启动!\033[0m"
+   [[ $disk_gb -lt 20 ]] && log_content "\033[31m[警告] Crest 运行目录所在磁盘剩余空间不足 20G 可能无法正常启动!\033[0m"
    }
 
 function set_run_base_path() {
@@ -265,7 +265,7 @@ function install_docker_compose() {
 }
 
 function load_de_images() {
-   log_title "加载 DataEase 镜像"
+   log_title "加载 Crest 镜像"
    cd ${CURRENT_DIR}
 
    for i in $(docker images --format '{{.Repository}}:{{.Tag}}' | grep dataease); do
@@ -288,7 +288,7 @@ function load_de_images() {
 }
 
 function set_de_service() {
-   log_title "配置 DataEase 服务"
+   log_title "配置 Crest 服务"
 
    # 判断是否为wsl
    local is_wsl= false
@@ -322,7 +322,7 @@ function set_de_service() {
 }
 
 function start_de_service() {
-   log_title "启动 DataEase 服务"
+   log_title "启动 Crest 服务"
    systemctl start dataease 2>&1 | tee -a ${CURRENT_DIR}/install.log
 
    access_port=$DE_PORT

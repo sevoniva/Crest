@@ -145,7 +145,7 @@ export default {
     error_msg: 'Error message',
     confirm_export: 'Are you sure you want to export the log',
     export_success: 'Export successful',
-    excel_file_name: 'DataEase operation log',
+    excel_file_name: 'Crest operation log',
     relevant_content_found: 'No relevant content found',
     mobile: 'Mobile terminal',
     client: 'Client'
@@ -2304,7 +2304,7 @@ export default {
     invalid_table_check:
       'For non-directly connected datasets, please complete data synchronization first',
     parse_error:
-      'Excel parsing failed, please check the format, fields and other information. Specific reference: https://dataease.io/docs/user_manual/dataset_configuration/dataset_Excel',
+      'Excel parsing failed, please check the format, fields and other information. Specific reference: https://github.com/sevoniva/Crest',
     origin_field_type: 'Field origin type',
     edit_excel_table: 'Edit Excel dataset',
     edit_excel: 'Edit Excel',
@@ -3093,7 +3093,7 @@ export default {
     app_export: 'App Export',
     app_name: 'App Name',
     app_version: 'App Version',
-    app_required_version: 'Minimum DataEase Version',
+    app_required_version: 'Minimum Crest Version',
     description: 'Description',
     new_dataset: 'New Dataset',
     new_datasource: 'New Datasource',
@@ -4772,7 +4772,7 @@ export default {
     disabled_success: 'Disabled successfully',
     delete_api_key: 'Are you sure you want to delete this API key? ',
     api_key_desc:
-      'API Key is your key to access DataEase API, which has full permissions for your account. Please keep it safe! Do not disclose API Key to external channels in any way to avoid security threats caused by others. '
+      'API Key is your key to access Crest API, which has full permissions for your account. Please keep it safe! Do not disclose API Key to external channels in any way to avoid security threats caused by others. '
   },
   free: {
     title: 'Free Resource Management',

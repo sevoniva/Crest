@@ -36,13 +36,13 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         Contact contact = new Contact();
-        contact.setName("DataEase");
-        contact.setUrl("https://dataease.io");
+        contact.setName("Crest");
+        contact.setUrl("https://github.com/sevoniva/Crest");
         return new OpenAPI()
                 .info(new Info()
-                        .title("DataEaseAPI")
+                        .title("Crest API")
                         .description("人人可用的开源 BI 工具")
-                        .termsOfService("https://dataease.io")
+                        .termsOfService("https://github.com/sevoniva/Crest")
                         .contact(contact)
                         .version(version));
     }

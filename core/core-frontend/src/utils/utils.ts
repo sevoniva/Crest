@@ -145,7 +145,7 @@ export const isDingTalk = window.navigator.userAgent.toLowerCase().includes('din
 
 export const setTitle = (title?: string) => {
   if (!isDingTalk) {
-    document.title = title || 'DataEase'
+    document.title = title || 'Crest'
     return
   }
   const jsUrl = 'https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js'
@@ -166,7 +166,7 @@ export const setTitle = (title?: string) => {
       })
     })
     .catch(() => {
-      document.title = title || 'DataEase'
+      document.title = title || 'Crest'
     })
 }
 

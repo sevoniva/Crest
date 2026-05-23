@@ -2,7 +2,7 @@ version: '3'
 services:
 
   mysql-de:
-    image: ghcr.io/sevoniva/dataease-2.10.22-mysql:8.4.5
+    image: ghcr.io/sevoniva/crest-mysql:8.4.5
     container_name: mysql-de
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u${DE_MYSQL_USER}", "-p${DE_MYSQL_PASSWORD}", "--protocol","tcp"]
@@ -19,7 +19,7 @@ services:
       - dataease-network
 
   dataease:
-    image: ghcr.io/sevoniva/dataease-2.10.22:DE_TAG
+    image: ghcr.io/sevoniva/crest:DE_TAG
     stop_signal: SIGTERM
     stop_grace_period: 15s
     container_name: dataease

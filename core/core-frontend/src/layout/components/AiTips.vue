@@ -21,9 +21,9 @@ onMounted(() => {
     show-arrow
   >
     <div class="ai-popper-tips-content">
-      <p class="title">DataEase 智能客服</p>
+      <p class="title">Crest 智能客服</p>
       <p class="constant">
-        你好，我是 DataEase 智能客服<br />点击一下，开启高效解答模式~<br />&nbsp;
+        你好，我是 Crest 智能客服<br />点击一下，开启高效解答模式~<br />&nbsp;
       </p>
       <div class="bottom">
         <el-button @click="confirm"> 我知道了 </el-button>

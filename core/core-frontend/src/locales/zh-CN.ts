@@ -143,7 +143,7 @@ export default {
     error_msg: '错误信息',
     confirm_export: '确定导出日志吗',
     export_success: '导出成功',
-    excel_file_name: 'DataEase操作日志',
+    excel_file_name: 'Crest操作日志',
     relevant_content_found: '没有找到相关内容',
     mobile: '移动端',
     client: '客户端'
@@ -2249,7 +2249,7 @@ export default {
     preview_100_data: '显示前100行数据',
     invalid_table_check: '非直连数据集请先完成数据同步',
     parse_error:
-      'Excel解析失败，请检查格式、字段等信息。具体参考：https://dataease.io/docs/user_manual/dataset_configuration/dataset_Excel',
+      'Excel解析失败，请检查格式、字段等信息。具体参考：https://github.com/sevoniva/Crest',
     origin_field_type: '字段原始类型',
     edit_excel_table: '编辑Excel数据集',
     edit_excel: '编辑Excel',
@@ -3015,7 +3015,7 @@ export default {
     app_export: '应用导出',
     app_name: '应用名称',
     app_version: '应用版本号',
-    app_required_version: 'DataEase最低版本号',
+    app_required_version: 'Crest最低版本号',
     description: '描述',
     new_dataset: '新建数据集',
     new_datasource: '新建数据源',
@@ -4646,7 +4646,7 @@ export default {
     disabled_success: '禁用成功',
     delete_api_key: '确定删除该 API key 吗? ',
     api_key_desc:
-      'API Key 是您访问 DataEase API 的密钥，具有账户的完全权限，请您务必妥善保管！不要以任何方式公开 API Key 到外部渠道，避免被他人利用造成安全威胁。'
+      'API Key 是您访问 Crest API 的密钥，具有账户的完全权限，请您务必妥善保管！不要以任何方式公开 API Key 到外部渠道，避免被他人利用造成安全威胁。'
   },
   free: {
     title: '游离资源管理',

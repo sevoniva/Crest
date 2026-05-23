@@ -1,6 +1,6 @@
-# Crest DataEase 前端工程
+# Crest 前端工程
 
-这里是内部轻量版前端，基于 DataEase 2.10.22 的 Vue 3、TypeScript 和 Vite 工程改造。
+这里是内部轻量版前端，基于 Crest 品牌的 Vue 3、TypeScript 和 Vite 工程改造。
 
 ## 主要边界
 
@@ -83,7 +83,7 @@ src/components/relation-chart/GraphView.vue
 src/api/relation/index.ts
 ```
 
-页面默认选择 `数据源` 范围，并优先选中名称包含 `Demo`、`dataease` 或 `内置` 的数据源。字段筛选按“先表、后字段”工作：表下拉来自当前图里的物理表节点，字段下拉来自 `table -> table_field` 关系。
+页面默认选择 `数据源` 范围，并优先选中名称包含 `Demo`、`Crest` 或 `内置` 的数据源。字段筛选按“先表、后字段”工作：表下拉来自当前图里的物理表节点，字段下拉来自 `table -> table_field` 关系。
 
 字段级过滤在前端完成。后端返回当前资源的完整图，前端从选中字段出发，沿血缘边收集上游和下游节点，再把图收敛后交给 ECharts 渲染。
 

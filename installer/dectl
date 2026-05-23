@@ -29,24 +29,24 @@ if [[ ! ${DE_EXTERNAL_MYSQL} ]] || [ "${DE_EXTERNAL_MYSQL}" = "false" ]; then
 fi
 
 function usage() {
-   echo "DATAEASE 控制脚本"
+   echo "CREST 控制脚本"
    echo
    echo "Usage: "
    echo "  ./dectl [COMMAND] [ARGS...]"
    echo "  ./dectl --help"
    echo
    echo "Commands: "
-   echo "  status                查看 DATAEASE 服务运行状态"
-   echo "  start                 启动 DATAEASE 服务"
-   echo "  stop                  停止 DATAEASE 服务"
-   echo "  restart               重启 DATAEASE 服务"
-   echo "  reload                重新加载 DATAEASE 服务"
-   echo "  upgrade               升级 DATAEASE 服务"
-   echo "  backup                备份 DATAEASE 服务"
-   echo "  restore xxx.tar.gz    还原 DATAEASE 服务"
-   echo "  clear-images          清理 DATAEASE 旧版本的相关镜像"
-   echo "  clear-logs            清理 DATAEASE 历史日志"
-   echo "  version               查看 DATAEASE 版本"
+   echo "  status                查看 CREST 服务运行状态"
+   echo "  start                 启动 CREST 服务"
+   echo "  stop                  停止 CREST 服务"
+   echo "  restart               重启 CREST 服务"
+   echo "  reload                重新加载 CREST 服务"
+   echo "  upgrade               升级 CREST 服务"
+   echo "  backup                备份 CREST 服务"
+   echo "  restore xxx.tar.gz    还原 CREST 服务"
+   echo "  clear-images          清理 CREST 旧版本的相关镜像"
+   echo "  clear-logs            清理 CREST 历史日志"
+   echo "  version               查看 CREST 版本"
 }
 function _generate_compose_file_args() {
    if [[ "$DE_INTERNAL_LITE" == "true" ]];then
@@ -76,14 +76,14 @@ function _healthcheck() {
       sleep 1
       read status healthy<<<$(docker inspect $container_name --format '{{.State.Status}} {{.State.Health.Status}}')
       if [[ "$healthy" == "starting" ]];then
-         printf "\rDataEase 服务状态 : 正在启动 ... %3ds" $b
+         printf "\rCrest 服务状态 : 正在启动 ... %3ds" $b
       elif [[ "$status" == "running" ]] && [[ "$healthy" == "healthy" ]];then
-         printf "\rDataEase 服务状态 : 正常运行          "
+         printf "\rCrest 服务状态 : 正常运行          "
          echo
          return;
       else
          echo
-         echo -e "DataEase 服务状态 : \033[31m无法访问\033[0m"
+         echo -e "Crest 服务状态 : \033[31m无法访问\033[0m"
          exit 1
       fi
    done
@@ -92,7 +92,7 @@ function _healthcheck() {
    echo
 }
 function _get_current_version() {
-   de_current_version=$(grep "^    image:.*dataease" ${DE_RUNNING_BASE}/docker-compose.yml | awk -F'image: ' '{print $2}' | sed 's/^.*://')
+   de_current_version=$(grep "^    image:.*crest" ${DE_RUNNING_BASE}/docker-compose.yml | awk -F'image: ' '{print $2}' | sed 's/^.*://')
    if test -z $de_current_version; then
       echo "获取当前版本失败，请检查当前版本是否正确"
       exit 1
@@ -174,7 +174,7 @@ EOF
 }
 function status() {
    echo
-   echo "DataEase 容器运行状态"
+   echo "Crest 容器运行状态"
    _generate_compose_file_args
    cd ${DE_RUNNING_BASE}
    ${compose_cmd} ${compose_files} ps
@@ -192,10 +192,10 @@ function status() {
    du -Sh ${DE_RUNNING_BASE}/logs/
 
    echo
-   echo "DataEase 运行目录及文件大小 : "
+   echo "Crest 运行目录及文件大小 : "
    du -sh ${DE_BASE}
    echo
-   echo "DataEase 运行目录使用情况 : "
+   echo "Crest 运行目录使用情况 : "
    df -H ${DE_BASE}
 
    _healthcheck
@@ -304,7 +304,7 @@ function clear_images() {
    fi
 }
 function clear_logs() {
-   echo "开始清理 DataEase 历史日志"
+   echo "开始清理 Crest 历史日志"
    rm -rf ${DE_RUNNING_BASE}/logs/dataease/*.????-??-??.*.log
    rm -rf ${DE_RUNNING_BASE}/logs/dataease/sync-task/task-handler-log/*
    echo "" > ${DE_RUNNING_BASE}/logs/dataease/info.log
@@ -312,16 +312,16 @@ function clear_logs() {
    echo "清理完毕"
 }
 function backup() {
-   # 检查当前目录是否在 DataEase 安装目录或其子目录下
+   # 检查当前目录是否在 Crest 安装目录或其子目录下
    if [[ "$(pwd)" == "$DE_RUNNING_BASE" || "$(pwd)" == "$DE_RUNNING_BASE"/* ]]; then
-      echo -e "\033[31m当前目录为 DataEase 安装目录，请切换到其他目录后再执行备份操作！\033[0m"
+      echo -e "\033[31m当前目录为 Crest 安装目录，请切换到其他目录后再执行备份操作！\033[0m"
       exit 1
    fi
 
    need_stop=0
    if [[ -z $1 ]];then
-      echo "如需备份 DataEase 数据，建议您先停止 DataEase 服务，以保证备份数据的完整性。"
-      read -r -p "即将备份 DataEase 数据，是否需要停止 DataEase 服务? [Y/n] " input
+      echo "如需备份 Crest 数据，建议您先停止 Crest 服务，以保证备份数据的完整性。"
+      read -r -p "即将备份 Crest 数据，是否需要停止 Crest 服务? [Y/n] " input
 
       case $input in
          [yY][eE][sS]|[yY])

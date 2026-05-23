@@ -1,6 +1,6 @@
-# DataEase 2.10.22 OB Oracle Fork Development Guide
+# Crest Development Guide
 
-This repository is a fork of `https://github.com/dataease/dataease.git` based on DataEase 2.10.22. The fork keeps the upstream GPLv3 license and adds OceanBase Oracle mode datasource support.
+This repository keeps the upstream GPLv3 license and maintains Crest branding with OceanBase Oracle mode datasource support.
 
 ## Repository Layout
 
@@ -52,7 +52,7 @@ mvn -pl :core-backend -am clean package -Pstandalone -DskipTests -Dmaven.test.sk
 Build the Docker image locally after backend packaging:
 
 ```bash
-docker build -t dataease-2.10.22-ob:local .
+docker build -t crest:local .
 ```
 
 Publish GHCR images manually from GitHub Actions:
@@ -111,7 +111,7 @@ Menu migration:
 - `core/core-backend/src/main/resources/db/migration/V2.10.22.5__data_lineage_menu.sql`
 - `core/core-backend/src/main/resources/db/desktop/V2.10.22.5__data_lineage_menu.sql`
 
-The graph is built from DataEase metadata only. It should not connect to the business datasource when a user opens the lineage page. The current model is:
+The graph is built from Crest metadata only. It should not connect to the business datasource when a user opens the lineage page. The current model is:
 
 ```text
 datasource -> table -> table_field -> dataset_field -> dataset -> chart_field -> chart -> dv
@@ -173,6 +173,6 @@ git clean -fdXn
 ## Contribution Rules
 
 - Keep changes scoped and reviewable.
-- Follow existing DataEase patterns before adding new abstractions.
+- Follow existing Crest patterns before adding new abstractions.
 - Run focused Maven/frontend verification for the area touched.
 - Update README, `docs/data-lineage.md`, or this guide when build, deployment, dependency, OceanBase behavior, or lineage behavior changes.
