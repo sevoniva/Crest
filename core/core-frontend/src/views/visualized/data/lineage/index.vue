@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import { RefreshLeft, Search } from '@element-plus/icons-vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { Close, FullScreen, RefreshLeft, Search } from '@element-plus/icons-vue'
 import RelationGraphView from '@/components/relation-chart/GraphView.vue'
 import {
   getDatasourceRelationship,
@@ -50,15 +50,23 @@ const selectedResource = ref<string>()
 const selectedTable = ref<string>()
 const selectedField = ref<string>()
 const keyword = ref('')
-const showFieldNodes = ref(false)
+const showFieldNodes = ref(true)
+const layoutMode = ref<'knowledge' | 'layered'>('knowledge')
 const loading = ref(false)
 const resourceLoading = ref(false)
+const graphPanelRef = ref<HTMLElement>()
+const isGraphFullscreen = ref(false)
 
 const typeOptions = [
   { label: '全局', value: 'overview' },
   { label: '数据源', value: 'datasource' },
   { label: '数据集', value: 'dataset' },
   { label: '仪表板/大屏', value: 'dv' }
+]
+
+const layoutOptions = [
+  { label: '图谱', value: 'knowledge' },
+  { label: '分层', value: 'layered' }
 ]
 
 const typeLabelMap: Record<string, string> = {
@@ -275,7 +283,9 @@ const filteredGraph = computed<RelationGraph>(() => {
       .filter(Boolean)
       .some(item => String(item).toLowerCase().includes(search))
   })
-  const fieldMatched = matchedNodes.filter(node => fieldNodeTypes.has(node.type)).map(node => node.id)
+  const fieldMatched = matchedNodes
+    .filter(node => fieldNodeTypes.has(node.type))
+    .map(node => node.id)
   const visible =
     fieldMatched.length > 0
       ? collectFieldLineageNodeIds(sourceGraph, fieldMatched)
@@ -295,7 +305,9 @@ const displayGraph = computed<RelationGraph>(() => {
   return {
     ...filteredGraph.value,
     nodes,
-    edges: filteredGraph.value.edges.filter(edge => visible.has(edge.source) && visible.has(edge.target))
+    edges: filteredGraph.value.edges.filter(
+      edge => visible.has(edge.source) && visible.has(edge.target)
+    )
   }
 })
 
@@ -309,7 +321,11 @@ const summary = computed(() => {
     { label: '数据集字段', value: data.datasetFieldCount || 0, className: 'is-dataset-field' },
     { label: '数据集', value: data.datasetCount || 0, className: 'is-dataset' },
     { label: '图表字段', value: data.chartFieldCount || 0, className: 'is-chart-field' },
-    { label: '图表/看板', value: (data.chartCount || 0) + (data.dvCount || 0), className: 'is-chart' },
+    {
+      label: '图表/看板',
+      value: (data.chartCount || 0) + (data.dvCount || 0),
+      className: 'is-chart'
+    },
     { label: '依赖关系', value: data.edgeCount || 0, className: 'is-edge' }
   ]
 })
@@ -332,15 +348,13 @@ const edgeRows = computed(() => {
 })
 
 const resourceRows = computed(() => {
-  return (filteredGraph.value?.nodes || [])
-    .slice()
-    .sort((left, right) => {
-      const leftLevel = typeLevelMap[left.type] ?? 99
-      const rightLevel = typeLevelMap[right.type] ?? 99
-      return leftLevel === rightLevel
-        ? (left.name || '').localeCompare(right.name || '')
-        : leftLevel - rightLevel
-    })
+  return (filteredGraph.value?.nodes || []).slice().sort((left, right) => {
+    const leftLevel = typeLevelMap[left.type] ?? 99
+    const rightLevel = typeLevelMap[right.type] ?? 99
+    return leftLevel === rightLevel
+      ? (left.name || '').localeCompare(right.name || '')
+      : leftLevel - rightLevel
+  })
 })
 
 const resetLineagePicker = () => {
@@ -364,16 +378,21 @@ const filterStats = computed(() => {
   if (queryType.value === 'overview') {
     return ''
   }
-  const fieldCount = Object.values(fieldsByTable.value).reduce((total, fields) => total + fields.length, 0)
+  const fieldCount = Object.values(fieldsByTable.value).reduce(
+    (total, fields) => total + fields.length,
+    0
+  )
   return `${tableOptions.value.length} 张表 / ${fieldCount} 个物理字段`
 })
+
+const graphHeight = computed(() => (isGraphFullscreen.value ? '100vh' : 'calc(100vh - 294px)'))
 
 const getDefaultResource = (items: RelationResource[]) => {
   if (!items.length) return undefined
   if (queryType.value === 'datasource') {
-    const builtin = items.find(item => ['demo', 'crest', '内置'].some(keyword =>
-      item.name?.toLowerCase().includes(keyword)
-    ))
+    const builtin = items.find(item =>
+      ['demo', 'crest', '内置'].some(keyword => item.name?.toLowerCase().includes(keyword))
+    )
     if (builtin) {
       return builtin.id
     }
@@ -476,9 +495,28 @@ const handleResourceChange = async () => {
   await loadGraph()
 }
 
+const syncFullscreenState = () => {
+  isGraphFullscreen.value = document.fullscreenElement === graphPanelRef.value
+}
+
+const toggleGraphFullscreen = async () => {
+  if (isGraphFullscreen.value) {
+    await document.exitFullscreen?.()
+  } else {
+    await graphPanelRef.value?.requestFullscreen?.()
+  }
+  await nextTick()
+  syncFullscreenState()
+}
+
 onMounted(async () => {
+  document.addEventListener('fullscreenchange', syncFullscreenState)
   await loadResources()
   await loadGraph()
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('fullscreenchange', syncFullscreenState)
 })
 </script>
 
@@ -507,12 +545,7 @@ onMounted(async () => {
           placeholder="选择资源"
           @change="handleResourceChange"
         >
-          <el-option
-            v-for="item in resources"
-            :key="item.id"
-            :label="item.name"
-            :value="item.id"
-          >
+          <el-option v-for="item in resources" :key="item.id" :label="item.name" :value="item.id">
             <span class="resource-option">
               <span>{{ item.name }}</span>
               <small>{{ item.subType || typeLabelMap[item.type] }}</small>
@@ -577,7 +610,17 @@ onMounted(async () => {
           @clear="handleSearch"
         />
         <el-button :icon="Search" type="primary" @click="handleSearch">查询</el-button>
-        <el-button :icon="RefreshLeft" aria-label="清空筛选" title="清空筛选" @click="handleReset"></el-button>
+        <el-button
+          :icon="RefreshLeft"
+          aria-label="清空筛选"
+          title="清空筛选"
+          @click="handleReset"
+        ></el-button>
+        <el-radio-group v-model="layoutMode" class="layout-mode-group" size="small">
+          <el-radio-button v-for="item in layoutOptions" :key="item.value" :label="item.value">
+            {{ item.label }}
+          </el-radio-button>
+        </el-radio-group>
         <el-switch
           v-model="showFieldNodes"
           class="field-node-switch"
@@ -597,8 +640,26 @@ onMounted(async () => {
     </div>
 
     <div class="lineage-content">
-      <section class="graph-panel">
-        <RelationGraphView :graph="displayGraph" :loading="loading" height="calc(100vh - 294px)" />
+      <section
+        ref="graphPanelRef"
+        class="graph-panel"
+        :class="{ 'is-fullscreen': isGraphFullscreen }"
+      >
+        <div class="graph-panel-tools">
+          <el-button
+            circle
+            :icon="isGraphFullscreen ? Close : FullScreen"
+            :aria-label="isGraphFullscreen ? '退出全屏' : '全屏查看'"
+            :title="isGraphFullscreen ? '退出全屏' : '全屏查看'"
+            @click="toggleGraphFullscreen"
+          />
+        </div>
+        <RelationGraphView
+          :graph="displayGraph"
+          :loading="loading"
+          :layout-mode="layoutMode"
+          :height="graphHeight"
+        />
       </section>
 
       <aside class="detail-panel">
@@ -607,7 +668,9 @@ onMounted(async () => {
           <el-table :data="resourceRows" height="240" size="small">
             <el-table-column label="类型" width="94">
               <template #default="{ row }">
-                <el-tag size="small" effect="plain">{{ typeLabelMap[row.type] || row.type }}</el-tag>
+                <el-tag size="small" effect="plain">{{
+                  typeLabelMap[row.type] || row.type
+                }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="name" label="名称" show-overflow-tooltip />
@@ -645,7 +708,7 @@ onMounted(async () => {
   height: 100%;
   padding: 16px 20px 20px;
   overflow: hidden;
-  background: #f5f6f7;
+  background: #f6f8fb;
   color: #1f2329;
 }
 
@@ -709,6 +772,10 @@ onMounted(async () => {
   margin-left: 2px;
 }
 
+.layout-mode-group {
+  flex-shrink: 0;
+}
+
 .filter-stats {
   color: #646a73;
   font-size: 12px;
@@ -756,35 +823,35 @@ onMounted(async () => {
   }
 
   &.is-datasource strong {
-    color: #2f6bff;
+    color: #3b82f6;
   }
 
   &.is-table strong {
-    color: #00a3a3;
+    color: #06b6d4;
   }
 
   &.is-table-field strong {
-    color: #008fb3;
+    color: #22c55e;
   }
 
   &.is-dataset-field strong {
-    color: #13a35b;
+    color: #14b8a6;
   }
 
   &.is-dataset strong {
-    color: #4f8f00;
+    color: #84cc16;
   }
 
   &.is-chart-field strong {
-    color: #c47a00;
+    color: #f59e0b;
   }
 
   &.is-chart strong {
-    color: #d15b18;
+    color: #f97316;
   }
 
   &.is-dv strong {
-    color: #d84f68;
+    color: #ec4899;
   }
 
   &.is-edge strong {
@@ -805,6 +872,39 @@ onMounted(async () => {
   border-radius: 8px;
   overflow: hidden;
   background: #ffffff;
+}
+
+.graph-panel {
+  position: relative;
+}
+
+.graph-panel.is-fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+  border-radius: 0;
+}
+
+.graph-panel-tools {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  :deep(.ed-button) {
+    border-color: rgba(222, 224, 227, 0.72);
+    background: rgba(255, 255, 255, 0.86);
+    box-shadow: 0 10px 24px rgba(31, 35, 41, 0.1);
+    backdrop-filter: blur(10px);
+  }
+}
+
+.graph-panel.is-fullscreen .graph-panel-tools {
+  top: 16px;
+  left: 16px;
 }
 
 .detail-panel {
