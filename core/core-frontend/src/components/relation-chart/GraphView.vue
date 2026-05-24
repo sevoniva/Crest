@@ -76,6 +76,7 @@ let resizeFrame: number | null = null
 let resizeTimer: number | null = null
 let lastWidth = 0
 let lastHeight = 0
+let resetViewOnNextRender = false
 let knowledgeLayoutCacheKey = ''
 let knowledgeLayoutCache = new Map<string, { x: number; y: number; degree: number }>()
 const selectedNodeId = ref<string>()
@@ -261,19 +262,21 @@ const fitNodesToViewport = (
   const maxY = Math.max(...nodes.map(node => node.y ?? height / 2))
   const spanX = Math.max(1, maxX - minX)
   const spanY = Math.max(1, maxY - minY)
-  const targetWidth = usableWidth * (width >= 1180 ? 0.9 : 0.82)
-  const targetHeight = usableHeight * (height >= 760 ? 0.84 : 0.76)
-  const shouldStretchX = spanX < targetWidth
-  const shouldStretchY = nodes.length > 18 && spanY < targetHeight
+  const isWideViewport = width >= 1180
+  const isTallViewport = height >= 760
+  const targetWidth = usableWidth * (isWideViewport ? 0.98 : 0.86)
+  const targetHeight = usableHeight * (isTallViewport ? 0.9 : 0.78)
+  const shouldFitX = isWideViewport || spanX < targetWidth
+  const shouldFitY = nodes.length > 18 && (isTallViewport || spanY < targetHeight)
 
   nodes.forEach(node => {
-    if (shouldStretchX) {
+    if (shouldFitX) {
       node.x =
         paddingX +
         (usableWidth - targetWidth) / 2 +
         (((node.x ?? width / 2) - minX) / spanX) * targetWidth
     }
-    if (shouldStretchY) {
+    if (shouldFitY) {
       node.y =
         paddingY +
         (usableHeight - targetHeight) / 2 +
@@ -411,8 +414,8 @@ const layoutKnowledgeNodes = () => {
   const height = chartRef.value?.clientHeight || 560
   const centerX = width / 2
   const centerY = height / 2
-  const paddingX = clamp(width * 0.075, 72, 170)
-  const paddingY = clamp(height * 0.12, 68, 130)
+  const paddingX = clamp(width * (width >= 1180 ? 0.045 : 0.075), 48, width >= 1180 ? 96 : 170)
+  const paddingY = clamp(height * (height >= 760 ? 0.08 : 0.12), 54, height >= 760 ? 96 : 130)
   const usableHeight = Math.max(1, height - paddingY * 2)
   const cacheKey = getKnowledgeLayoutCacheKey(width, height)
   if (knowledgeLayoutCacheKey === cacheKey) {
@@ -528,8 +531,8 @@ const layoutKnowledgeNodes = () => {
   fitNodesToViewport(nodes, width, height, paddingX, paddingY)
 
   const layoutNodes = nodes.map(node => {
-    const x = clamp(node.x || centerX, 42, width - 42)
-    const y = clamp(node.y || centerY, 42, height - 42)
+    const x = clamp(node.x || centerX, 36, width - 36)
+    const y = clamp(node.y || centerY, 36, height - 36)
     const degree = node.degree || 0
     return {
       ...node,
@@ -593,6 +596,11 @@ const renderChart = async () => {
   if (!hasData.value) {
     chart.clear()
     return
+  }
+
+  if (resetViewOnNextRender) {
+    chart.clear()
+    resetViewOnNextRender = false
   }
 
   chart.setOption(
@@ -699,7 +707,9 @@ const scheduleResize = () => {
     }
     lastWidth = width
     lastHeight = height
+    resetViewOnNextRender = true
     knowledgeLayoutCacheKey = ''
+    knowledgeLayoutCache.clear()
     chart?.resize()
     if (resizeTimer !== null) {
       window.clearTimeout(resizeTimer)
@@ -753,6 +763,16 @@ watch(
     knowledgeLayoutCacheKey = ''
     knowledgeLayoutCache.clear()
     scheduleRender()
+  }
+)
+
+watch(
+  () => props.height,
+  () => {
+    resetViewOnNextRender = true
+    knowledgeLayoutCacheKey = ''
+    knowledgeLayoutCache.clear()
+    scheduleResize()
   }
 )
 </script>
