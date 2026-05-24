@@ -181,8 +181,6 @@ watch(
   { deep: true }
 )
 
-let p1 = null
-const initIframe = () => p1(true)
 onMounted(async () => {
   useEmitt({
     name: 'canvasDownload',
@@ -190,7 +188,6 @@ onMounted(async () => {
       downloadH2(type)
     }
   })
-  await Promise.all([new Promise(r => (p = r)), new Promise(r => (p1 = r))])
   let dvId = props.outerId || embeddedStore.dvId || router.currentRoute.value.query.dvId
   if (router.currentRoute.value.query.jumpInfoParam && router.currentRoute.value.query.dvId) {
     dvId = router.currentRoute.value.query.dvId
@@ -250,7 +247,8 @@ const handlePrint = async () => {
   window.print()
 }
 defineExpose({
-  loadCanvasDataAsync
+  loadCanvasDataAsync,
+  handlePrint
 })
 </script>
 
@@ -268,7 +266,7 @@ defineExpose({
       :canvas-style-data="state.canvasStylePreview || {}"
       :component-data="state.canvasDataPreview || []"
     ></canvas-opt-bar>
-    <dv-preview
+    <DvPreview
       ref="dvPreviewRef"
       style="height: 100vh"
       v-if="state.canvasStylePreview && state.initState && state.dvInfo?.type === 'dataV'"
@@ -282,7 +280,7 @@ defineExpose({
       :show-pop-bar="true"
       :show-position="state.showPosition"
       :show-linkage-button="false"
-    ></dv-preview>
+    ></DvPreview>
     <de-preview
       ref="dvPreview"
       v-if="state.canvasStylePreview && state.initState && state.dvInfo?.type === 'dashboard'"
@@ -303,8 +301,7 @@ defineExpose({
       img-type="noneWhite"
     />
   </div>
-
-  </template>
+</template>
 
 <style lang="less">
 @media print {
