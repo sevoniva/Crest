@@ -385,7 +385,7 @@ const filterStats = computed(() => {
   return `${tableOptions.value.length} 张表 / ${fieldCount} 个物理字段`
 })
 
-const graphHeight = computed(() => (isGraphFullscreen.value ? '100vh' : 'calc(100vh - 294px)'))
+const graphHeight = computed(() => (isGraphFullscreen.value ? '100vh' : '100%'))
 
 const getDefaultResource = (items: RelationResource[]) => {
   if (!items.length) return undefined
@@ -863,7 +863,8 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
   gap: 12px;
-  min-height: 0;
+  height: calc(100vh - 184px);
+  min-height: 460px;
 }
 
 .graph-panel,
@@ -912,6 +913,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow: auto;
 }
 
 .detail-block {

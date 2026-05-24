@@ -42,6 +42,8 @@ interface LayoutNode extends RelationNode, SimulationNodeDatum {
   y?: number
   fx?: number | null
   fy?: number | null
+  anchorX?: number
+  anchorY?: number
   degree?: number
 }
 
@@ -71,6 +73,7 @@ let chart: any = null
 let resizeObserver: ResizeObserver | null = null
 let renderFrame: number | null = null
 let resizeFrame: number | null = null
+let resizeTimer: number | null = null
 let lastWidth = 0
 let lastHeight = 0
 let knowledgeLayoutCacheKey = ''
@@ -102,6 +105,8 @@ const highlightedEdgeTypes = new Set([
   'table_field_join',
   'dataset_field_calc_field'
 ])
+
+const maxLevel = 7
 
 const escapeHtml = (value: string) =>
   value
@@ -184,7 +189,7 @@ const ensureChart = async () => {
   await nextTick()
   if (!chartRef.value) return
   if (!chart) {
-    chart = echarts.init(chartRef.value)
+    chart = echarts.init(chartRef.value, undefined, { renderer: 'canvas', useDirtyRect: true })
     chart.on('click', handleChartClick)
   }
 }
@@ -220,6 +225,61 @@ const getNodeDegree = () => {
     acc[edge.target] = (acc[edge.target] || 0) + 1
     return acc
   }, {})
+}
+
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value))
+
+const getNodeLevel = (node: RelationNode) =>
+  clamp(node.level ?? typeMeta[node.type]?.level ?? 0, 0, maxLevel)
+
+const getLevelX = (level: number, width: number, paddingX: number) => {
+  const usableWidth = Math.max(1, width - paddingX * 2)
+  return paddingX + (usableWidth * clamp(level, 0, maxLevel)) / maxLevel
+}
+
+const getBalancedSlots = (total: number) => {
+  const middle = (total - 1) / 2
+  return Array.from({ length: total }, (_, index) => index).sort((left, right) => {
+    const distance = Math.abs(left - middle) - Math.abs(right - middle)
+    return distance || left - right
+  })
+}
+
+const fitNodesToViewport = (
+  nodes: LayoutNode[],
+  width: number,
+  height: number,
+  paddingX: number,
+  paddingY: number
+) => {
+  if (nodes.length < 8) return
+  const usableWidth = Math.max(1, width - paddingX * 2)
+  const usableHeight = Math.max(1, height - paddingY * 2)
+  const minX = Math.min(...nodes.map(node => node.x ?? width / 2))
+  const maxX = Math.max(...nodes.map(node => node.x ?? width / 2))
+  const minY = Math.min(...nodes.map(node => node.y ?? height / 2))
+  const maxY = Math.max(...nodes.map(node => node.y ?? height / 2))
+  const spanX = Math.max(1, maxX - minX)
+  const spanY = Math.max(1, maxY - minY)
+  const targetWidth = usableWidth * (width >= 1180 ? 0.9 : 0.82)
+  const targetHeight = usableHeight * (height >= 760 ? 0.84 : 0.76)
+  const shouldStretchX = spanX < targetWidth
+  const shouldStretchY = nodes.length > 18 && spanY < targetHeight
+
+  nodes.forEach(node => {
+    if (shouldStretchX) {
+      node.x =
+        paddingX +
+        (usableWidth - targetWidth) / 2 +
+        (((node.x ?? width / 2) - minX) / spanX) * targetWidth
+    }
+    if (shouldStretchY) {
+      node.y =
+        paddingY +
+        (usableHeight - targetHeight) / 2 +
+        (((node.y ?? height / 2) - minY) / spanY) * targetHeight
+    }
+  })
 }
 
 const isSelectedContext = (id: string) => {
@@ -351,6 +411,9 @@ const layoutKnowledgeNodes = () => {
   const height = chartRef.value?.clientHeight || 560
   const centerX = width / 2
   const centerY = height / 2
+  const paddingX = clamp(width * 0.075, 72, 170)
+  const paddingY = clamp(height * 0.12, 68, 130)
+  const usableHeight = Math.max(1, height - paddingY * 2)
   const cacheKey = getKnowledgeLayoutCacheKey(width, height)
   if (knowledgeLayoutCacheKey === cacheKey) {
     const cachedNodes = getKnowledgeNodesFromCache(centerX, centerY)
@@ -360,34 +423,59 @@ const layoutKnowledgeNodes = () => {
   }
 
   const degreeMap = getNodeDegree()
+  const grouped = graphNodes.value.reduce<Record<number, RelationNode[]>>((acc, node) => {
+    const level = getNodeLevel(node)
+    acc[level] = acc[level] || []
+    acc[level].push(node)
+    return acc
+  }, {})
+  const slotIndexMap = new Map<string, number>()
+  Object.keys(grouped).forEach(levelKey => {
+    const group = grouped[Number(levelKey)]
+      .slice()
+      .sort(
+        (left, right) =>
+          (degreeMap[right.id] || 0) - (degreeMap[left.id] || 0) ||
+          (left.name || '').localeCompare(right.name || '')
+      )
+    const slots = getBalancedSlots(group.length)
+    group.forEach((node, index) => {
+      slotIndexMap.set(node.id, slots[index] ?? index)
+    })
+  })
   const centerId = graphNodes.value
     .slice()
     .sort((left, right) => (degreeMap[right.id] || 0) - (degreeMap[left.id] || 0))[0]?.id
-  const radius = Math.max(140, Math.min(width, height) * 0.32)
 
   const nodes: LayoutNode[] = graphNodes.value.map(node => {
     const hash = hashNode(node.id)
-    const angle = (hash % 360) * (Math.PI / 180)
-    const level = node.level ?? typeMeta[node.type]?.level ?? 0
-    const ring = centerId === node.id ? 0 : radius * (0.72 + (level % 4) * 0.18)
+    const level = getNodeLevel(node)
+    const groupSize = grouped[level]?.length || 1
+    const slot = slotIndexMap.get(node.id) ?? 0
+    const stepY = usableHeight / (groupSize + 1)
+    const jitterX = ((hash % 1000) / 1000 - 0.5) * clamp(width * 0.055, 32, 110)
+    const jitterY = ((Math.floor(hash / 1000) % 1000) / 1000 - 0.5) * Math.min(stepY * 0.5, 78)
+    const anchorX = getLevelX(level, width, paddingX)
+    const anchorY = paddingY + stepY * (slot + 1)
+    const isHub = centerId === node.id && (degreeMap[node.id] || 0) >= 4
     return {
       ...node,
       degree: degreeMap[node.id] || 0,
-      x: centerId === node.id ? centerX : centerX + Math.cos(angle) * ring,
-      y: centerId === node.id ? centerY : centerY + Math.sin(angle) * ring,
-      fx: centerId === node.id ? centerX : null,
-      fy: centerId === node.id ? centerY : null
+      anchorX,
+      anchorY,
+      x: isHub ? anchorX : anchorX + jitterX,
+      y: isHub ? centerY : anchorY + jitterY,
+      fx: null,
+      fy: null
     }
   })
 
+  const layoutNodeIds = new Set(nodes.map(node => node.id))
   const links: LayoutLink[] = graphEdges.value
-    .filter(
-      edge =>
-        nodes.some(node => node.id === edge.source) && nodes.some(node => node.id === edge.target)
-    )
+    .filter(edge => layoutNodeIds.has(edge.source) && layoutNodeIds.has(edge.target))
     .map(edge => ({ source: edge.source, target: edge.target, type: edge.type }))
 
-  const collideBase = isRenderHeavyGraph.value ? 18 : isDenseGraph.value ? 24 : 36
+  const collideBase = isRenderHeavyGraph.value ? 16 : isDenseGraph.value ? 22 : 34
   const simulation = forceSimulation(nodes)
     .force(
       'link',
@@ -396,42 +484,52 @@ const layoutKnowledgeNodes = () => {
         .distance(link =>
           highlightedEdgeTypes.has(link.type || '')
             ? isRenderHeavyGraph.value
-              ? 72
-              : 92
+              ? 82
+              : 112
             : isRenderHeavyGraph.value
-            ? 86
+            ? 98
             : isDenseGraph.value
-            ? 108
-            : 138
+            ? 132
+            : 168
         )
-        .strength(isRenderHeavyGraph.value ? 0.32 : 0.42)
+        .strength(isRenderHeavyGraph.value ? 0.18 : 0.26)
     )
     .force(
       'charge',
-      forceManyBody().strength(isRenderHeavyGraph.value ? -180 : isDenseGraph.value ? -260 : -440)
+      forceManyBody().strength(isRenderHeavyGraph.value ? -130 : isDenseGraph.value ? -210 : -330)
     )
     .force(
       'collide',
       forceCollide<LayoutNode>(
         node => collideBase + Math.min(22, (node.degree || 0) * 2)
-      ).iterations(3)
+      ).iterations(isRenderHeavyGraph.value ? 1 : isDenseGraph.value ? 2 : 3)
     )
-    .force('center', forceCenter(centerX, centerY).strength(0.05))
+    .force('center', forceCenter(centerX, centerY).strength(0.008))
     .force(
       'x',
-      forceX<LayoutNode>(node => centerX + ((node.level ?? 3) - 3.5) * 34).strength(0.045)
+      forceX<LayoutNode>(
+        node => node.anchorX ?? getLevelX(getNodeLevel(node), width, paddingX)
+      ).strength(isRenderHeavyGraph.value ? 0.16 : 0.12)
     )
-    .force('y', forceY(centerY).strength(0.035))
+    .force('y', forceY<LayoutNode>(node => node.anchorY ?? centerY).strength(0.045))
     .stop()
 
-  const ticks = isLargeGraph.value ? 90 : isRenderHeavyGraph.value ? 130 : 230
+  const ticks = isLargeGraph.value
+    ? 64
+    : isRenderHeavyGraph.value
+    ? 88
+    : isDenseGraph.value
+    ? 118
+    : 168
   for (let i = 0; i < ticks; i++) {
     simulation.tick()
   }
 
+  fitNodesToViewport(nodes, width, height, paddingX, paddingY)
+
   const layoutNodes = nodes.map(node => {
-    const x = Math.max(42, Math.min(width - 42, node.x || centerX))
-    const y = Math.max(42, Math.min(height - 42, node.y || centerY))
+    const x = clamp(node.x || centerX, 42, width - 42)
+    const y = clamp(node.y || centerY, 42, height - 42)
     const degree = node.degree || 0
     return {
       ...node,
@@ -499,8 +597,10 @@ const renderChart = async () => {
 
   chart.setOption(
     {
-      animation: !isLargeGraph.value,
-      animationDurationUpdate: isRenderHeavyGraph.value ? 0 : 220,
+      animation: props.layoutMode !== 'knowledge' && !isLargeGraph.value,
+      animationDurationUpdate:
+        props.layoutMode === 'knowledge' || isRenderHeavyGraph.value ? 0 : 180,
+      animationEasingUpdate: 'quadraticOut',
       tooltip: {
         trigger: 'item',
         confine: true,
@@ -538,6 +638,10 @@ const renderChart = async () => {
           layout: 'none',
           roam: true,
           draggable: true,
+          animation: props.layoutMode !== 'knowledge' && !isRenderHeavyGraph.value,
+          progressive: isRenderHeavyGraph.value ? 300 : 0,
+          progressiveThreshold: 300,
+          hoverLayerThreshold: isRenderHeavyGraph.value ? 1000000 : 3000,
           edgeSymbol: ['none', 'arrow'],
           edgeSymbolSize: props.layoutMode === 'knowledge' ? [3, 7] : [4, 8],
           categories: categoryMeta.value.map(item => ({
@@ -597,7 +701,13 @@ const scheduleResize = () => {
     lastHeight = height
     knowledgeLayoutCacheKey = ''
     chart?.resize()
-    scheduleRender()
+    if (resizeTimer !== null) {
+      window.clearTimeout(resizeTimer)
+    }
+    resizeTimer = window.setTimeout(() => {
+      resizeTimer = null
+      scheduleRender()
+    }, 80)
   })
 }
 
@@ -616,6 +726,9 @@ onBeforeUnmount(() => {
   }
   if (resizeFrame !== null) {
     cancelAnimationFrame(resizeFrame)
+  }
+  if (resizeTimer !== null) {
+    window.clearTimeout(resizeTimer)
   }
   chart?.dispose()
   chart = null
