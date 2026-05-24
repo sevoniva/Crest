@@ -122,14 +122,13 @@ Crest 保持 BI 主链路清晰：
 core/core-backend/src/main/resources/db/migration
 ```
 
-当前迁移从上游历史版本延续，文件名前缀仍要保证 Flyway 执行顺序。Crest V1.1 的干净初始状态收口在最后的初始化脚本里，避免在建表脚本之前执行清理 SQL。
+当前迁移目录只保留 Crest V1.1 的初始化基线：
 
-新安装的初始状态由这些脚本共同保证：
-
-- `V2.0__core_ddl.sql` 至当前版本：创建和升级核心表结构；
-- `V2.10.22.8__V1.1_initial_state.sql`：清理上游示例、历史演示资源和运行残留，重置默认管理员为 `admin/admin`。
+- `V1.1__initial_schema.sql`：创建当前运行所需的全部表结构，写入默认管理员、基础菜单、系统参数、内置驱动和必要主题配置。
 
 初始化脚本只处理安装态数据，不能内置业务示例。新环境应保持无数据源、无数据集、无图表、无仪表板。
+
+后续版本涉及数据库结构或必要初始化数据时，在 `V1.1__initial_schema.sql` 之后新增迁移脚本，不直接改已发布基线。脚本内容要保持可审计：只处理产品运行必需的数据，不写入本地测试数据、压测数据、演示看板或外部环境信息。
 
 每次调整迁移脚本后，都要至少做一次空库安装验证：
 
@@ -163,11 +162,6 @@ launchctl kickstart -k gui/$(id -u)/com.crest.local
 - `core/core-frontend/src/api/relation/index.ts`
 - `core/core-frontend/src/views/visualized/data/lineage/index.vue`
 - `core/core-frontend/src/components/relation-chart/GraphView.vue`
-
-菜单迁移：
-
-- `core/core-backend/src/main/resources/db/migration/V2.10.22.5__data_lineage_menu.sql`
-- `core/core-backend/src/main/resources/db/desktop/V2.10.22.5__data_lineage_menu.sql`
 
 血缘图只使用 Crest 元数据，打开页面时不连接业务数据源。当前链路模型：
 
