@@ -159,12 +159,8 @@ public class ExportCenterDownLoadManage {
 
     @DeLog(id = "#p0.exportFrom", ot = LogOT.EXPORT, st = LogST.DATASET)
     public void startDatasetTask(CoreExportTask exportTask, DataSetExportRequest request) {
-        String dataPath = exportData_path + exportTask.getId();
-        File directory = new File(dataPath);
-        // 如果父目录不存在，则递归创建
-        if (!directory.exists()) {
-            boolean isCreated = directory.mkdirs(); // 创建所有必要的父目录
-        }
+        File directory = prepareTaskDirectory(exportTask.getId());
+        String dataPath = directory.getAbsolutePath();
 
         TokenUserBO tokenUserBO = AuthUtils.getUser();
         Future future = scheduledThreadPoolExecutor.submit(() -> {
@@ -421,9 +417,8 @@ public class ExportCenterDownLoadManage {
     }
 
     public void startViewTask(CoreExportTask exportTask, ChartExcelRequest request) {
-        String dataPath = exportData_path + exportTask.getId();
-        File directory = new File(dataPath);
-        boolean isCreated = directory.mkdir();
+        File directory = prepareTaskDirectory(exportTask.getId());
+        String dataPath = directory.getAbsolutePath();
         TokenUserBO tokenUserBO = AuthUtils.getUser();
         Future future = scheduledThreadPoolExecutor.submit(() -> {
             AuthUtils.setUser(tokenUserBO);
@@ -599,6 +594,20 @@ public class ExportCenterDownLoadManage {
         exportTask.setFileSizeUnit(unit);
     }
 
+    private File prepareTaskDirectory(String taskId) {
+        File directory = new File(exportData_path, taskId);
+        if (directory.exists()) {
+            if (!directory.isDirectory()) {
+                DEException.throwException("导出目录被文件占用: " + directory.getAbsolutePath());
+            }
+            return directory;
+        }
+        if (!directory.mkdirs() && !directory.isDirectory()) {
+            DEException.throwException("导出目录创建失败: " + directory.getAbsolutePath());
+        }
+        return directory;
+    }
+
     public void addWatermarkTools(Workbook wb) {
         VisualizationWatermark watermark = watermarkMapper.selectById("system_default");
         WatermarkContentDTO watermarkContent = JsonUtil.parseObject(watermark.getSettingContent(), WatermarkContentDTO.class);
@@ -619,9 +628,9 @@ public class ExportCenterDownLoadManage {
         String filePath;
 
         if (exportTask.getExportTime() < 1730277243491L) {
-            filePath = exportData_path + exportTask.getId() + "/" + exportTask.getFileName();
+            filePath = new File(new File(exportData_path, exportTask.getId()), exportTask.getFileName()).getAbsolutePath();
         } else {
-            filePath = exportData_path + exportTask.getId() + "/" + exportTask.getId() + ".xlsx";
+            filePath = new File(new File(exportData_path, exportTask.getId()), exportTask.getId() + ".xlsx").getAbsolutePath();
         }
 
         try (FileInputStream fileInputStream = new FileInputStream(filePath); OutputStream outputStream = response.getOutputStream()) {

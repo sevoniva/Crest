@@ -144,6 +144,16 @@ public interface DatasourceApi {
     @Operation(summary = "预览数据")
     Map<String, Object> previewDataWithLimit(@RequestBody Map<String, Object> req) throws DEException;
 
+    @DePermit({"#p0.datasourceId+':read'"})
+    @PostMapping("/excelData/page")
+    @Operation(summary = "分页读取 Excel 数据")
+    ExcelDataPageVO excelDataPage(@RequestBody ExcelDataPageRequest request) throws DEException;
+
+    @DePermit({"#p0.datasourceId+':manage'"})
+    @PostMapping("/excelData/save")
+    @Operation(summary = "保存 Excel 在线编辑数据")
+    void saveExcelData(@RequestBody ExcelDataSaveRequest request) throws DEException;
+
     @PostMapping("/latestUse")
     @Operation(summary = "最近常用")
     public List<String> latestUse();

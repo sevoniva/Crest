@@ -27,7 +27,9 @@ import io.crest.datasource.manage.DataSourceManage;
 import io.crest.datasource.manage.DatasourceSyncManage;
 import io.crest.datasource.manage.EngineManage;
 import io.crest.datasource.provider.CalciteProvider;
+import io.crest.datasource.provider.EngineProvider;
 import io.crest.datasource.provider.ExcelUtils;
+import io.crest.datasource.request.EngineRequest;
 import io.crest.exception.DEException;
 import io.crest.extensions.datasource.api.PluginManageApi;
 import io.crest.extensions.datasource.dto.*;
@@ -63,6 +65,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -76,6 +81,10 @@ import static io.crest.datasource.server.DatasourceTaskServer.ScheduleType.RIGHT
 @SuppressWarnings({"deprecation", "unchecked"})
 public class DatasourceServer implements DatasourceApi {
     private static final Pattern ORACLE_RECYCLE_BIN_TABLE_PATTERN = Pattern.compile("^BIN\\$.*\\$[0-9]+$", Pattern.CASE_INSENSITIVE);
+    private static final String EXCEL_ROW_ID_FIELD = "dataease_uuid";
+    private static final String EXCEL_EDIT_ROW_ID = "_rowId";
+    private static final int MAX_EXCEL_EDIT_PAGE_SIZE = 500;
+    private static final int MAX_EXCEL_EDIT_BATCH_SIZE = 5000;
 
     @Resource
     private CoreDatasourceMapper datasourceMapper;
@@ -1119,19 +1128,351 @@ public class DatasourceServer implements DatasourceApi {
         if (ObjectUtils.isEmpty(tableName) || ObjectUtils.isEmpty(id)) {
             return null;
         }
-        requireDatasourceAccess(id);
+        CoreDatasource coreDatasource = requireDatasourceAccess(id);
         DatasetTableDTO datasetTableDTO = new DatasetTableDTO();
         datasetTableDTO.setDatasourceId(id);
         if (!getTables(datasetTableDTO).stream().map(DatasetTableDTO::getTableName).collect(Collectors.toList()).contains(tableName)) {
             DEException.throwException(Translator.get("i18n_invalid_table_name"));
         }
-        String sql = "SELECT * FROM `" + tableName + "`";
+        String sql = "SELECT * FROM " + quoteIdentifier(tableName);
+        if (coreDatasource.getType().contains("Excel")) {
+            DatasourceRequest datasourceRequest = new DatasourceRequest();
+            datasourceRequest.setDatasource(transDTO(coreDatasource));
+            datasourceRequest.setTable(tableName);
+            List<TableField> tableFields = checkedExcelFields(ExcelUtils.getTableFields(datasourceRequest));
+            String columns = tableFields.stream()
+                    .map(TableField::getName)
+                    .map(this::quoteIdentifier)
+                    .collect(Collectors.joining(", "));
+            if (StringUtils.isNotEmpty(columns)) {
+                sql = "SELECT " + columns + " FROM " + quoteIdentifier(tableName);
+            }
+        }
         sql = new String(Base64.getEncoder().encode(sql.getBytes()));
         PreviewSqlDTO previewSqlDTO = new PreviewSqlDTO();
         previewSqlDTO.setSql(sql);
         previewSqlDTO.setDatasourceId(id);
         previewSqlDTO.setIsCross(false);
         return datasetDataManage.previewSql(previewSqlDTO);
+    }
+
+    @Override
+    public ExcelDataPageVO excelDataPage(ExcelDataPageRequest request) throws DEException {
+        if (request == null) {
+            DEException.throwException("无效的 Excel 数据表");
+        }
+        ExcelEditContext context = buildExcelEditContext(request.getDatasourceId(), request.getTableName(), true);
+        int page = Math.max(Optional.ofNullable(request.getPage()).orElse(1), 1);
+        int pageSize = Math.max(Optional.ofNullable(request.getPageSize()).orElse(100), 1);
+        pageSize = Math.min(pageSize, MAX_EXCEL_EDIT_PAGE_SIZE);
+        int offset = (page - 1) * pageSize;
+
+        String columns = context.fields.stream()
+                .map(TableField::getName)
+                .map(this::quoteIdentifier)
+                .collect(Collectors.joining(", "));
+        String query = "SELECT " + quoteIdentifier(EXCEL_ROW_ID_FIELD)
+                + (StringUtils.isEmpty(columns) ? "" : ", " + columns)
+                + " FROM " + quoteIdentifier(context.tableName)
+                + " ORDER BY " + quoteIdentifier(EXCEL_ROW_ID_FIELD)
+                + " LIMIT " + pageSize + " OFFSET " + offset;
+
+        EngineRequest engineRequest = buildEngineRequest(context.engine, query);
+        Map<String, Object> result;
+        try {
+            result = calciteProvider.fetchResultField(engineRequest);
+        } catch (Exception e) {
+            DEException.throwException(e);
+            return null;
+        }
+
+        List<String[]> dataList = (List<String[]>) result.get("data");
+        List<Map<String, Object>> rows = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(dataList)) {
+            for (String[] row : dataList) {
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put(EXCEL_EDIT_ROW_ID, row.length > 0 ? row[0] : null);
+                for (int i = 0; i < context.fields.size(); i++) {
+                    item.put(context.fields.get(i).getName(), i + 1 < row.length ? row[i + 1] : null);
+                }
+                rows.add(item);
+            }
+        }
+
+        ExcelDataPageVO vo = new ExcelDataPageVO();
+        vo.setFields(context.fields);
+        vo.setRows(rows);
+        vo.setTotal(fetchExcelEditTotal(context.engine, context.tableName));
+        vo.setPage(page);
+        vo.setPageSize(pageSize);
+        return vo;
+    }
+
+    @Override
+    public void saveExcelData(ExcelDataSaveRequest request) throws DEException {
+        if (request == null) {
+            DEException.throwException("无效的 Excel 数据表");
+        }
+        ExcelEditContext context = buildExcelEditContext(request.getDatasourceId(), request.getTableName(), true);
+        List<Map<String, Object>> updates = Optional.ofNullable(request.getUpdates()).orElseGet(ArrayList::new);
+        List<Map<String, Object>> inserts = Optional.ofNullable(request.getInserts()).orElseGet(ArrayList::new);
+        List<String> deletes = Optional.ofNullable(request.getDeletes()).orElseGet(ArrayList::new);
+        int changeCount = updates.size() + inserts.size() + deletes.size();
+        if (changeCount == 0) {
+            return;
+        }
+        if (changeCount > MAX_EXCEL_EDIT_BATCH_SIZE) {
+            DEException.throwException("单次保存的数据行数不能超过 " + MAX_EXCEL_EDIT_BATCH_SIZE + " 行");
+        }
+
+        EngineRequest engineRequest = buildEngineRequest(context.engine, "");
+        try {
+            calciteProvider.execWithEngineTransaction(engineRequest, (connection, queryTimeout) -> {
+                executeExcelDeletes(connection, queryTimeout, context.tableName, deletes);
+                executeExcelUpdates(connection, queryTimeout, context.tableName, context.fields, updates);
+                executeExcelInserts(connection, queryTimeout, context.tableName, context.fields, inserts);
+            });
+        } catch (Exception e) {
+            DEException.throwException(e);
+        }
+    }
+
+    private ExcelEditContext buildExcelEditContext(Long datasourceId, String tableName, boolean ensureRowId) {
+        if (ObjectUtils.isEmpty(datasourceId) || StringUtils.isBlank(tableName)) {
+            DEException.throwException("无效的 Excel 数据表");
+        }
+        CoreDatasource coreDatasource = requireDatasourceAccess(datasourceId);
+        if (coreDatasource == null || !Strings.CI.equals(coreDatasource.getType(), DatasourceConfiguration.DatasourceType.Excel.name())) {
+            DEException.throwException("仅支持本地 Excel 数据源在线编辑");
+        }
+        DatasourceRequest datasourceRequest = new DatasourceRequest();
+        datasourceRequest.setDatasource(transDTO(coreDatasource));
+        List<String> tableNames = ExcelUtils.getTables(datasourceRequest).stream()
+                .map(DatasetTableDTO::getTableName)
+                .collect(Collectors.toList());
+        if (!tableNames.contains(tableName)) {
+            DEException.throwException(Translator.get("i18n_invalid_table_name"));
+        }
+        datasourceRequest.setTable(tableName);
+        List<TableField> tableFields = ExcelUtils.getTableFields(datasourceRequest);
+        if (tableFields.stream().anyMatch(field -> Strings.CI.equals(field.getName(), EXCEL_ROW_ID_FIELD))) {
+            DEException.throwException("字段名 " + EXCEL_ROW_ID_FIELD + " 为系统保留字段，暂不支持在线编辑");
+        }
+        CoreDeEngine engine = engineManage.info();
+        if (ensureRowId) {
+            ensureExcelRowId(engine, tableName);
+        }
+        return new ExcelEditContext(engine, tableName, checkedExcelFields(tableFields));
+    }
+
+    private List<TableField> checkedExcelFields(List<TableField> tableFields) {
+        if (CollectionUtils.isEmpty(tableFields)) {
+            return new ArrayList<>();
+        }
+        List<TableField> checkedFields = tableFields.stream()
+                .filter(TableField::isChecked)
+                .filter(field -> !Strings.CI.equals(field.getName(), EXCEL_ROW_ID_FIELD))
+                .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(checkedFields)) {
+            return checkedFields;
+        }
+        return tableFields.stream()
+                .filter(field -> !Strings.CI.equals(field.getName(), EXCEL_ROW_ID_FIELD))
+                .collect(Collectors.toList());
+    }
+
+    private void ensureExcelRowId(CoreDeEngine engine, String tableName) {
+        if (!hasEngineColumn(engine, tableName, EXCEL_ROW_ID_FIELD)) {
+            executeEngineSql(engine, "ALTER TABLE " + quoteIdentifier(tableName)
+                    + " ADD COLUMN " + quoteIdentifier(EXCEL_ROW_ID_FIELD) + " VARCHAR(64)");
+        }
+        String uuidExpression = Strings.CI.equals(engine.getType(), "mysql") ? "UUID()" : "RANDOM_UUID()";
+        executeEngineSql(engine, "UPDATE " + quoteIdentifier(tableName)
+                + " SET " + quoteIdentifier(EXCEL_ROW_ID_FIELD) + " = " + uuidExpression
+                + " WHERE " + quoteIdentifier(EXCEL_ROW_ID_FIELD) + " IS NULL OR "
+                + quoteIdentifier(EXCEL_ROW_ID_FIELD) + " = ''");
+    }
+
+    private boolean hasEngineColumn(CoreDeEngine engine, String tableName, String columnName) {
+        try {
+            Map<String, Object> result = calciteProvider.fetchResultField(buildEngineRequest(engine,
+                    "SELECT * FROM " + quoteIdentifier(tableName) + " WHERE 1 = 0"));
+            List<TableField> fields = (List<TableField>) result.get("fields");
+            return fields.stream().anyMatch(field -> Strings.CI.equals(field.getOriginName(), columnName)
+                    || Strings.CI.equals(field.getName(), columnName));
+        } catch (Exception e) {
+            DEException.throwException(e);
+        }
+        return false;
+    }
+
+    private Long fetchExcelEditTotal(CoreDeEngine engine, String tableName) {
+        try {
+            Map<String, Object> result = calciteProvider.fetchResultField(buildEngineRequest(engine,
+                    "SELECT COUNT(1) FROM " + quoteIdentifier(tableName)));
+            List<String[]> data = (List<String[]>) result.get("data");
+            if (CollectionUtils.isEmpty(data) || data.get(0).length == 0) {
+                return 0L;
+            }
+            return Long.parseLong(data.get(0)[0]);
+        } catch (Exception e) {
+            DEException.throwException(e);
+        }
+        return 0L;
+    }
+
+    private void executeEngineSql(CoreDeEngine engine, String sql) {
+        try {
+            calciteProvider.exec(buildEngineRequest(engine, sql));
+        } catch (Exception e) {
+            DEException.throwException(e);
+        }
+    }
+
+    private EngineRequest buildEngineRequest(CoreDeEngine engine, String sql) {
+        EngineRequest engineRequest = new EngineRequest();
+        engineRequest.setEngine(engine);
+        engineRequest.setQuery(sql);
+        return engineRequest;
+    }
+
+    private void executeExcelDeletes(Connection connection, int queryTimeout, String tableName, List<String> deletes) throws Exception {
+        if (CollectionUtils.isEmpty(deletes)) {
+            return;
+        }
+        String sql = "DELETE FROM " + quoteIdentifier(tableName)
+                + " WHERE " + quoteIdentifier(EXCEL_ROW_ID_FIELD) + " = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setQueryTimeout(queryTimeout);
+            for (String rowId : deletes) {
+                statement.setString(1, normalizeRowId(rowId));
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        }
+    }
+
+    private void executeExcelUpdates(Connection connection, int queryTimeout, String tableName, List<TableField> fields, List<Map<String, Object>> updates) throws Exception {
+        if (CollectionUtils.isEmpty(updates)) {
+            return;
+        }
+        if (CollectionUtils.isEmpty(fields)) {
+            DEException.throwException("Excel 数据表没有可编辑字段");
+        }
+        String assignments = fields.stream()
+                .map(field -> quoteIdentifier(field.getName()) + " = ?")
+                .collect(Collectors.joining(", "));
+        String sql = "UPDATE " + quoteIdentifier(tableName) + " SET " + assignments
+                + " WHERE " + quoteIdentifier(EXCEL_ROW_ID_FIELD) + " = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setQueryTimeout(queryTimeout);
+            for (Map<String, Object> row : updates) {
+                int index = bindExcelFieldValues(statement, fields, row, 1);
+                statement.setString(index, normalizeRowId(row.get(EXCEL_EDIT_ROW_ID)));
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        }
+    }
+
+    private void executeExcelInserts(Connection connection, int queryTimeout, String tableName, List<TableField> fields, List<Map<String, Object>> inserts) throws Exception {
+        if (CollectionUtils.isEmpty(inserts)) {
+            return;
+        }
+        if (CollectionUtils.isEmpty(fields)) {
+            DEException.throwException("Excel 数据表没有可编辑字段");
+        }
+        List<String> columnNames = fields.stream().map(TableField::getName).collect(Collectors.toCollection(ArrayList::new));
+        columnNames.add(EXCEL_ROW_ID_FIELD);
+        String columns = columnNames.stream().map(this::quoteIdentifier).collect(Collectors.joining(", "));
+        String placeholders = columnNames.stream().map(name -> "?").collect(Collectors.joining(", "));
+        String sql = "INSERT INTO " + quoteIdentifier(tableName) + " (" + columns + ") VALUES (" + placeholders + ")";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setQueryTimeout(queryTimeout);
+            for (Map<String, Object> row : inserts) {
+                int index = bindExcelFieldValues(statement, fields, row, 1);
+                statement.setString(index, UUID.randomUUID().toString());
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        }
+    }
+
+    private int bindExcelFieldValues(PreparedStatement statement, List<TableField> fields, Map<String, Object> row, int startIndex) throws Exception {
+        int index = startIndex;
+        for (TableField field : fields) {
+            Object normalized = normalizeExcelCellValue(field, excelCellValue(row, field));
+            statement.setObject(index++, normalized);
+        }
+        return index;
+    }
+
+    private Object excelCellValue(Map<String, Object> row, TableField field) {
+        if (row == null) {
+            return null;
+        }
+        if (row.containsKey(field.getName())) {
+            return row.get(field.getName());
+        }
+        return row.get(field.getOriginName());
+    }
+
+    private Object normalizeExcelCellValue(TableField field, Object value) {
+        if (value == null) {
+            return null;
+        }
+        String text = String.valueOf(value).trim();
+        if (StringUtils.isEmpty(text)) {
+            return null;
+        }
+        Integer type = field.getDeExtractType() == null ? field.getDeType() : field.getDeExtractType();
+        try {
+            if (Objects.equals(type, 2)) {
+                return new BigDecimal(text).toBigIntegerExact().longValueExact();
+            }
+            if (Objects.equals(type, 3)) {
+                return new BigDecimal(text);
+            }
+            if (Objects.equals(type, 4)) {
+                if (Strings.CI.equalsAny(text, "true", "1", "是", "yes")) {
+                    return 1;
+                }
+                if (Strings.CI.equalsAny(text, "false", "0", "否", "no")) {
+                    return 0;
+                }
+                DEException.throwException("字段 " + field.getName() + " 需要布尔值");
+            }
+        } catch (ArithmeticException | NumberFormatException e) {
+            DEException.throwException("字段 " + field.getName() + " 的数值格式不正确");
+        }
+        return text;
+    }
+
+    private String normalizeRowId(Object rowId) {
+        if (rowId == null || StringUtils.isBlank(String.valueOf(rowId))) {
+            DEException.throwException("缺少数据行标识，请刷新后重试");
+        }
+        return String.valueOf(rowId);
+    }
+
+    private String quoteIdentifier(String identifier) {
+        if (StringUtils.isBlank(identifier)) {
+            DEException.throwException("Illegal table name");
+        }
+        EngineProvider.validateSqlInjectionRisk(identifier);
+        return "`" + identifier.replace("`", "``") + "`";
+    }
+
+    private static class ExcelEditContext {
+        private final CoreDeEngine engine;
+        private final String tableName;
+        private final List<TableField> fields;
+
+        private ExcelEditContext(CoreDeEngine engine, String tableName, List<TableField> fields) {
+            this.engine = engine;
+            this.tableName = tableName;
+            this.fields = fields;
+        }
     }
 
     @Override

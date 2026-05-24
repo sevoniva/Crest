@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 import io.crest.visualization.dto.WatermarkContentDTO;
 import io.crest.api.permissions.user.vo.UserFormVO;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.util.*;
 import java.util.concurrent.Future;
@@ -93,7 +94,7 @@ public class ExportCenterManage implements BaseExportApi {
                 iterator.remove();
             }
         }
-        FileUtils.deleteDirectoryRecursively(exportData_path + id);
+        FileUtils.deleteDirectoryRecursively(taskDirectoryPath(id));
         exportTaskMapper.deleteById(id);
     }
 
@@ -116,7 +117,7 @@ public class ExportCenterManage implements BaseExportApi {
                     iterator.remove();
                 }
             }
-            FileUtils.deleteDirectoryRecursively(exportData_path + exportTask.getId());
+            FileUtils.deleteDirectoryRecursively(taskDirectoryPath(exportTask.getId()));
             exportTaskMapper.deleteById(exportTask.getId());
         });
 
@@ -136,7 +137,7 @@ public class ExportCenterManage implements BaseExportApi {
         exportTask.setExportMachineName(hostName());
         exportTask.setExportTime(System.currentTimeMillis());
         exportTaskMapper.updateById(exportTask);
-        FileUtils.deleteDirectoryRecursively(exportData_path + id);
+        FileUtils.deleteDirectoryRecursively(taskDirectoryPath(id));
         if (exportTask.getExportFromType().equalsIgnoreCase("chart")) {
             ChartExcelRequest request = JsonUtil.parseObject(exportTask.getParams(), ChartExcelRequest.class);
             exportCenterDownLoadManage.startViewTask(exportTask, request);
@@ -240,6 +241,10 @@ public class ExportCenterManage implements BaseExportApi {
             DEException.throwException("请设置主机名！");
         }
         return hostname;
+    }
+
+    private String taskDirectoryPath(String taskId) {
+        return new File(exportData_path, taskId).getPath();
     }
 
     public void addTask(String exportFrom, String exportFromType, ChartExcelRequest request, String busiFlag) {

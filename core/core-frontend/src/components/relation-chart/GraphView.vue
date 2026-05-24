@@ -233,9 +233,12 @@ const getNodeVisual = (node: RelationNode, degree = 0) => {
   const visible = isSelectedContext(node.id)
   const knowledgeMode = props.layoutMode === 'knowledge'
   const showNeighborLabel = !!selectedNodeId.value && neighborIds.value.has(node.id)
+  const importantFieldDegree = isRenderHeavyGraph.value ? 6 : isDenseGraph.value ? 4 : 2
   const showLabel =
     selected ||
-    (showNeighborLabel && !isLargeGraph.value) ||
+    showNeighborLabel ||
+    !isField ||
+    (knowledgeMode && isField && degree >= importantFieldDegree) ||
     (!isDenseGraph.value && (!isField || graphNodes.value.length <= 90))
   const symbolSize = knowledgeMode
     ? isField
@@ -269,10 +272,13 @@ const getNodeVisual = (node: RelationNode, degree = 0) => {
     symbolSize,
     label: {
       show: showLabel,
-      color: knowledgeMode || !isField ? '#ffffff' : '#1f2329',
-      width: knowledgeMode ? 78 : node.type === 'dv' ? 96 : isField ? 52 : 82,
+      color:
+        knowledgeMode && isField ? '#334155' : knowledgeMode || !isField ? '#ffffff' : '#1f2329',
+      position: knowledgeMode && isField ? 'right' : 'inside',
+      distance: knowledgeMode && isField ? 6 : 0,
+      width: knowledgeMode ? (isField ? 96 : 82) : node.type === 'dv' ? 96 : isField ? 52 : 82,
       overflow: 'truncate',
-      fontSize: selected ? 12 : isField ? 11 : 12,
+      fontSize: selected ? 12 : isField ? 10 : 12,
       fontWeight: selected ? 700 : 500
     }
   }
@@ -544,6 +550,9 @@ const renderChart = async () => {
             width: isLargeGraph.value ? 0.9 : 1.3,
             curveness: props.layoutMode === 'knowledge' ? 0.12 : 0.18,
             opacity: isLargeGraph.value ? 0.46 : 0.72
+          },
+          labelLayout: {
+            hideOverlap: true
           },
           emphasis: {
             focus: props.layoutMode === 'knowledge' || !isLargeGraph.value ? 'adjacency' : 'none',

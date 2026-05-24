@@ -37,6 +37,9 @@ crest:
   internal-lite:
     enabled: true
   origin-list: http://localhost:8080
+  path:
+    excel: ${CREST_PATH_EXCEL:/opt/crest/data/excel/}
+    exportData: ${CREST_PATH_EXPORT_DATA:/opt/crest/data/exportData/}
 mybatis:
   configuration:
     map-underscore-to-camel-case: true

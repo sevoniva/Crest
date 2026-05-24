@@ -1998,4 +1998,29 @@ public class CalciteProvider extends Provider {
             throw e;
         }
     }
+
+    public void execWithEngineTransaction(EngineRequest engineRequest, EngineConnectionExecutor executor) throws Exception {
+        DatasourceConfiguration configuration = JsonUtil.parseObject(engineRequest.getEngine().getConfiguration(), DatasourceConfiguration.class);
+        int queryTimeout = configuration.getQueryTimeout();
+        DatasourceDTO datasource = new DatasourceDTO();
+        BeanUtils.copyBean(datasource, engineRequest.getEngine());
+        try (Connection connection = getConnectionFromPool(datasource.getId())) {
+            boolean autoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            try {
+                executor.execute(connection, queryTimeout);
+                connection.commit();
+            } catch (Exception e) {
+                connection.rollback();
+                throw e;
+            } finally {
+                connection.setAutoCommit(autoCommit);
+            }
+        }
+    }
+
+    @FunctionalInterface
+    public interface EngineConnectionExecutor {
+        void execute(Connection connection, int queryTimeout) throws Exception;
+    }
 }

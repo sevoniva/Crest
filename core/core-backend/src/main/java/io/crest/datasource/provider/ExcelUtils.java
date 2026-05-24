@@ -45,15 +45,14 @@ import java.util.stream.Collectors;
 @SuppressWarnings({"deprecation", "unchecked"})
 public class ExcelUtils {
     public static final String UFEFF = "\uFEFF";
-    private static String path = getExcelPath();
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     public static String getExcelPath() {
-        if (ModelUtils.isDesktop()) {
-            return ConfigUtils.getConfig("crest.path.excel", "/opt/crest/data/excel/");
-        } else {
-            return "/opt/crest/data/excel/";
+        String configuredPath = ConfigUtils.getConfig("crest.path.excel", "/opt/crest/data/excel/");
+        if (StringUtils.isBlank(configuredPath)) {
+            configuredPath = "/opt/crest/data/excel/";
         }
+        return configuredPath.endsWith(File.separator) ? configuredPath : configuredPath + File.separator;
     }
 
     private static TypeReference<List<TableField>> TableFieldListTypeReference = new TypeReference<List<TableField>>() {
@@ -191,7 +190,7 @@ public class ExcelUtils {
                 if (sheet.getDeTableName().equalsIgnoreCase(datasourceRequest.getTable())) {
                     List<TableField> tableFields = sheet.getFields();
                     String suffix = fileNames.get("fileName").substring(fileNames.get("fileName").lastIndexOf(".") + 1);
-                    InputStream inputStream = new FileInputStream(path + fileNames.get("tranName"));
+                    InputStream inputStream = new FileInputStream(getExcelPath() + fileNames.get("tranName"));
                     if (Strings.CI.equals(suffix, "csv")) {
                         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
                         reader.readLine();//去掉表头
@@ -202,7 +201,7 @@ public class ExcelUtils {
                 }
             }
             if (StringUtils.isNotEmpty(fileNames.get("tranName"))) {
-                FileUtils.deleteFile(path + fileNames.get("tranName"));
+                FileUtils.deleteFile(getExcelPath() + fileNames.get("tranName"));
             }
         } else {
             try {
@@ -352,14 +351,14 @@ public class ExcelUtils {
             throw e;
         } finally {
             if (StringUtils.isNotEmpty(fileNames.get("tranName"))) {
-                FileUtils.deleteFile(path + fileNames.get("tranName"));
+                FileUtils.deleteFile(getExcelPath() + fileNames.get("tranName"));
             }
         }
     }
 
     public ExcelFileData parseRemoteExcel(RemoteExcelRequest remoteExcelRequest) throws DEException, FileNotFoundException {
         Map<String, String> fileNames = downLoadRemoteExcel(remoteExcelRequest);
-        FileInputStream fileInputStream = new FileInputStream(path + fileNames.get("tranName"));
+        FileInputStream fileInputStream = new FileInputStream(getExcelPath() + fileNames.get("tranName"));
         List<ExcelSheetData> returnSheetDataList = new ArrayList<>();
         try {
             returnSheetDataList = parseExcel(fileNames.get("tranName"), fileInputStream, true, fileNames.get("fileName")).stream().filter(excelSheetData -> !CollectionUtils.isEmpty(excelSheetData.getFields())).collect(Collectors.toList());
@@ -370,7 +369,7 @@ public class ExcelUtils {
             excelSheetData.setLastUpdateTime(System.currentTimeMillis());
             excelSheetData.setTableName(excelSheetData.getExcelLabel());
             excelSheetData.setDeTableName("excel_" + excelSheetData.getExcelLabel() + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 10));
-            excelSheetData.setPath(path + fileNames.get("tranName"));
+            excelSheetData.setPath(getExcelPath() + fileNames.get("tranName"));
             excelSheetData.setSheetId(UUID.randomUUID().toString());
             excelSheetData.setSheetExcelId(fileNames.get("tranName").split("\\.")[0]);
             excelSheetData.setFileName(fileNames.get("fileName"));
@@ -397,7 +396,7 @@ public class ExcelUtils {
                 }
             }
             long size = 0;
-            File file = new File(path + fileNames.get("tranName"));
+            File file = new File(getExcelPath() + fileNames.get("tranName"));
             String unit = "B";
             if (file.length() / 1024 == 0) {
                 size = file.length();
@@ -416,10 +415,10 @@ public class ExcelUtils {
         ExcelFileData excelFileData = new ExcelFileData();
         excelFileData.setExcelLabel(fileNames.get("fileName").split("\\.")[0]);
         excelFileData.setId(fileNames.get("tranName").split("\\.")[0]);
-        excelFileData.setPath(path + fileNames.get("tranName"));
+        excelFileData.setPath(getExcelPath() + fileNames.get("tranName"));
         excelFileData.setSheets(returnSheetDataList);
         if (StringUtils.isNotEmpty(fileNames.get("tranName"))) {
-            FileUtils.deleteFile(path + fileNames.get("tranName"));
+            FileUtils.deleteFile(getExcelPath() + fileNames.get("tranName"));
         }
         return excelFileData;
     }
@@ -432,11 +431,8 @@ public class ExcelUtils {
                 String authValue = "Basic " + Base64.getUrlEncoder().encodeToString((remoteExcelRequest.getUserName() + ":" + remoteExcelRequest.getPasswd()).getBytes());
                 httpClientConfig.addHeader("Authorization", authValue);
             }
-            File p = new File(path);
-            if (!p.exists()) {
-                p.mkdirs();
-            }
-            fileNames = HttpClientUtil.downloadFile(remoteExcelRequest.getUrl(), httpClientConfig, path);
+            ensureExcelDirectory();
+            fileNames = HttpClientUtil.downloadFile(remoteExcelRequest.getUrl(), httpClientConfig, getExcelPath());
         } else if (remoteExcelRequest.getUrl().trim().startsWith("ftp")) {
             fileNames = downLoadFromFtp(remoteExcelRequest);
         } else {
@@ -445,16 +441,24 @@ public class ExcelUtils {
         return fileNames;
     }
 
+    private static File ensureExcelDirectory() {
+        File directory = new File(getExcelPath());
+        if (!directory.exists() && !directory.mkdirs()) {
+            DEException.throwException("Excel文件目录创建失败: " + directory.getAbsolutePath());
+        }
+        if (!directory.isDirectory()) {
+            DEException.throwException("Excel文件目录被文件占用: " + directory.getAbsolutePath());
+        }
+        return directory;
+    }
+
     private static String saveFile(MultipartFile file, String fileNameUUID) throws DEException {
         String filePath = null;
         try {
             String filename = file.getOriginalFilename();
             String suffix = filename.substring(filename.lastIndexOf(".") + 1);
-            File p = new File(path);
-            if (!p.exists()) {
-                p.mkdirs();
-            }
-            filePath = path + fileNameUUID + "." + suffix;
+            ensureExcelDirectory();
+            filePath = getExcelPath() + fileNameUUID + "." + suffix;
             File f = new File(filePath);
             FileOutputStream fileOutputStream = new FileOutputStream(f);
             fileOutputStream.write(file.getBytes());
@@ -782,7 +786,7 @@ public class ExcelUtils {
             DEException.throwException(Translator.get("i18n_unsupported_file_format"));
         }
         String tranName = UUID.randomUUID().toString() + "." + suffix;
-        String localFilePath = path + tranName;
+        String localFilePath = getExcelPath() + tranName;
         fileNames.put("fileName", filePath);
         fileNames.put("tranName", tranName);
 

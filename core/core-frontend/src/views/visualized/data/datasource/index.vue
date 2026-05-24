@@ -24,6 +24,7 @@ import icon_succeed_filled from '@/assets/svg/icon_succeed_filled.svg'
 import icon_close_filled from '@/assets/svg/icon_close_filled.svg'
 import icon_replace_outlined from '@/assets/svg/icon_replace_outlined.svg'
 import iconMaybe_outlined from '@/assets/svg/icon-maybe_outlined.svg'
+import icon_refresh_outlined from '@/assets/svg/icon_refresh_outlined.svg'
 import { computed, h, unref, reactive, ref, shallowRef, nextTick, watch, onMounted } from 'vue'
 import { dsTypes } from '@/views/visualized/data/datasource/form/option'
 import type { TabPaneName, ElMessageBoxOptions } from 'element-plus-secondary'
@@ -50,7 +51,9 @@ import {
   perDeleteDatasource,
   getSimpleDs,
   supportSetKey,
-  getTableStatus
+  getTableStatus,
+  excelDataPage,
+  saveExcelData
 } from '@/api/datasource'
 import CreatDsGroup from './form/CreatDsGroup.vue'
 import type { Tree } from '../dataset/form/CreatDsGroup.vue'
@@ -577,6 +580,261 @@ const sortTypeTip = computed(() => {
 })
 const tableData = shallowRef([])
 const tabData = shallowRef([])
+const EXCEL_EDIT_ROW_ID = '_rowId'
+const excelEditLoadedTableName = ref('')
+const excelEditState = reactive({
+  visible: false,
+  loading: false,
+  saving: false,
+  tableName: '',
+  page: 1,
+  pageSize: 100,
+  total: 0,
+  fields: [] as Field[],
+  rows: [] as Array<Record<string, any>>,
+  selectedRows: [] as Array<Record<string, any>>,
+  deletedIds: [] as string[],
+  dirty: false
+})
+
+const excelEditFieldKey = (field: Field) => field.name || field.originName
+
+const excelEditColumnWidth = (field: Field) => {
+  const title = excelEditFieldKey(field)
+  return Math.min(Math.max(title.length * 16 + 72, 160), 320)
+}
+
+const excelEditFieldType = (field: Field) => fieldType[field.deType] || 'text'
+
+const resetExcelEditChanges = () => {
+  excelEditState.dirty = false
+  excelEditState.deletedIds = []
+  excelEditState.selectedRows = []
+}
+
+const hasExcelEditChanges = () => {
+  return (
+    excelEditState.deletedIds.length > 0 ||
+    excelEditState.rows.some(row => row.__dirty || row.__isNew)
+  )
+}
+
+const confirmDiscardExcelEditChanges = async () => {
+  if (!hasExcelEditChanges()) {
+    return true
+  }
+  try {
+    await ElMessageBox.confirm(t('data_source.unsaved_edit_confirm'), {
+      confirmButtonText: t('common.sure'),
+      cancelButtonText: t('common.cancel'),
+      type: 'warning',
+      autofocus: false,
+      showClose: false
+    } as ElMessageBoxOptions)
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
+const loadExcelEditData = () => {
+  if (!excelEditState.tableName) {
+    return
+  }
+  excelEditState.loading = true
+  return excelDataPage({
+    datasourceId: nodeInfo.id,
+    tableName: excelEditState.tableName,
+    page: excelEditState.page,
+    pageSize: excelEditState.pageSize
+  })
+    .then(res => {
+      excelEditState.fields = res?.fields || []
+      excelEditState.rows = (res?.rows || []).map(row => ({
+        ...row,
+        __dirty: false,
+        __isNew: false
+      }))
+      excelEditState.total = res?.total || 0
+      excelEditLoadedTableName.value = excelEditState.tableName
+      resetExcelEditChanges()
+    })
+    .finally(() => {
+      excelEditState.loading = false
+    })
+}
+
+const refreshExcelEditData = async () => {
+  const canRefresh = await confirmDiscardExcelEditChanges()
+  if (!canRefresh) {
+    return
+  }
+  await loadExcelEditData()
+}
+
+const ensureExcelEditTables = async () => {
+  if (tabList.value.length) {
+    return
+  }
+  const res = await listDatasourceTables({ datasourceId: nodeInfo.id })
+  tabList.value = res.data.map(ele => {
+    const { name, tableName } = ele
+    return {
+      value: name,
+      label: tableName
+    }
+  })
+  tableData.value = res.data
+  if (!!tabList.value.length && !activeTab.value) {
+    activeTab.value = tabList.value[0].value
+  }
+}
+
+const openExcelEditor = async () => {
+  await ensureExcelEditTables()
+  if (!tabList.value.length) {
+    ElMessage.warning(t('datasource.no_data_table'))
+    return
+  }
+  excelEditState.tableName = activeTab.value || tabList.value[0].value
+  excelEditState.page = 1
+  excelEditState.visible = true
+  await loadExcelEditData()
+}
+
+const handleExcelEditTableChange = async tableName => {
+  if (tableName === excelEditLoadedTableName.value) {
+    return
+  }
+  const canLeave = await confirmDiscardExcelEditChanges()
+  if (!canLeave) {
+    excelEditState.tableName = excelEditLoadedTableName.value
+    return
+  }
+  excelEditState.page = 1
+  await loadExcelEditData()
+}
+
+const handleExcelEditPageChange = async page => {
+  const canLeave = await confirmDiscardExcelEditChanges()
+  if (!canLeave) {
+    return
+  }
+  excelEditState.page = page
+  await loadExcelEditData()
+}
+
+const handleExcelEditSizeChange = async pageSize => {
+  const canLeave = await confirmDiscardExcelEditChanges()
+  if (!canLeave) {
+    return
+  }
+  excelEditState.page = 1
+  excelEditState.pageSize = pageSize
+  await loadExcelEditData()
+}
+
+const markExcelEditDirty = row => {
+  if (!row.__isNew) {
+    row.__dirty = true
+  }
+  excelEditState.dirty = true
+}
+
+const addExcelEditRow = () => {
+  if (excelEditState.loading) {
+    return
+  }
+  const row = {
+    [EXCEL_EDIT_ROW_ID]: `new_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+    __dirty: true,
+    __isNew: true
+  }
+  excelEditState.fields.forEach(field => {
+    row[excelEditFieldKey(field)] = ''
+  })
+  excelEditState.rows.unshift(row)
+  excelEditState.dirty = true
+}
+
+const handleExcelEditSelectionChange = rows => {
+  excelEditState.selectedRows = rows
+}
+
+const deleteExcelEditRows = () => {
+  if (excelEditState.loading) {
+    return
+  }
+  if (!excelEditState.selectedRows.length) {
+    ElMessage.warning(t('data_source.select_delete_rows'))
+    return
+  }
+  const selectedRowIds = new Set(excelEditState.selectedRows.map(row => row[EXCEL_EDIT_ROW_ID]))
+  excelEditState.selectedRows.forEach(row => {
+    if (!row.__isNew && row[EXCEL_EDIT_ROW_ID]) {
+      excelEditState.deletedIds.push(row[EXCEL_EDIT_ROW_ID])
+    }
+  })
+  excelEditState.rows = excelEditState.rows.filter(row => !selectedRowIds.has(row[EXCEL_EDIT_ROW_ID]))
+  excelEditState.selectedRows = []
+  excelEditState.dirty = true
+}
+
+const excelEditPayload = row => {
+  const payload = {}
+  excelEditState.fields.forEach(field => {
+    payload[excelEditFieldKey(field)] = row[excelEditFieldKey(field)]
+  })
+  if (!row.__isNew) {
+    payload[EXCEL_EDIT_ROW_ID] = row[EXCEL_EDIT_ROW_ID]
+  }
+  return payload
+}
+
+const saveExcelEditor = () => {
+  if (excelEditState.loading) {
+    return
+  }
+  const updates = excelEditState.rows
+    .filter(row => row.__dirty && !row.__isNew)
+    .map(excelEditPayload)
+  const inserts = excelEditState.rows.filter(row => row.__isNew).map(excelEditPayload)
+  const deletes = [...new Set(excelEditState.deletedIds)]
+  if (!updates.length && !inserts.length && !deletes.length) {
+    ElMessage.info(t('data_source.no_edit_changes'))
+    return
+  }
+  excelEditState.saving = true
+  saveExcelData({
+    datasourceId: nodeInfo.id,
+    tableName: excelEditState.tableName,
+    updates,
+    inserts,
+    deletes
+  })
+    .then(() => {
+      ElMessage.success(t('common.save_success'))
+      if (activeTab.value === excelEditState.tableName) {
+        handleLoadExcel({ table: activeTab.value, id: nodeInfo.id })
+      }
+      loadExcelEditData()
+    })
+    .finally(() => {
+      excelEditState.saving = false
+    })
+}
+
+const closeExcelEditor = async (done?: () => void) => {
+  const canClose = await confirmDiscardExcelEditChanges()
+  if (canClose) {
+    if (done) {
+      done()
+    } else {
+      excelEditState.visible = false
+    }
+  }
+}
+
 const handleNodeClick = data => {
   if (!data.leaf) {
     dsListTree.value.setCurrentKey(null)
@@ -1335,6 +1593,17 @@ const getMenuList = (val: boolean) => {
               >
 
               <template v-if="nodeInfo.type === 'Excel'">
+                <el-button
+                  v-if="nodeInfo.weight >= 7"
+                  secondary
+                  @click="openExcelEditor"
+                  class="edit-excel-data"
+                >
+                  <template #icon>
+                    <Icon name="icon_edit_outlined"><icon_edit_outlined class="svg-icon" /></Icon>
+                  </template>
+                  {{ t('data_source.edit_data') }}
+                </el-button>
                 <el-upload
                   v-if="nodeInfo.weight >= 7"
                   action=""
@@ -1890,6 +2159,137 @@ const getMenuList = (val: boolean) => {
         </el-table>
       </el-scrollbar>
     </el-dialog>
+    <el-dialog
+      v-model="excelEditState.visible"
+      :title="t('data_source.edit_data')"
+      class="excel-edit-dialog"
+      fullscreen
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :before-close="closeExcelEditor"
+    >
+      <div class="excel-edit-layout">
+        <div class="excel-edit-toolbar">
+          <div class="excel-edit-toolbar-left">
+            <el-select
+              v-model="excelEditState.tableName"
+              filterable
+              :placeholder="t('data_source.select_edit_table')"
+              style="width: 280px"
+              @change="handleExcelEditTableChange"
+            >
+              <el-option
+                v-for="tab in tabList"
+                :key="tab.value"
+                :label="tab.label"
+                :value="tab.value"
+              />
+            </el-select>
+            <span class="excel-edit-summary">
+              {{ excelEditState.total }}
+            </span>
+          </div>
+          <div class="excel-edit-toolbar-right">
+            <el-button
+              secondary
+              @click="refreshExcelEditData"
+              :disabled="excelEditState.loading || excelEditState.saving"
+            >
+              <template #icon>
+                <icon name="icon_refresh_outlined"><icon_refresh_outlined class="svg-icon" /></icon>
+              </template>
+              {{ t('data_source.refresh_data') }}
+            </el-button>
+            <el-button secondary @click="addExcelEditRow" :disabled="excelEditState.loading">
+              <template #icon>
+                <Icon name="icon_new-item_outlined"
+                  ><icon_newItem_outlined class="svg-icon"
+                /></Icon>
+              </template>
+              {{ t('data_source.add_row') }}
+            </el-button>
+            <el-button secondary @click="deleteExcelEditRows" :disabled="excelEditState.loading">
+              <template #icon>
+                <Icon name="icon_delete-trash_outlined"
+                  ><icon_deleteTrash_outlined class="svg-icon"
+                /></Icon>
+              </template>
+              {{ t('data_source.delete_row') }}
+            </el-button>
+          </div>
+        </div>
+        <el-table
+          v-loading="excelEditState.loading"
+          :data="excelEditState.rows"
+          border
+          stripe
+          height="100%"
+          class="excel-edit-table"
+          @selection-change="handleExcelEditSelectionChange"
+        >
+          <el-table-column type="selection" width="44" fixed />
+          <el-table-column type="index" width="64" fixed />
+          <el-table-column
+            v-for="field in excelEditState.fields"
+            :key="excelEditFieldKey(field)"
+            :prop="excelEditFieldKey(field)"
+            :min-width="excelEditColumnWidth(field)"
+            show-overflow-tooltip
+          >
+            <template #header>
+              <div class="excel-edit-header-cell">
+                <el-icon>
+                  <icon :class="`field-icon-${excelEditFieldType(field)}`">
+                    <component
+                      class="svg-icon"
+                      :class="`field-icon-${excelEditFieldType(field)}`"
+                      :is="iconFieldMap[excelEditFieldType(field)]"
+                    ></component>
+                  </icon>
+                </el-icon>
+                <span class="ellipsis" :title="field.name">{{ field.name }}</span>
+              </div>
+            </template>
+            <template #default="scope">
+              <el-input
+                v-model="scope.row[excelEditFieldKey(field)]"
+                size="small"
+                clearable
+                @input="markExcelEditDirty(scope.row)"
+              />
+            </template>
+          </el-table-column>
+          <template #empty>
+            <empty-background :description="t('data_set.no_data')" img-type="noneWhite" />
+          </template>
+        </el-table>
+        <div class="excel-edit-footer">
+          <el-pagination
+            background
+            layout="total, sizes, prev, pager, next, jumper"
+            :page-sizes="[50, 100, 200, 500]"
+            :total="excelEditState.total"
+            :page-size="excelEditState.pageSize"
+            :current-page="excelEditState.page"
+            @size-change="handleExcelEditSizeChange"
+            @current-change="handleExcelEditPageChange"
+          />
+          <div class="excel-edit-footer-actions">
+            <el-button secondary @click="() => closeExcelEditor()">
+              {{ t('common.cancel') }}
+            </el-button>
+            <el-button
+              type="primary"
+              :loading="excelEditState.saving"
+              :disabled="excelEditState.loading"
+              @click="saveExcelEditor"
+            >
+              {{ t('common.save') }}
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </el-dialog>
     <creat-ds-group @finish="saveDsFolder" ref="creatDsFolder"></creat-ds-group>
     <el-drawer
       v-model="showRecord"
@@ -2300,6 +2700,9 @@ const getMenuList = (val: boolean) => {
 
         .right-btn {
           margin-left: auto;
+          .edit-excel-data {
+            margin-left: 12px;
+          }
           .replace-excel {
             margin: 0 12px;
           }
@@ -2412,6 +2815,69 @@ const getMenuList = (val: boolean) => {
   .table-value {
     margin: 4px 0 24px 0;
     color: var(--deTextPrimary, #1f2329);
+  }
+}
+
+.excel-edit-dialog {
+  .ed-dialog__body {
+    height: calc(100vh - 54px);
+    padding: 16px 24px 20px;
+    box-sizing: border-box;
+  }
+
+  .excel-edit-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .excel-edit-toolbar,
+  .excel-edit-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 0 0 auto;
+  }
+
+  .excel-edit-toolbar {
+    margin-bottom: 12px;
+  }
+
+  .excel-edit-toolbar-left,
+  .excel-edit-toolbar-right,
+  .excel-edit-footer-actions,
+  .excel-edit-header-cell {
+    display: flex;
+    align-items: center;
+  }
+
+  .excel-edit-toolbar-right,
+  .excel-edit-footer-actions {
+    gap: 8px;
+  }
+
+  .excel-edit-summary {
+    margin-left: 12px;
+    color: var(--deTextSecondary, #646a73);
+    font-size: 14px;
+  }
+
+  .excel-edit-table {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .excel-edit-header-cell {
+    min-width: 0;
+
+    .ed-icon {
+      margin-right: 6px;
+    }
+  }
+
+  .excel-edit-footer {
+    padding-top: 12px;
   }
 }
 </style>

@@ -90,11 +90,13 @@ const triggerFilterPanel = () => {
   loadTableData()
 }
 const openType = wsCache.get('open-backend') === '1' ? '_self' : '_blank'
-const preview = (id, disabled = false) => {
+const preview = (row, disabled = false) => {
   if (!disabled) {
+    const id = activeName.value === 'recent' ? row.id : row.resourceId
+    const dvType = ['dashboard', 'panel'].includes(row.type) ? 'dashboard' : 'dataV'
     const routeUrl = resolve({
       path: '/preview',
-      query: { dvId: id }
+      query: { dvId: id, dvType }
     })
     window.open(routeUrl.href, '_blank')
   }
@@ -141,10 +143,6 @@ const baseTablePaneList = ref([
 ])
 
 const dfTablePaneList = ref([])
-
-const loadedDataFilling = data => {
-  dfTablePaneList.value.push(data)
-}
 
 const busiAuthList = getBusiListWithPermission()
 
@@ -426,12 +424,7 @@ const getEmptyDesc = (): string => {
                   >
                     <el-icon
                       class="hover-icon hover-icon-in-table"
-                      @click.stop="
-                        preview(
-                          activeName === 'recent' ? scope.row.id : scope.row.resourceId,
-                          checkDisabled(scope.row)
-                        )
-                      "
+                      @click.stop="preview(scope.row, checkDisabled(scope.row))"
                     >
                       <Icon name="icon_pc_outlined"><icon_pc_outlined class="svg-icon" /></Icon>
                     </el-icon>
@@ -474,13 +467,13 @@ const getEmptyDesc = (): string => {
         </GridTable>
       </div>
     </template>
-      </div>
+  </div>
   <el-empty
     class="dashboard-type"
     v-else
     :description="t('work_branch.administrator_for_authorization')"
   />
-  </template>
+</template>
 
 <style lang="less" scoped>
 .dashboard-type {

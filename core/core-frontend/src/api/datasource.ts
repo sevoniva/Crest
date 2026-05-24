@@ -75,6 +75,19 @@ export const previewData = (data = {}) => {
     return res?.data
   })
 }
+
+export const excelDataPage = (data = {}) => {
+  return request.post({ url: '/datasource/excelData/page', data }).then(res => {
+    return res?.data
+  })
+}
+
+export const saveExcelData = (data = {}) => {
+  return request.post({ url: '/datasource/excelData/save', data, loading: true }).then(res => {
+    return res?.data
+  })
+}
+
 export const validate = (data = {}) => {
   return request.post({ url: '/datasource/validate', data })
 }
