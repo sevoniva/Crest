@@ -1118,9 +1118,6 @@ public class DatasourceServer implements DatasourceApi {
     }
 
 
-    public void updateDemoDs() {
-    }
-
     @Override
     public Map<String, Object> previewDataWithLimit(Map<String, Object> req) throws DEException {
         String tableName = req.get("table").toString();

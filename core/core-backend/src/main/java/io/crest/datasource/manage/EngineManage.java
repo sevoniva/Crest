@@ -3,7 +3,6 @@ package io.crest.datasource.manage;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.crest.datasource.dao.auto.entity.CoreDatasource;
 import io.crest.datasource.dao.auto.entity.CoreDeEngine;
-import io.crest.datasource.dao.auto.mapper.CoreDatasourceMapper;
 import io.crest.datasource.dao.auto.mapper.CoreDeEngineMapper;
 import io.crest.datasource.type.H2;
 import io.crest.datasource.type.Mysql;
@@ -12,8 +11,6 @@ import io.crest.extensions.datasource.dto.DatasourceDTO;
 import io.crest.extensions.datasource.dto.DatasourceRequest;
 import io.crest.extensions.datasource.factory.ProviderFactory;
 import io.crest.result.ResultMessage;
-import io.crest.template.dao.auto.entity.DeTemplateVersion;
-import io.crest.template.dao.auto.mapper.DeTemplateVersionMapper;
 import io.crest.utils.BeanUtils;
 import io.crest.utils.JsonUtil;
 import io.crest.utils.ModelUtils;
@@ -25,9 +22,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -42,15 +36,8 @@ public class EngineManage {
     @Resource
     private CoreDeEngineMapper deEngineMapper;
 
-    @Resource
-    private CoreDatasourceMapper datasourceMapper;
-
     @Value("${crest.path.engine:jdbc:h2:/opt/crest/desktop_data;AUTO_SERVER=TRUE;AUTO_RECONNECT=TRUE;MODE=MySQL;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DATABASE_TO_UPPER=FALSE}")
     private String engineUrl;
-
-    @Resource
-    private DeTemplateVersionMapper deTemplateVersionMapper;
-
 
     public CoreDeEngine info() throws DEException {
         List<CoreDeEngine> deEngines = deEngineMapper.selectList(null);
@@ -168,48 +155,6 @@ public class EngineManage {
     }
 
     public void initLocalDataSource() {
-        QueryWrapper<CoreDatasource> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id", 985188400292302848L);
-        queryWrapper.ne("create_time", 1715053684176L);
-        // 版本检查
-        QueryWrapper<DeTemplateVersion> queryVersionWrapper = new QueryWrapper<>();
-        queryVersionWrapper.eq("version", "985188400292302848");
-        if (!datasourceMapper.exists(queryWrapper) && !deTemplateVersionMapper.exists(queryVersionWrapper) && !ModelUtils.isDesktop()) {
-            Pattern WITH_SQL_FRAGMENT = Pattern.compile("jdbc:mysql://(.*):(\\d+)/(.*)\\?(.*)");
-            Matcher matcher = WITH_SQL_FRAGMENT.matcher(env.getProperty("spring.datasource.url"));
-            if (!matcher.find()) {
-                return;
-            }
-            Map configuration = new HashMap<>();
-            configuration.put("dataBase", matcher.group(3));
-            configuration.put("username", env.getProperty("spring.datasource.username"));
-            configuration.put("password", env.getProperty("spring.datasource.password"));
-            configuration.put("host", matcher.group(1));
-            configuration.put("port", Integer.valueOf(matcher.group(2)));
-            configuration.put("extraParams", "");
-
-            CoreDatasource initDatasource = new CoreDatasource();
-            initDatasource.setId(985188400292302848L);
-            initDatasource.setName("Demo");
-            initDatasource.setType("mysql");
-            initDatasource.setPid(0L);
-            initDatasource.setConfiguration(JsonUtil.toJSONString(configuration).toString());
-            initDatasource.setCreateTime(System.currentTimeMillis());
-            initDatasource.setUpdateTime(System.currentTimeMillis());
-            initDatasource.setCreateBy("1");
-            initDatasource.setUpdateBy(1L);
-            initDatasource.setStatus("success");
-            initDatasource.setTaskStatus("WaitingForExecution");
-            datasourceMapper.deleteById(985188400292302848L);
-            datasourceMapper.insert(initDatasource);
-
-            DeTemplateVersion version = new DeTemplateVersion();
-            version.setVersion("985188400292302848");
-            version.setScript("Demo");
-            version.setInstalledOn(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES));
-            version.setSuccess(true);
-            deTemplateVersionMapper.insert(version);
-        }
-
+        // Crest V1.1 keeps a clean initial workspace. Users add their own datasource after installation.
     }
 }

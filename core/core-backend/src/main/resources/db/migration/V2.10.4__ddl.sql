@@ -49,13 +49,6 @@ ALTER TABLE `de_template_version`
     MODIFY COLUMN `success` tinyint(1) NOT NULL COMMENT '执行状态',
     COMMENT = 'dataease模板配置版本记录表';
 
-ALTER TABLE `demo_tea_material`
-    COMMENT = '连锁茶饮销售看板demo数据';
-
-ALTER TABLE `demo_tea_order`
-    COMMENT = '连锁茶饮销售看板demo数据';
-
-
 ALTER TABLE `visualization_report_filter`
     COMMENT = '定时报告过自定义过滤组件信息';
 
