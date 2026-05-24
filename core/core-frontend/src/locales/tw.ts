@@ -286,6 +286,7 @@ export default {
     no_data_source: '暫無資料來源',
     replace_data: '替換資料',
     edit_data: '編輯資料',
+    edit_data_back: '返回',
     append_data: '追加資料',
     add_row: '新增列',
     delete_row: '刪除列',

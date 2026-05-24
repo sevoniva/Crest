@@ -287,6 +287,7 @@ export default {
     no_data_source: '暂无数据源',
     replace_data: '替换数据',
     edit_data: '编辑数据',
+    edit_data_back: '返回',
     append_data: '追加数据',
     add_row: '新增行',
     delete_row: '删除行',

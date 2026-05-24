@@ -25,6 +25,7 @@ import icon_close_filled from '@/assets/svg/icon_close_filled.svg'
 import icon_replace_outlined from '@/assets/svg/icon_replace_outlined.svg'
 import iconMaybe_outlined from '@/assets/svg/icon-maybe_outlined.svg'
 import icon_refresh_outlined from '@/assets/svg/icon_refresh_outlined.svg'
+import icon_left_outlined from '@/assets/svg/icon_left_outlined.svg'
 import { computed, h, unref, reactive, ref, shallowRef, nextTick, watch, onMounted } from 'vue'
 import { dsTypes } from '@/views/visualized/data/datasource/form/option'
 import type { TabPaneName, ElMessageBoxOptions } from 'element-plus-secondary'
@@ -1595,7 +1596,7 @@ const getMenuList = (val: boolean) => {
               <template v-if="nodeInfo.type === 'Excel'">
                 <el-button
                   v-if="nodeInfo.weight >= 7"
-                  secondary
+                  type="primary"
                   @click="openExcelEditor"
                   class="edit-excel-data"
                 >
@@ -2276,7 +2277,10 @@ const getMenuList = (val: boolean) => {
           />
           <div class="excel-edit-footer-actions">
             <el-button secondary @click="() => closeExcelEditor()">
-              {{ t('common.cancel') }}
+              <template #icon>
+                <Icon name="icon_left_outlined"><icon_left_outlined class="svg-icon" /></Icon>
+              </template>
+              {{ t('data_source.edit_data_back') }}
             </el-button>
             <el-button
               type="primary"

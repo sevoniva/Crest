@@ -297,6 +297,7 @@ export default {
     no_data_source: 'No Datasource',
     replace_data: 'Replace data',
     edit_data: 'Edit data',
+    edit_data_back: 'Back',
     append_data: 'Append data',
     add_row: 'Add row',
     delete_row: 'Delete row',
