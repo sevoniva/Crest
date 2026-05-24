@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResultMessage exceptionHandler(Exception e) {
         String message = StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName());
-        LogUtil.info(message);
+        LogUtil.error(message, e);
         return new ResultMessage(ResultCode.SYSTEM_INNER_ERROR.code(), message);
     }
 

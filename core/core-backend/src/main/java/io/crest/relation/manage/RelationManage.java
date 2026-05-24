@@ -367,7 +367,7 @@ public class RelationManage implements RelationApi {
         if (field == null) {
             return;
         }
-        builder.addNode(tableFieldNodeId(table, field), tableFieldResourceId(table, field), safeOriginName(field), TYPE_TABLE_FIELD, field.getType(), field.getDescription(), null, field.getLastSyncTime(), 2);
+        builder.addNode(tableFieldNodeId(table, field), tableFieldResourceId(table, field), tableFieldLabel(field), TYPE_TABLE_FIELD, field.getType(), tableFieldDescription(field), null, field.getLastSyncTime(), 2);
     }
 
     private void addDatasetFieldNode(GraphBuilder builder, RelationContext context, CoreDatasetTableField field) {
@@ -456,6 +456,24 @@ public class RelationManage implements RelationApi {
 
     private String safeOriginName(CoreDatasetTableField field) {
         return StringUtils.defaultIfBlank(field.getOriginName(), StringUtils.defaultIfBlank(field.getName(), "字段"));
+    }
+
+    private String tableFieldLabel(CoreDatasetTableField field) {
+        return StringUtils.defaultIfBlank(StringUtils.trimToNull(field.getName()), safeOriginName(field));
+    }
+
+    private String tableFieldDescription(CoreDatasetTableField field) {
+        if (field == null) {
+            return null;
+        }
+        List<String> parts = new ArrayList<>();
+        if (StringUtils.isNotBlank(field.getDescription())) {
+            parts.add(field.getDescription());
+        }
+        if (StringUtils.isNotBlank(field.getOriginName()) && !Strings.CS.equals(field.getOriginName(), field.getName())) {
+            parts.add("源字段：" + field.getOriginName());
+        }
+        return parts.isEmpty() ? null : String.join("\n", parts);
     }
 
     private String safeDatasetFieldLabel(CoreDatasetTableField field) {

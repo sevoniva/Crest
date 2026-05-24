@@ -122,7 +122,7 @@ public class TokenFilter implements Filter {
             ResponseEntity<ResultMessage> entity = new ResponseEntity<>(resultMessage, HttpStatus.UNAUTHORIZED);
             res.addHeader(headName, URLEncoder.encode(message, StandardCharsets.UTF_8));
             sendResponseEntity(res, entity);
-            LogUtil.info(message + ": " + requestURI);
+            LogUtil.debug(message + ": " + requestURI);
         } finally {
             UserUtils.removeUser();
         }

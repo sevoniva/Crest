@@ -415,6 +415,9 @@ public class DatasetGroupManage {
         }
         DatasetGroupInfoDTO dto = new DatasetGroupInfoDTO();
         BeanUtils.copyBean(dto, coreDatasetGroup);
+        if (dto.getIsCross() == null) {
+            dto.setIsCross(false);
+        }
         // get creator
         String userName = coreUserManage.getUserName(Long.valueOf(dto.getCreateBy()));
         if (StringUtils.isNotBlank(userName)) {
