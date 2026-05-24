@@ -41,9 +41,9 @@ htmlStream.pipe(parserStream).on('finish', () => {
         } else if (ele.nodeName === 'SCRIPT') {
           url = ele.src
         }
-        if (url.includes('0.0.0-dataease')) {
+        if (url.includes('0.0.0-crest')) {
           prefix = new URL(url).origin
-          const index = url.indexOf(\`/js/div_import_0.0.0-dataease\`)
+          const index = url.indexOf(\`/js/div_import_0.0.0-crest\`)
           if (index > 0) {
             prefix = url.substring(0, index)
           }
@@ -77,6 +77,6 @@ htmlStream.pipe(parserStream).on('finish', () => {
   })
   document.documentElement.insertBefore(head, document.querySelector('body'))`
 
-  fs.writeFile(`../dist/js/div_import_0.0.0-dataease.js`, templateJs, err => {
+  fs.writeFile(`../dist/js/div_import_0.0.0-crest.js`, templateJs, err => {
   })
 })

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="io.dataease.visualization.dao.ext.mapper.ExtDataVisualizationMapper">
+<mapper namespace="io.crest.visualization.dao.ext.mapper.ExtDataVisualizationMapper">
     <insert id="viewCopyWithDv">
         INSERT INTO
         <choose>
@@ -154,12 +154,12 @@
         from data_visualization_info dvInfo
         where dvInfo.id = #{sourceDvId}
     </insert>
-    <select id="findViewInfoByCopyId" resultType="io.dataease.chart.dao.auto.entity.CoreChartView">
+    <select id="findViewInfoByCopyId" resultType="io.crest.chart.dao.auto.entity.CoreChartView">
         select id, copy_from
         from core_chart_view
         where copy_id = #{copyId}
     </select>
-    <select id="findDvInfo" resultType="io.dataease.api.visualization.vo.DataVisualizationVO">
+    <select id="findDvInfo" resultType="io.crest.api.visualization.vo.DataVisualizationVO">
         SELECT `id`,
                `name`,
                `pid`,
@@ -202,7 +202,7 @@
           </if>
     </select>
 
-    <select id="findRecent" resultType="io.dataease.visualization.dao.ext.po.VisualizationResourcePO">
+    <select id="findRecent" resultType="io.crest.visualization.dao.ext.po.VisualizationResourcePO">
         SELECT dvResource.id,
                dvResource.resource_id,
                dvResource.name,
@@ -430,14 +430,14 @@
                             ON visualization_linkage_field.linkage_id = pvlf_copy.s_id
     </insert>
 
-    <resultMap  id="ViewDetailsMap" type="io.dataease.api.visualization.dto.VisualizationViewTableDTO">
+    <resultMap  id="ViewDetailsMap" type="io.crest.api.visualization.dto.VisualizationViewTableDTO">
         <result column="id" property="id"/>
         <result column="title" property="title"/>
         <result column="scene_id" property="sceneId"/>
         <result column="table_id" property="tableId"/>
         <result column="type" property="type"/>
         <result column="render" property="render"/>
-        <collection property="tableFields" ofType="io.dataease.extensions.datasource.dto.DatasetTableFieldDTO">
+        <collection property="tableFields" ofType="io.crest.extensions.datasource.dto.DatasetTableFieldDTO">
             <result column="field_id" jdbcType="VARCHAR" property="id"/>
             <result column="origin_name" jdbcType="VARCHAR" property="originName"/>
             <result column="field_name" jdbcType="VARCHAR" property="name"/>
@@ -462,7 +462,7 @@
           AND ccv.id IS NOT NULL and ccv.`type` != 'VQuery'
     </select>
 
-    <select id="queryReportFilter" resultType="io.dataease.api.visualization.vo.VisualizationReportFilterVO">
+    <select id="queryReportFilter" resultType="io.crest.api.visualization.vo.VisualizationReportFilterVO">
         SELECT
             `id`, `report_id`, `resource_id`, `dv_type`, `component_id`, `filter_id`, `filter_info`, `filter_version`, `create_time`, `create_user`
         FROM
@@ -519,7 +519,7 @@
             </if>
     </delete>
 
-     <select id="queryInnerUserInfo" resultType="io.dataease.api.permissions.user.vo.UserFormVO">
+     <select id="queryInnerUserInfo" resultType="io.crest.api.permissions.user.vo.UserFormVO">
             select id,account,name from per_user where id =  #{id}
      </select>
 

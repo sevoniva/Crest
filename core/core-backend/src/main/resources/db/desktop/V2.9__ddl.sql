@@ -44,7 +44,7 @@ CREATE TABLE `core_copilot_config`  (
     PRIMARY KEY (`id`)
 );
 
-INSERT INTO `core_copilot_config` VALUES (1, 'https://copilot.dataease.cn', 'xlab', 'Q2Fsb25nQDIwMTU=');
+INSERT INTO `core_copilot_config` VALUES (1, 'https://copilot.crest.cn', 'xlab', 'Q2Fsb25nQDIwMTU=');
 
 UPDATE `core_sys_setting` SET `pkey` = 'ai.baseUrl', `pval` = '', `type` = 'text', `sort` = 0 WHERE `id` = 3;
 

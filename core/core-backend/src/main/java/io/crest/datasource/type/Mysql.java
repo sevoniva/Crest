@@ -1,0 +1,58 @@
+package io.crest.datasource.type;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.crest.exception.DEException;
+import io.crest.extensions.datasource.vo.DatasourceConfiguration;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+
+import java.net.URLDecoder;
+import java.util.Arrays;
+import java.util.List;
+
+@Data
+@EqualsAndHashCode(callSuper = false)
+@Component("mysql")
+@SuppressWarnings("deprecation")
+public class Mysql extends DatasourceConfiguration {
+    private String driver = "com.mysql.cj.jdbc.Driver";
+    private String extraParams = "characterEncoding=UTF-8&connectTimeout=5000&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull";
+    @JsonIgnore
+    private List<String> illegalParameters = Arrays.asList("maxAllowedPacket", "autoDeserialize", "queryInterceptors", "statementInterceptors", "detectCustomCollations", "allowloadlocalinfile", "allowUrlInLocalInfile", "allowLoadLocalInfileInPath", "allowMultiQueries");
+    private List<String> showTableSqls = Arrays.asList("show tables");
+
+    public String getJdbc() {
+        if (StringUtils.isNoneEmpty(getUrlType()) && !getUrlType().equalsIgnoreCase("hostName")) {
+            for (String illegalParameter : illegalParameters) {
+                if (URLDecoder.decode(getJdbcUrl()).toLowerCase().contains(illegalParameter.toLowerCase()) || URLDecoder.decode(getExtraParams()).contains(illegalParameter.toLowerCase())) {
+                    DEException.throwException("Illegal parameter: " + illegalParameter);
+                }
+            }
+            if (!getJdbcUrl().startsWith("jdbc:mysql")) {
+                DEException.throwException("Illegal jdbcUrl: " + getJdbcUrl());
+            }
+            return getJdbcUrl();
+        }
+        String jdbcUrl = "";
+        if (StringUtils.isEmpty(extraParams.trim())) {
+            jdbcUrl = "jdbc:mysql://HOSTNAME:PORT/DATABASE"
+                    .replace("HOSTNAME", getLHost().trim())
+                    .replace("PORT", getLPort().toString().trim())
+                    .replace("DATABASE", getDataBase().trim());
+        } else {
+            jdbcUrl = "jdbc:mysql://HOSTNAME:PORT/DATABASE?EXTRA_PARAMS"
+                    .replace("HOSTNAME", getLHost().trim())
+                    .replace("PORT", getLPort().toString().trim())
+                    .replace("DATABASE", getDataBase().trim())
+                    .replace("EXTRA_PARAMS", getExtraParams().trim());
+        }
+        for (String illegalParameter : illegalParameters) {
+            if (URLDecoder.decode(jdbcUrl).toLowerCase().contains(illegalParameter.toLowerCase()) || URLDecoder.decode(jdbcUrl).contains(illegalParameter.toLowerCase())) {
+                DEException.throwException("Illegal parameter: " + illegalParameter);
+            }
+        }
+        return jdbcUrl;
+    }
+}

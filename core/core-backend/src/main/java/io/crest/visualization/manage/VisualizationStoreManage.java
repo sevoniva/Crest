@@ -1,0 +1,120 @@
+package io.crest.visualization.manage;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.crest.api.visualization.request.VisualizationStoreRequest;
+import io.crest.api.visualization.request.VisualizationWorkbranchQueryRequest;
+import io.crest.api.visualization.vo.VisualizationStoreVO;
+import io.crest.constant.BusiResourceEnum;
+import io.crest.exception.DEException;
+import io.crest.utils.AuthUtils;
+import io.crest.utils.CommonBeanFactory;
+import io.crest.utils.CommunityUtils;
+import io.crest.utils.IDUtils;
+import io.crest.visualization.dao.auto.entity.CoreStore;
+import io.crest.visualization.dao.auto.mapper.CoreStoreMapper;
+import io.crest.visualization.dao.ext.mapper.CoreStoreExtMapper;
+import io.crest.visualization.dao.ext.po.StorePO;
+import jakarta.annotation.Resource;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+@Component
+public class VisualizationStoreManage {
+
+    @Resource
+    private CoreStoreMapper coreStoreMapper;
+
+    @Resource
+    private CoreStoreExtMapper coreStoreExtMapper;
+
+    public void execute(VisualizationStoreRequest request) {
+        Long resourceId = request.getId();
+        Long uid = AuthUtils.getUser().getUserId();
+        if (favorited(resourceId)) {
+            QueryWrapper<CoreStore> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("resource_id", resourceId);
+            queryWrapper.eq("uid", uid);
+            coreStoreMapper.delete(queryWrapper);
+            return;
+        }
+        String type = request.getType();
+        BusiResourceEnum busiResourceEnum = busiResourceType(type);
+        CoreStore coreStore = new CoreStore();
+        coreStore.setId(IDUtils.snowID());
+        coreStore.setTime(System.currentTimeMillis());
+        coreStore.setUid(uid);
+        coreStore.setResourceId(resourceId);
+        coreStore.setResourceType(busiResourceEnum.getFlag());
+        coreStoreMapper.insert(coreStore);
+    }
+
+    public Boolean favorited(Long resourceId) {
+        QueryWrapper<CoreStore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("resource_id", resourceId);
+        queryWrapper.eq("uid", AuthUtils.getUser().getUserId());
+        return coreStoreMapper.exists(queryWrapper);
+    }
+    public IPage<VisualizationStoreVO> query(int pageNum, int pageSize, VisualizationWorkbranchQueryRequest request) {
+        IPage<StorePO> storePOIPage = proxy().queryStorePage(pageNum, pageSize, request);
+        if (ObjectUtils.isEmpty(storePOIPage)) return null;
+        List<VisualizationStoreVO> vos = proxy().formatResult(storePOIPage.getRecords());
+        IPage<VisualizationStoreVO> ipage = new Page<>();
+        ipage.setCurrent(storePOIPage.getCurrent());
+        ipage.setPages(storePOIPage.getPages());
+        ipage.setSize(storePOIPage.getSize());
+        ipage.setTotal(storePOIPage.getTotal());
+        ipage.setRecords(vos);
+        return ipage;
+    }
+
+    public VisualizationStoreManage proxy() {
+        return CommonBeanFactory.getBean(this.getClass());
+    }
+
+    public List<VisualizationStoreVO> formatResult(List<StorePO> pos) {
+        if (CollectionUtils.isEmpty(pos)) return new ArrayList<>();
+        return pos.stream().map(po ->
+                new VisualizationStoreVO(
+                        po.getStoreId(), po.getResourceId(), po.getName(),
+                        po.getType(), String.valueOf(po.getCreator()), ObjectUtils.isEmpty(po.getEditor()) ? null : String.valueOf(po.getEditor()),
+                        po.getEditTime(), 9, po.getExtFlag(), po.getExtFlag1())).toList();
+    }
+
+    public IPage<StorePO> queryStorePage(int goPage, int pageSize, VisualizationWorkbranchQueryRequest request) {
+        Long uid = AuthUtils.getUser().getUserId();
+        QueryWrapper<Object> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("s.uid", uid);
+        queryWrapper.isNotNull("s.resource_id");
+        if (StringUtils.isNotBlank(request.getType())) {
+            BusiResourceEnum busiResourceEnum = busiResourceType(request.getType());
+            queryWrapper.eq("s.resource_type", busiResourceEnum.getFlag());
+        }
+        if (StringUtils.isNotBlank(request.getKeyword())) {
+            queryWrapper.apply("LOWER(v.name) LIKE LOWER(CONCAT('%', {0}, '%'))", request.getKeyword());
+        }
+        String info = CommunityUtils.getInfo();
+        if (StringUtils.isNotBlank(info)) {
+            queryWrapper.notExists(String.format(info, "s.resource_id"));
+        }
+        queryWrapper.orderBy(true, request.isAsc(), "v.update_time");
+        Page<StorePO> page = new Page<>(goPage, pageSize);
+        return coreStoreExtMapper.query(page, queryWrapper);
+    }
+
+    private BusiResourceEnum busiResourceType(String type) {
+        try {
+            return BusiResourceEnum.valueOf(type.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            DEException.throwException("type is invalid");
+            return null;
+        }
+    }
+}

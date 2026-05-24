@@ -31,24 +31,22 @@ management:
   health:
     redis:
       enabled: false
-mybatis:
-  configuration:
-    map-underscore-to-camel-case: true
-logging:
-  file:
-    path: /opt/dataease2.0/logs/dataease
-# sql日志生产环境注释掉
-#mybatis-plus:
-#  configuration:
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-
-dataease:
+crest:
   version: '@project.version@'
   login_timeout: 2880
   internal-lite:
     enabled: true
   origin-list: http://localhost:8080
-
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+logging:
+  file:
+    path: /opt/crest/logs/crest
+# sql日志生产环境注释掉
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 # springdoc-openapi项目配置
 springdoc:
   swagger-ui:

@@ -2,8 +2,8 @@ ALTER TABLE `core_export_task`
     ADD COLUMN `msg` LONGTEXT NULL COMMENT '错误信息' AFTER `params`;
 
 
-DROP TABLE IF EXISTS `xpack_plugin`;
-CREATE TABLE `xpack_plugin`
+DROP TABLE IF EXISTS `core_plugin`;
+CREATE TABLE `core_plugin`
 (
     `id`              bigint       NOT NULL COMMENT 'ID',
     `name`            varchar(255) NOT NULL COMMENT '插件名称',

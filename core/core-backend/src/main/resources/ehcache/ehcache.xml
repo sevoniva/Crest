@@ -8,7 +8,7 @@
         <jsr107:defaults enable-management="true" enable-statistics="true"/>
     </service>
 
-    <persistence directory="${dataease.path.ehcache}" />
+    <persistence directory="${crest.path.ehcache}" />
 
     <cache-template name="common-cache">
         <expiry>
@@ -23,7 +23,7 @@
 
     <cache alias="de_v2_rsa" uses-template="common-cache">
         <key-type>java.lang.String</key-type>
-        <value-type>io.dataease.rsa.dao.entity.CoreRsa</value-type>
+        <value-type>io.crest.rsa.dao.entity.CoreRsa</value-type>
     </cache>
 
     <!--以下属于权限系统缓存-->
@@ -103,11 +103,11 @@
         <key-type>java.lang.String</key-type>
         <value-type>java.lang.Integer</value-type>
         <expiry>
-            <ttl unit="minutes">${dataease.login_timeout}</ttl>
+            <ttl unit="minutes">${crest.login_timeout}</ttl>
         </expiry>
         <listeners>
             <listener>
-                <class>io.dataease.listener.MyCacheListener</class>
+                <class>io.crest.listener.MyCacheListener</class>
                 <event-firing-mode>ASYNCHRONOUS</event-firing-mode>
                 <event-ordering-mode>ORDERED</event-ordering-mode>
                 <events-to-fire-on>CREATED</events-to-fire-on>

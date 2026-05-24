@@ -371,7 +371,7 @@ const filterStats = computed(() => {
 const getDefaultResource = (items: RelationResource[]) => {
   if (!items.length) return undefined
   if (queryType.value === 'datasource') {
-    const builtin = items.find(item => ['demo', 'dataease', '内置'].some(keyword =>
+    const builtin = items.find(item => ['demo', 'crest', '内置'].some(keyword =>
       item.name?.toLowerCase().includes(keyword)
     ))
     if (builtin) {

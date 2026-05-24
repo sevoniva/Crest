@@ -4013,10 +4013,10 @@ CREATE TABLE `core_store`
 );
 
 -- ----------------------------
--- Table structure for xpack_share
+-- Table structure for core_share
 -- ----------------------------
-DROP TABLE IF EXISTS `xpack_share`;
-CREATE TABLE `xpack_share`
+DROP TABLE IF EXISTS `core_share`;
+CREATE TABLE `core_share`
 (
     `id`          bigint      NOT NULL COMMENT 'ID',
     `creator`     bigint      NOT NULL COMMENT '创建人',
@@ -4031,10 +4031,10 @@ CREATE TABLE `xpack_share`
 );
 
 -- ----------------------------
--- Table structure for xpack_setting_authentication
+-- Table structure for core_setting_authentication
 -- ----------------------------
-DROP TABLE IF EXISTS `xpack_setting_authentication`;
-CREATE TABLE `xpack_setting_authentication`
+DROP TABLE IF EXISTS `core_setting_authentication`;
+CREATE TABLE `core_setting_authentication`
 (
     `id`             bigint       NOT NULL COMMENT '主键',
     `name`           varchar(100) NOT NULL COMMENT '名称',

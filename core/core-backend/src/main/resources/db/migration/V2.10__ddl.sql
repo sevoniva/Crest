@@ -13,8 +13,8 @@ INSERT INTO `core_menu`
 VALUES (64, 15, 2, 'font', 'system/font', 10, 'icon_font', '/font', 0, 1, 0);
 
 
-DROP TABLE IF EXISTS `xpack_threshold_info`;
-CREATE TABLE `xpack_threshold_info`
+DROP TABLE IF EXISTS `core_threshold_info`;
+CREATE TABLE `core_threshold_info`
 (
     `id`               bigint       NOT NULL,
     `name`             varchar(255) NOT NULL COMMENT '告警名称',
@@ -44,8 +44,8 @@ CREATE TABLE `xpack_threshold_info`
     PRIMARY KEY (`id`)
 );
 
-DROP TABLE IF EXISTS `xpack_threshold_instance`;
-CREATE TABLE `xpack_threshold_instance`
+DROP TABLE IF EXISTS `core_threshold_instance`;
+CREATE TABLE `core_threshold_instance`
 (
     `id`        bigint     NOT NULL,
     `task_id`   bigint     NOT NULL COMMENT '阈值信息ID',

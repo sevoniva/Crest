@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>core</artifactId>
-        <groupId>io.dataease</groupId>
+        <groupId>io.crest</groupId>
         <version>2.10.22</version>
     </parent>
 
@@ -24,17 +24,17 @@
             <version>${guava.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.dataease</groupId>
+            <groupId>io.crest</groupId>
             <artifactId>api-base</artifactId>
             <version>2.10.22</version>
         </dependency>
         <dependency>
-            <groupId>io.dataease</groupId>
+            <groupId>io.crest</groupId>
             <artifactId>api-permissions</artifactId>
             <version>2.10.22</version>
         </dependency>
         <dependency>
-            <groupId>io.dataease</groupId>
+            <groupId>io.crest</groupId>
             <artifactId>api-sync</artifactId>
             <version>2.10.22</version>
         </dependency>

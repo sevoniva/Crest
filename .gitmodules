@@ -1,3 +1,0 @@
-[submodule "de-xpack"]
-	path = de-xpack
-	url = git@github.com:dataease/de-xpack.git

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="io.dataease.chart.dao.ext.mapper.ExtChartViewMapper">
-  <select id="queryChart" resultType="io.dataease.chart.dao.ext.entity.ChartBasePO">
+<mapper namespace="io.crest.chart.dao.ext.mapper.ExtChartViewMapper">
+  <select id="queryChart" resultType="io.crest.chart.dao.ext.entity.ChartBasePO">
         select
                             ccv.id as chart_id,
                             ccv.title as chart_name,
@@ -35,7 +35,7 @@
     </select>
 
 
-  <select id="selectListCustom" resultType="io.dataease.chart.dao.auto.entity.CoreChartView">
+  <select id="selectListCustom" resultType="io.crest.chart.dao.auto.entity.CoreChartView">
         select * from
     <choose>
             <when test="resourceTable == 'snapshot'">

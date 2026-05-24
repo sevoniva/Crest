@@ -45,11 +45,11 @@ core/core-frontend/src/assets/fsSvg.html
 .flattened-pom.xml
 /core/frontend/
 /core/mobile/
-/sdk/dataease-plugin-common/
-/sdk/dataease-plugin-datasource/
-/sdk/dataease-plugin-filter/
-/sdk/dataease-plugin-interface/
-/sdk/dataease-plugin-view/
+/sdk/crest-plugin-common/
+/sdk/crest-plugin-datasource/
+/sdk/crest-plugin-filter/
+/sdk/crest-plugin-interface/
+/sdk/crest-plugin-view/
 /extensions/
 .vite/
 .local/

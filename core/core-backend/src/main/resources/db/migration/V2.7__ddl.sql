@@ -15,12 +15,12 @@ INSERT INTO `core_sys_startup_job`
 VALUES ('chartFilterMerge', 'chartFilterMerge', 'ready');
 COMMIT;
 
-TRUNCATE TABLE `xpack_setting_authentication`;
-ALTER TABLE `xpack_setting_authentication`
+TRUNCATE TABLE `core_setting_authentication`;
+ALTER TABLE `core_setting_authentication`
     ADD COLUMN `plugin_json` longtext NULL COMMENT '插件配置' AFTER `relational_ids`;
-ALTER TABLE `xpack_setting_authentication`
+ALTER TABLE `core_setting_authentication`
     ADD COLUMN `synced` tinyint(1) NOT NULL DEFAULT 0 COMMENT '已同步' AFTER `plugin_json`;
-ALTER TABLE `xpack_setting_authentication`
+ALTER TABLE `core_setting_authentication`
     ADD COLUMN `valid` tinyint(1) NOT NULL DEFAULT 0 COMMENT '有效' AFTER `synced`;
 
 
@@ -42,8 +42,8 @@ CREATE TABLE `core_export_task`
     PRIMARY KEY (`id`)
 ) COMMENT='导出任务表';
 
-DROP TABLE IF EXISTS `xpack_platform_token`;
-CREATE TABLE `xpack_platform_token`
+DROP TABLE IF EXISTS `core_platform_token`;
+CREATE TABLE `core_platform_token`
 (
     `id`          int          NOT NULL,
     `token`       varchar(255) NOT NULL,
@@ -54,4 +54,4 @@ CREATE TABLE `xpack_platform_token`
 
 
 
-UPDATE `QRTZ_JOB_DETAILS` SET `JOB_CLASS_NAME` = 'io.dataease.job.schedule.CheckDsStatusJob' WHERE (`SCHED_NAME` = 'deSyncJob') and (`JOB_NAME` = 'Datasource') and (`JOB_GROUP` = 'check_status');
+UPDATE `QRTZ_JOB_DETAILS` SET `JOB_CLASS_NAME` = 'io.crest.job.schedule.CheckDsStatusJob' WHERE (`SCHED_NAME` = 'deSyncJob') and (`JOB_NAME` = 'Datasource') and (`JOB_GROUP` = 'check_status');

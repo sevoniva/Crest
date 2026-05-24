@@ -62,24 +62,24 @@ ALTER TABLE `visualization_report_filter`
 ALTER TABLE `visualization_subject`
     MODIFY COLUMN `id` varchar(50) NOT NULL COMMENT '主键';
 
-ALTER TABLE `xpack_platform_token`
+ALTER TABLE `core_platform_token`
     MODIFY COLUMN `id` int(0) NOT NULL COMMENT '主键',
     MODIFY COLUMN `token` varchar(255) NOT NULL COMMENT '认证token',
     MODIFY COLUMN `create_time` bigint(0) NOT NULL COMMENT '创建时间',
     MODIFY COLUMN `exp_time` bigint(0) NOT NULL COMMENT '过期时间',
     COMMENT = '认证token信息表';
 
-ALTER TABLE `xpack_setting_authentication`
+ALTER TABLE `core_setting_authentication`
     COMMENT = '认证设置';
 
-ALTER TABLE `xpack_share`
+ALTER TABLE `core_share`
     COMMENT = '公共链接';
 
-ALTER TABLE `xpack_threshold_info`
+ALTER TABLE `core_threshold_info`
     MODIFY COLUMN `id` bigint(0) NOT NULL COMMENT '主键',
     COMMENT = '告警信息表';
 
-ALTER TABLE `xpack_threshold_instance`
+ALTER TABLE `core_threshold_instance`
     MODIFY COLUMN `id` bigint(0) NOT NULL COMMENT '主键',
     COMMENT = '告警实例表';
 
@@ -104,8 +104,8 @@ ALTER TABLE `core_export_task`
 ALTER TABLE `core_ds_finish_page`
     COMMENT = '是否显示完成页面记录表';
 
-DROP TABLE IF EXISTS `xpack_webhook`;
-CREATE TABLE `xpack_webhook`
+DROP TABLE IF EXISTS `core_webhook`;
+CREATE TABLE `core_webhook`
 (
     `id`           bigint       NOT NULL COMMENT 'ID',
     `name`         varchar(255) NOT NULL COMMENT '名称',

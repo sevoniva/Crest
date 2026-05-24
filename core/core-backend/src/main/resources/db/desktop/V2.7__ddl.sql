@@ -33,4 +33,4 @@ CREATE TABLE `core_export_task`
     PRIMARY KEY (`id`)
 ) COMMENT='导出任务表';
 
-UPDATE `QRTZ_JOB_DETAILS` SET `JOB_CLASS_NAME` = 'io.dataease.job.schedule.CheckDsStatusJob' WHERE (`SCHED_NAME` = 'deSyncJob') and (`JOB_NAME` = 'Datasource') and (`JOB_GROUP` = 'check_status');
+UPDATE `QRTZ_JOB_DETAILS` SET `JOB_CLASS_NAME` = 'io.crest.job.schedule.CheckDsStatusJob' WHERE (`SCHED_NAME` = 'deSyncJob') and (`JOB_NAME` = 'Datasource') and (`JOB_GROUP` = 'check_status');

@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>sdk</artifactId>
-        <groupId>io.dataease</groupId>
+        <groupId>io.crest</groupId>
         <version>2.10.22</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -21,19 +21,19 @@
     <dependencies>
 
         <dependency>
-            <groupId>io.dataease</groupId>
+            <groupId>io.crest</groupId>
             <artifactId>common</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.dataease</groupId>
+            <groupId>io.crest</groupId>
             <artifactId>extensions-datasource</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>io.dataease</groupId>
+            <groupId>io.crest</groupId>
             <artifactId>extensions-view</artifactId>
             <version>${project.version}</version>
         </dependency>

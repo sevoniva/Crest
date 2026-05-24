@@ -1,0 +1,309 @@
+#!/bin/bash
+action=$1
+target=$2
+
+DE_BASE=/opt
+DE_RUNNING_BASE=${DE_BASE}/crest
+compose_files="-f docker-compose.yml"
+compose_cmd="docker-compose"
+current_version=""
+
+set -a
+source ${DE_RUNNING_BASE}/.env
+set +a
+export COMPOSE_HTTP_TIMEOUT=180
+DE_INTERNAL_LITE=${DE_INTERNAL_LITE:-true}
+
+docker-compose version >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+   docker compose version >/dev/null 2>&1
+   if [ $? -ne 0 ]; then
+      compose_cmd="docker compose"
+   fi
+fi
+
+if [[ ! ${DE_EXTERNAL_MYSQL} ]] || [ "${DE_EXTERNAL_MYSQL}" = "false" ]; then
+  compose_files="${compose_files} -f docker-compose-mysql.yml"
+fi
+
+function usage() {
+   echo "CREST 控制脚本"
+   echo
+   echo "Usage: "
+   echo "  ./crestctl [COMMAND] [ARGS...]"
+   echo "  ./crestctl --help"
+   echo
+   echo "Commands: "
+   echo "  status                查看 CREST 服务运行状态"
+   echo "  start                 启动 CREST 服务"
+   echo "  stop                  停止 CREST 服务"
+   echo "  restart               重启 CREST 服务"
+   echo "  reload                重新加载 CREST 服务"
+   echo "  upgrade               升级 CREST 服务"
+   echo "  backup                备份 CREST 服务"
+   echo "  restore xxx.tar.gz    还原 CREST 服务"
+   echo "  clear-images          清理 CREST 旧版本的相关镜像"
+   echo "  clear-logs            清理 CREST 历史日志"
+   echo "  version               查看 CREST 版本"
+}
+function _generate_compose_file_args() {
+   if [[ "$DE_INTERNAL_LITE" == "true" ]];then
+      return
+   fi
+   if [[ $DE_INSTALL_MODE != "community" ]];then
+      if [[ -f $DE_RUNNING_BASE/docker-compose-task.yml ]] && [[ "$DE_EXTERNAL_SYNC_TASK" != "true" ]];then
+         compose_files="${compose_files} -f docker-compose-task.yml"
+      fi
+
+      if [[ -f $DE_RUNNING_BASE/docker-compose-playwright.yml ]] && [[ "$DE_EXTERNAL_PLAYWRIGHT" != "true" ]];then
+         compose_files="${compose_files} -f docker-compose-playwright.yml"
+      fi
+   fi
+}
+function _healthcheck() {
+   echo
+   container_name=$(grep "container_name" $DE_RUNNING_BASE/docker-compose.yml | awk -F': ' '{print $2}')
+   sleep 1
+   if [ -z $(docker ps --filter "name=$container_name" -q) ];then
+      echo "未找到容器 $container_name。"
+      exit 1
+   fi
+
+   for b in {1..90}
+   do
+      sleep 1
+      read status healthy<<<$(docker inspect $container_name --format '{{.State.Status}} {{.State.Health.Status}}')
+      if [[ "$healthy" == "starting" ]];then
+         printf "\rCrest 服务状态 : 正在启动 ... %3ds" $b
+      elif [[ "$status" == "running" ]] && [[ "$healthy" == "healthy" ]];then
+         printf "\rCrest 服务状态 : 正常运行          "
+         echo
+         return;
+      else
+         echo
+         echo -e "Crest 服务状态 : \033[31m无法访问\033[0m"
+         exit 1
+      fi
+   done
+   echo
+   echo "【警告】服务在等待时间内未完全启动！请稍后使用 crestctl status 检查服务运行状况。"
+   echo
+}
+function _get_current_version() {
+   de_current_version=$(grep "^    image:.*crest" ${DE_RUNNING_BASE}/docker-compose.yml | awk -F'image: ' '{print $2}' | sed 's/^.*://')
+   if test -z $de_current_version; then
+      echo "获取当前版本失败，请检查当前版本是否正确"
+      exit 1
+   fi
+   current_version=$de_current_version
+}
+function status() {
+   echo
+   echo "Crest 容器运行状态"
+   _generate_compose_file_args
+   cd ${DE_RUNNING_BASE}
+   ${compose_cmd} ${compose_files} ps
+
+   echo
+   docker_root_dir=$(docker info | grep "Docker Root Dir"  | awk -F': ' '{print $2}')
+   echo "Docker 目录及文件大小 : "
+   du -sh $docker_root_dir
+   echo
+   echo "Docker 目录所在磁盘使用情况 : "
+   df -H $docker_root_dir
+
+   echo
+   echo "日志文件大小 : "
+   du -Sh ${DE_RUNNING_BASE}/logs/
+
+   echo
+   echo "Crest 运行目录及文件大小 : "
+   du -sh ${DE_BASE}
+   echo
+   echo "Crest 运行目录使用情况 : "
+   df -H ${DE_BASE}
+
+   _healthcheck
+}
+function start() {
+   echo
+   _generate_compose_file_args
+   cd ${DE_RUNNING_BASE}
+   ${compose_cmd} ${compose_files} up -d
+   _healthcheck
+}
+function stop() {
+   echo
+   _generate_compose_file_args
+   cd ${DE_RUNNING_BASE}
+   ${compose_cmd} ${compose_files} down -v ${target}
+}
+function restart() {
+   stop
+   start
+}
+function reload() {
+   start
+}
+function version() {
+   echo
+   _get_current_version
+   echo "current version is $current_version"
+   echo "latest version: 请以 https://github.com/sevoniva/Crest/releases 为准"
+}
+function upgrade() {
+   echo "当前仓库不再提供自动在线升级。"
+   echo "请先从 https://github.com/sevoniva/Crest/releases 获取 Crest 发布包或镜像标签，备份数据后按 README 的升级步骤执行。"
+   exit 1
+}
+function clear_images() {
+   echo
+   for f in $DE_RUNNING_BASE/*.yml; do
+      [[ -e "$f" ]] || break
+      grep "^    image:.*:" "$f" | uniq | while read -r component_image_defined; do
+         component_ref=$(echo ${component_image_defined} | awk -F'image: ' '{print $2}')
+         component_version=${component_ref##*:}
+         component_image=${component_ref%:*}
+
+         if [[ $(docker images | grep "$component_image[[:space:]]" | grep -v " $component_version " | wc -l) == 0 ]]; then
+            echo "$component_image 不存在旧版本镜像"
+         else
+            echo "存在非当前版本镜像 : "
+            docker images | grep "$component_image[[:space:]]" | grep -v " $component_version "
+            echo "清理${component}镜像"
+            docker rmi $(docker images | grep "$component_image[[:space:]]" | grep -v " $component_version " | awk -F' ' '{print $1":"$2}')
+            echo "清理完毕"
+         fi
+      done
+   done
+
+   if [ $(docker images -f dangling=true -q | wc -l) -gt 0 ]; then
+      echo "清理虚悬镜像"
+      docker rmi $(docker images -f dangling=true -q)
+      echo "清理完毕"
+   fi
+}
+function clear_logs() {
+   echo "开始清理 Crest 历史日志"
+   rm -rf ${DE_RUNNING_BASE}/logs/crest/*.????-??-??.*.log
+   rm -rf ${DE_RUNNING_BASE}/logs/crest/sync-task/task-handler-log/*
+   echo "" > ${DE_RUNNING_BASE}/logs/crest/info.log
+   echo "" > ${DE_RUNNING_BASE}/logs/crest/error.log
+   echo "清理完毕"
+}
+function backup() {
+   # 检查当前目录是否在 Crest 安装目录或其子目录下
+   if [[ "$(pwd)" == "$DE_RUNNING_BASE" || "$(pwd)" == "$DE_RUNNING_BASE"/* ]]; then
+      echo -e "\033[31m当前目录为 Crest 安装目录，请切换到其他目录后再执行备份操作！\033[0m"
+      exit 1
+   fi
+
+   need_stop=0
+   if [[ -z $1 ]];then
+      echo "如需备份 Crest 数据，建议您先停止 Crest 服务，以保证备份数据的完整性。"
+      read -r -p "即将备份 Crest 数据，是否需要停止 Crest 服务? [Y/n] " input
+
+      case $input in
+         [yY][eE][sS]|[yY])
+            echo "Yes"
+            need_stop=1
+            ;;
+         [nN][oO]|[nN])
+            echo "No"
+            ;;
+         *)
+            echo "无效输入..."
+            exit 1
+            ;;
+      esac
+   elif [[ "$1" == "stop" ]];then
+      need_stop=1
+   fi
+
+   if [[ $need_stop == 1 ]];then
+      service crest stop
+   else
+      echo "不停服进行备份"
+   fi
+
+   backup_file_name=crest-backup-$(date +%Y%m%d)_$(date +%H%M%S).tar.gz
+   tar --exclude=logs/crest -zcf $backup_file_name -C $DE_RUNNING_BASE .
+   if [ $? -ne 0 ]; then
+      echo "备份失败"
+      exit 1
+   else
+      echo "备份成功，备份文件 : $(pwd)/$backup_file_name"
+   fi
+
+   if [[ $need_stop == 1 ]];then
+      service crest start
+   fi
+}
+function restore() {
+   if [[ -z $target ]];then
+      echo "未指定需要恢复的备份文件！"
+      exit 1
+   elif [[ -f $target ]];then
+      service crest stop
+      if [[ ! -d $DE_RUNNING_BASE ]];then
+         mkdir -p $DE_RUNNING_BASE
+      fi
+      echo "恢复备份 $target"
+      rm -rf $DE_RUNNING_BASE/data/mysql/*
+      tar -zxf $target --directory=$DE_RUNNING_BASE
+      service crest start
+   else
+      echo "未找到备份文件 $target！"
+      exit 1
+   fi
+}
+function main() {
+   case "${action}" in
+      status)
+         status
+         ;;
+      start)
+         start
+         ;;
+      stop)
+         stop
+         ;;
+      restart)
+         restart
+         ;;
+      reload)
+         reload
+         ;;
+      upgrade)
+         upgrade
+         ;;
+      backup)
+         backup $target
+         ;;
+      restore)
+         restore $target
+         ;;
+      clear-images)
+         clear_images
+         ;;
+      clear-logs)
+         clear_logs
+         ;;
+      version)
+         version
+         ;;
+      help)
+         usage
+         ;;
+      --help)
+         usage
+         ;;
+      "")
+         usage
+         ;;
+      *)
+         echo "不支持的参数，请使用 help 或 --help 参数获取帮助"
+         ;;
+   esac
+}
+main

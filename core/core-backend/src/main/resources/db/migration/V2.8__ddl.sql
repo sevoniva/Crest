@@ -2,8 +2,8 @@ ALTER TABLE `core_export_task`
     ADD COLUMN `msg` LONGTEXT NULL COMMENT '错误信息' AFTER `params`;
 
 
-DROP TABLE IF EXISTS `xpack_plugin`;
-CREATE TABLE `xpack_plugin`
+DROP TABLE IF EXISTS `core_plugin`;
+CREATE TABLE `core_plugin`
 (
     `id`              bigint       NOT NULL COMMENT 'ID',
     `name`            varchar(255) NOT NULL COMMENT '插件名称',
@@ -19,7 +19,7 @@ CREATE TABLE `xpack_plugin`
     PRIMARY KEY (`id`)
 ) COMMENT ='插件表';
 
-ALTER TABLE `xpack_share`
+ALTER TABLE `core_share`
     ADD COLUMN `ticket_require` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'ticket必须' AFTER `auto_pwd`;
 
 

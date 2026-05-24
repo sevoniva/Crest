@@ -1,0 +1,43 @@
+services:
+
+  mysql-crest:
+    image: ghcr.io/sevoniva/crest-mysql:8.4.5
+    container_name: mysql-crest
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u${DE_MYSQL_USER}", "-p${DE_MYSQL_PASSWORD}", "--protocol","tcp"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    env_file:
+      - ${DE_RUN_BASE}/conf/mysql.env
+    volumes:
+      - ${DE_RUN_BASE}/conf/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ${DE_RUN_BASE}/bin/mysql:/docker-entrypoint-initdb.d/
+      - ${DE_RUN_BASE}/data/mysql:/var/lib/mysql
+    networks:
+      - crest-network
+
+  crest:
+    image: ghcr.io/sevoniva/crest:DE_TAG
+    stop_signal: SIGTERM
+    stop_grace_period: 15s
+    container_name: crest
+    ports:
+      - ${DE_PORT}:8100
+    volumes:
+      - ${DE_RUN_BASE}/conf:/opt/apps/config
+      - ${DE_RUN_BASE}/logs:/opt/crest/logs
+      - ${DE_RUN_BASE}/data/static-resource:/opt/crest/data/static-resource
+      - ${DE_RUN_BASE}/cache:/opt/crest/cache
+      - ${DE_RUN_BASE}/data/appearance:/opt/crest/data/appearance
+      - ${DE_RUN_BASE}/data/exportData:/opt/crest/data/exportData
+      - ${DE_RUN_BASE}/data/font:/opt/crest/data/font
+      - ${DE_RUN_BASE}/data/i18n:/opt/crest/data/i18n
+    depends_on:
+      mysql-crest:
+        condition: service_healthy
+    networks:
+      - crest-network
+
+networks:
+  crest-network:

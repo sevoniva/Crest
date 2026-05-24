@@ -18,7 +18,7 @@
     },
     "types": [
       "vite/client",
-      "vite-plugin-svg-icons/client",
+      "vite-svg-loader",
       "element-plus-secondary/global",
     ],
   },

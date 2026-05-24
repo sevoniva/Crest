@@ -2,7 +2,7 @@
 
 ## Fork development notes
 
-This repository is a DataEase 2.10.22 fork with OceanBase Oracle datasource support. Before starting development, read [docs/development.md](./docs/development.md) for the repository layout, dependency sources, common build commands, Docker image notes, and workspace cleanup rules.
+This repository is Crest, a GPLv3 BI project derived from DataEase 2.10.22 with OceanBase Oracle datasource support. Before starting development, read [docs/development.md](./docs/development.md) for the repository layout, dependency sources, common build commands, Docker image notes, and workspace cleanup rules.
 
 For this fork:
 
@@ -22,7 +22,7 @@ PR are always welcome, even if they only contain small fixes like typos or a few
 
 Please submit a PR broken down into small changes' bit by bit. A PR consisting of a lot of features and code changes may be hard to review. It is recommended to submit PRs in an incremental fashion.
 
-This [development guideline](https://dataease.cn/docs/v2/installation/deployment_installation/) contains information about repository structure, how to set up development environment, how to run it, and more.
+Use [docs/development.md](./docs/development.md) for the current Crest development workflow.
 
 Note: If you split your pull request to small changes, please make sure any of the changes goes to master will not break anything. Otherwise, it can not be merged until this feature complete.
 

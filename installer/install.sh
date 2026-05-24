@@ -30,23 +30,25 @@ function check_and_prepare_env_params() {
    log_title "检查安装环境并初始化环境变量"
 
    cd ${CURRENT_DIR}
-   if [ -f /usr/bin/dectl ]; then
-      v2_version=$(dectl version | head -n 2 | grep "v2.")
+   if [ -f /usr/bin/crestctl ]; then
+      ctl_cmd=/usr/bin/crestctl
+      v2_version=$($ctl_cmd version | head -n 2 | grep "v2.")
       if [[ -z $v2_version ]];then
          echo "系统当前版本不是 Crest v2 版本系列，不支持升级到 v2，请检查离线包版本。"
          exit 1;
       fi
       # 获取已安装的 Crest 的运行目录
-      DE_BASE=$(grep "^DE_BASE=" /usr/bin/dectl | cut -d'=' -f2)
+      DE_BASE=$(grep "^DE_BASE=" $ctl_cmd | cut -d'=' -f2)
       DE_BASE_OLD=$DE_BASE
-      sed -i -e "s#DE_BASE=.*#DE_BASE=${DE_BASE}#g" dectl
-      \cp dectl /usr/local/bin && chmod +x /usr/local/bin/dectl
+      sed -i -e "s#DE_BASE=.*#DE_BASE=${DE_BASE}#g" crestctl
+      \cp crestctl /usr/local/bin && chmod +x /usr/local/bin/crestctl
+      ln -sf /usr/local/bin/crestctl /usr/bin/crestctl 2>/dev/null
 
       log_content "停止 Crest 服务"
-      if [[ -f /etc/systemd/system/dataease.service ]];then
-         systemctl stop dataease
+      if [[ -f /etc/systemd/system/crest.service ]];then
+         systemctl stop crest
       else
-         dectl stop
+         $ctl_cmd stop
       fi
 
       INSTALL_TYPE='upgrade'
@@ -58,15 +60,9 @@ function check_and_prepare_env_params() {
       DE_BASE=$DE_BASE_OLD
       export DE_BASE=$DE_BASE_OLD
    fi
-   if [[ -d $DE_BASE ]] && [[ -f $DE_BASE/dataease2.0/.env ]]; then
-      source $DE_BASE/dataease2.0/.env
+   if [[ -d $DE_BASE ]] && [[ -f $DE_BASE/crest/.env ]]; then
+      source $DE_BASE/crest/.env
       INSTALL_TYPE='upgrade'
-
-      conf_install_mode=$(prop $CURRENT_DIR/install.conf DE_INSTALL_MODE)
-      if [[ $DE_INSTALL_MODE == 'community' ]] && [[ $conf_install_mode == 'enterprise' ]];then
-         DE_INSTALL_MODE=$conf_install_mode
-         export DE_INSTALL_MODE=$conf_install_mode
-      fi
       log_content "升级安装"
    else
       INSTALL_TYPE='install'
@@ -91,7 +87,8 @@ function check_and_prepare_env_params() {
 
 function set_run_base_path() {
    log_title "设置运行目录"
-   DE_RUN_BASE=$DE_BASE/dataease2.0
+   DE_RUN_BASE=$DE_BASE/crest
+   export DE_RUN_BASE
    CONF_FOLDER=${DE_RUN_BASE}/conf
    TEMPLATES_FOLDER=${DE_RUN_BASE}/templates
    log_content "运行目录 $DE_RUN_BASE"
@@ -103,7 +100,7 @@ function prepare_de_run_base() {
    cd ${CURRENT_DIR}
    mkdir -p ${DE_RUN_BASE}
    log_content "复制安装文件到运行目录"
-   cp -r ./dataease/* ${DE_RUN_BASE}/
+   cp -r ./crest/* ${DE_RUN_BASE}/
 
    cd $DE_RUN_BASE
    env | grep DE_ >.env
@@ -138,15 +135,13 @@ function prepare_de_run_base() {
 
 }
 
-function update_dectl() {
-   log_title "安装 dectl 命令行工具"
-   log_content "安装至 /usr/local/bin/dectl & /usr/bin/dectl"
+function update_crestctl() {
+   log_title "安装 crestctl 命令行工具"
+   log_content "安装至 /usr/local/bin/crestctl & /usr/bin/crestctl"
    cd ${CURRENT_DIR}
-   sed -i -e "s#DE_BASE=.*#DE_BASE=${DE_BASE}#g" dectl
-   \cp dectl /usr/local/bin && chmod +x /usr/local/bin/dectl
-   if [ ! -f /usr/bin/dectl ]; then
-      ln -s /usr/local/bin/dectl /usr/bin/dectl 2>/dev/null
-   fi
+   sed -i -e "s#DE_BASE=.*#DE_BASE=${DE_BASE}#g" crestctl
+   \cp crestctl /usr/local/bin && chmod +x /usr/local/bin/crestctl
+   ln -sf /usr/local/bin/crestctl /usr/bin/crestctl 2>/dev/null
 }
 
 function prepare_system_settings() {
@@ -268,7 +263,7 @@ function load_de_images() {
    log_title "加载 Crest 镜像"
    cd ${CURRENT_DIR}
 
-   for i in $(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E 'crest|dataease'); do
+   for i in $(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E 'crest'); do
       current_images[${#current_images[@]}]=${i##*/}
    done
 
@@ -291,39 +286,29 @@ function set_de_service() {
    log_title "配置 Crest 服务"
 
    # 判断是否为wsl
-   local is_wsl= false
+   local is_wsl=false
    if grep -qE "(Microsoft|microsoft|WLS)" /proc/version; then
       is_wsl=true
    fi
 
-   if [[ -f /etc/init.d/dataease ]];then
-      if which chkconfig >/dev/null 2>&1;then
-         chkconfig dataease >/dev/null
-         if [ $? -eq 0 ]; then
-            chkconfig --del dataease
-         fi
-      fi
-      rm -f /etc/init.d/dataease
-   fi
-
-   if [[ ! -f /etc/systemd/system/dataease.service ]];then
-      log_content "配置 dataease Service"
-      cp ${DE_RUN_BASE}/bin/dataease/dataease.service /etc/systemd/system/
+   if [[ ! -f /etc/systemd/system/crest.service ]];then
+      log_content "配置 Crest Service"
+      cp ${DE_RUN_BASE}/bin/crest/crest.service /etc/systemd/system/
       #--- 如果是 WSL，则移除 service 文件中对 docker 的依赖 ---
       if [ "$is_wsl" = true ]; then
-         log_content "检测到 WSL 环境，移除 dataease.service 中的 Docker 依赖配置"
-         sed -i '/docker.service/d' /etc/systemd/system/dataease.service
+         log_content "检测到 WSL 环境，移除 crest.service 中的 Docker 依赖配置"
+         sed -i '/docker.service/d' /etc/systemd/system/crest.service
       fi
       #------------------------------------------------------
-      chmod 644 /etc/systemd/system/dataease.service
+      chmod 644 /etc/systemd/system/crest.service
       log_content "配置开机自启动"
-      systemctl enable dataease >/dev/null 2>&1; systemctl daemon-reload | tee -a ${CURRENT_DIR}/install.log
+      systemctl enable crest >/dev/null 2>&1; systemctl daemon-reload | tee -a ${CURRENT_DIR}/install.log
    fi
 }
 
 function start_de_service() {
    log_title "启动 Crest 服务"
-   systemctl start dataease 2>&1 | tee -a ${CURRENT_DIR}/install.log
+   systemctl start crest 2>&1 | tee -a ${CURRENT_DIR}/install.log
 
    access_port=$DE_PORT
    echo
@@ -339,7 +324,7 @@ function main() {
    check_and_prepare_env_params
    set_run_base_path
    prepare_de_run_base
-   update_dectl
+   update_crestctl
    prepare_system_settings
    install_docker
    install_docker_compose

@@ -1,2 +1,9 @@
+allowBuilds:
+  bufferutil: true
+  core-js: true
+  es5-ext: true
+  esbuild: true
+  utf-8-validate: true
+  vue-demi: true
 patchedDependencies:
   exceljs@4.4.0: patches/exceljs@4.4.0.patch

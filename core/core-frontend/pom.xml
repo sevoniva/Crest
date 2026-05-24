@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>core</artifactId>
-    <groupId>io.dataease</groupId>
+    <groupId>io.crest</groupId>
     <version>2.10.22</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -57,27 +57,32 @@
               <npmVersion>10.9.2</npmVersion>
             </configuration>
           </execution>
-          <!--前端组件有更新需要放开-->
            <execution>
-            <id>npm install</id>
+            <id>pnpm install</id>
             <goals>
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>install</arguments>
+              <arguments>exec --yes --package=pnpm@11.1.2 -- pnpm install --frozen-lockfile</arguments>
             </configuration>
           </execution>
 
           <execution>
-            <id>npm run build</id>
+            <id>pnpm run build</id>
             <goals>
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>run build:base</arguments>
+              <arguments>exec --yes --package=pnpm@11.1.2 -- pnpm run build:base</arguments>
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <skipIfEmpty>true</skipIfEmpty>
+        </configuration>
       </plugin>
     </plugins>
   </build>

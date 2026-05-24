@@ -1,4 +1,4 @@
-const suffix = `${import.meta.env.VITE_VERSION}-dataease`
+const suffix = `${import.meta.env.VITE_VERSION}-crest`
 
 const formatterUrl = <T extends Node>(node: T, prefix: string) => {
   if (['SCRIPT', 'LINK'].includes(node.nodeName)) {
@@ -9,7 +9,7 @@ const formatterUrl = <T extends Node>(node: T, prefix: string) => {
       url = node.src
     }
 
-    if (url.includes(suffix) || url.includes('dataease-private')) {
+    if (url.includes(suffix) || url.includes('crest-private')) {
       const currentUrlprefix = new URL(url).origin
       const newUrl = url.startsWith(prefix) ? url : url.replace(currentUrlprefix, prefix)
       if (node instanceof HTMLLinkElement) {
@@ -32,9 +32,9 @@ const getPrefix = (): string => {
       } else if (ele instanceof HTMLScriptElement) {
         url = ele.src
       }
-      if (url.includes('0.0.0-dataease')) {
+      if (url.includes('0.0.0-crest')) {
         prefix = new URL(url).origin
-        const index = url.indexOf(`/js/div_import_0.0.0-dataease`)
+        const index = url.indexOf(`/js/div_import_0.0.0-crest`)
         if (index > 0) {
           prefix = url.substring(0, index)
         }

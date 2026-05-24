@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="io.dataease.visualization.dao.ext.mapper.ExtVisualizationLinkageMapper">
+<mapper namespace="io.crest.visualization.dao.ext.mapper.ExtVisualizationLinkageMapper">
 
-    <resultMap id="TableFieldMap" type="io.dataease.extensions.datasource.dto.DatasetTableFieldDTO">
+    <resultMap id="TableFieldMap" type="io.crest.extensions.datasource.dto.DatasetTableFieldDTO">
         <result column="id" jdbcType="BIGINT" property="id"/>
         <result column="table_id" jdbcType="BIGINT" property="datasetTableId"/>
         <result column="origin_name" jdbcType="VARCHAR" property="originName"/>
@@ -10,24 +10,24 @@
         <result column="de_type" jdbcType="INTEGER" property="deType"/>
     </resultMap>
 
-    <resultMap id="LinkageGatherMap" type="io.dataease.api.visualization.dto.VisualizationLinkageDTO">
+    <resultMap id="LinkageGatherMap" type="io.crest.api.visualization.dto.VisualizationLinkageDTO">
         <result column="target_view_id" jdbcType="BIGINT" property="targetViewId"/>
         <result column="target_view_type" jdbcType="VARCHAR" property="targetViewType"/>
         <result column="table_id" jdbcType="BIGINT" property="tableId"/>
         <result column="targetViewName" jdbcType="VARCHAR" property="targetViewName"/>
         <result column="sourceViewId" jdbcType="BIGINT" property="sourceViewId"/>
         <result column="linkageActive" property="linkageActive"/>
-        <collection property="targetViewFields" ofType="io.dataease.extensions.datasource.dto.DatasetTableFieldDTO" column="table_id"
+        <collection property="targetViewFields" ofType="io.crest.extensions.datasource.dto.DatasetTableFieldDTO" column="table_id"
                     select="queryTableField">
         </collection>
-        <collection property="linkageFields" ofType="io.dataease.api.visualization.vo.VisualizationLinkageFieldVO">
+        <collection property="linkageFields" ofType="io.crest.api.visualization.vo.VisualizationLinkageFieldVO">
             <result column="source_field" jdbcType="BIGINT" property="sourceField"/>
             <result column="target_field" jdbcType="BIGINT" property="targetField"/>
         </collection>
     </resultMap>
 
 
-    <resultMap id="AllLinkageMap" type="io.dataease.api.visualization.dto.LinkageInfoDTO">
+    <resultMap id="AllLinkageMap" type="io.crest.api.visualization.dto.LinkageInfoDTO">
         <result column="sourceInfo" jdbcType="VARCHAR" property="sourceInfo"/>
         <collection property="targetInfoList" ofType="String">
             <result column="targetInfo" jdbcType="VARCHAR"/>
@@ -261,11 +261,11 @@
     </insert>
 
 
-    <select id="findLinkageWithDvId" resultType="io.dataease.visualization.dao.auto.entity.VisualizationLinkage">
+    <select id="findLinkageWithDvId" resultType="io.crest.visualization.dao.auto.entity.VisualizationLinkage">
         select * from visualization_linkage  where dv_id =#{dvId};
     </select>
 
-    <select id="findLinkageFieldWithDvId" resultType="io.dataease.visualization.dao.auto.entity.VisualizationLinkageField">
+    <select id="findLinkageFieldWithDvId" resultType="io.crest.visualization.dao.auto.entity.VisualizationLinkageField">
         SELECT
             *
         FROM

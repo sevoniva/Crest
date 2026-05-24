@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="io.dataease.visualization.dao.ext.mapper.ExtVisualizationLinkJumpMapper">
-    <resultMap id="LinkJumpBaseResultMap" type="io.dataease.api.visualization.vo.VisualizationLinkJumpVO">
+<mapper namespace="io.crest.visualization.dao.ext.mapper.ExtVisualizationLinkJumpMapper">
+    <resultMap id="LinkJumpBaseResultMap" type="io.crest.api.visualization.vo.VisualizationLinkJumpVO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="source_dv_id" jdbcType="BIGINT" property="sourceDvId"/>
         <result column="source_view_id" jdbcType="BIGINT" property="sourceViewId"/>
@@ -11,7 +11,7 @@
         <result column="copy_id" jdbcType="BIGINT" property="copyId"/>
     </resultMap>
 
-    <resultMap id="LinkJumpInfoBaseResultMap" type="io.dataease.api.visualization.vo.VisualizationLinkJumpInfoVO">
+    <resultMap id="LinkJumpInfoBaseResultMap" type="io.crest.api.visualization.vo.VisualizationLinkJumpInfoVO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="link_jump_id" jdbcType="BIGINT" property="linkJumpId"/>
         <result column="link_type" jdbcType="VARCHAR" property="linkType"/>
@@ -27,23 +27,23 @@
     </resultMap>
 
 
-    <resultMap id="BaseResultMapDTO" type="io.dataease.api.visualization.dto.VisualizationLinkJumpDTO"
+    <resultMap id="BaseResultMapDTO" type="io.crest.api.visualization.dto.VisualizationLinkJumpDTO"
                extends="LinkJumpBaseResultMap">
-        <collection property="linkJumpInfoArray" ofType="io.dataease.api.visualization.dto.VisualizationLinkJumpInfoDTO"
+        <collection property="linkJumpInfoArray" ofType="io.crest.api.visualization.dto.VisualizationLinkJumpInfoDTO"
                     column="{id=id,source_view_id=source_view_id,uid=queryUid, isDesktop=isDesktop}"
                     select="getLinkJumpInfo">
         </collection>
     </resultMap>
 
-        <resultMap id="BaseResultMapDTOSnapshot" type="io.dataease.api.visualization.dto.VisualizationLinkJumpDTO"
+        <resultMap id="BaseResultMapDTOSnapshot" type="io.crest.api.visualization.dto.VisualizationLinkJumpDTO"
                    extends="LinkJumpBaseResultMap">
-            <collection property="linkJumpInfoArray" ofType="io.dataease.api.visualization.dto.VisualizationLinkJumpInfoDTO"
+            <collection property="linkJumpInfoArray" ofType="io.crest.api.visualization.dto.VisualizationLinkJumpInfoDTO"
                         column="{id=id,source_view_id=source_view_id,uid=queryUid, isDesktop=isDesktop}"
                         select="getLinkJumpInfoSnapshot">
             </collection>
         </resultMap>
 
-    <resultMap id="LinkJumpInfoMap" type="io.dataease.api.visualization.dto.VisualizationLinkJumpInfoDTO"
+    <resultMap id="LinkJumpInfoMap" type="io.crest.api.visualization.dto.VisualizationLinkJumpInfoDTO"
                extends="LinkJumpInfoBaseResultMap">
         <result column="target_dv_type" jdbcType="VARCHAR" property="targetDvType"/>
         <result column="source_field_id" jdbcType="BIGINT" property="sourceFieldId"/>
@@ -51,7 +51,7 @@
         <result column="source_field_name" jdbcType="VARCHAR" property="sourceFieldName"/>
         <result column="publicJumpId" jdbcType="VARCHAR" property="publicJumpId"/>
         <collection property="targetViewInfoList"
-                    ofType="io.dataease.api.visualization.vo.VisualizationLinkJumpTargetViewInfoVO">
+                    ofType="io.crest.api.visualization.vo.VisualizationLinkJumpTargetViewInfoVO">
             <result column="target_id" jdbcType="BIGINT" property="targetId"/>
             <result column="target_view_id" jdbcType="BIGINT" property="targetViewId"/>
             <result column="target_field_id" jdbcType="BIGINT" property="targetFieldId"/>
@@ -60,13 +60,13 @@
             <result column="outer_params_name" jdbcType="VARCHAR" property="outerParamsName"/>
         </collection>
     </resultMap>
-    <resultMap id="ViewTableFieldDetailsMap" type="io.dataease.api.visualization.vo.VisualizationViewTableVO">
+    <resultMap id="ViewTableFieldDetailsMap" type="io.crest.api.visualization.vo.VisualizationViewTableVO">
         <result column="id" jdbcType="BIGINT" property="id"/>
         <result column="title" jdbcType="VARCHAR" property="title"/>
         <result column="type" jdbcType="VARCHAR" property="type"/>
         <result column="dv_id" jdbcType="BIGINT" property="dvId"/>
         <collection property="tableFields"
-                    ofType="io.dataease.extensions.datasource.dto.DatasetTableFieldDTO">
+                    ofType="io.crest.extensions.datasource.dto.DatasetTableFieldDTO">
             <result column="field_id" jdbcType="BIGINT" property="id"/>
             <result column="origin_name" jdbcType="VARCHAR" property="originName"/>
             <result column="field_name" jdbcType="VARCHAR" property="name"/>
@@ -75,7 +75,7 @@
         </collection>
     </resultMap>
 
-    <resultMap id="AllJumpMap" type="io.dataease.api.visualization.dto.VisualizationLinkJumpDTO">
+    <resultMap id="AllJumpMap" type="io.crest.api.visualization.dto.VisualizationLinkJumpDTO">
         <result column="sourceInfo" jdbcType="VARCHAR" property="sourceInfo"/>
         <collection property="targetInfoList" ofType="String">
             <result column="targetInfo" jdbcType="VARCHAR"/>
@@ -96,7 +96,7 @@
                 dvi.type as target_dv_type,
                 vlji.content,
                 <if test="!isDesktop">
-                xpack_share.uuid AS publicJumpId,
+                core_share.uuid AS publicJumpId,
                 </if>
                 ifnull( vlji.checked, 0 ) AS checked,
                 ifnull( vlji.attach_params, 0 ) AS attach_params,
@@ -116,8 +116,8 @@
                     LEFT JOIN data_visualization_info dvi ON vlji.target_dv_id = dvi.id
                     LEFT JOIN snapshot_visualization_link_jump_target_view_info vljtvi ON vlji.id = vljtvi.link_jump_info_id
                     <if test="!isDesktop">
-                    LEFT JOIN xpack_share ON xpack_share.creator = #{uid}
-                    AND vlji.target_dv_id = xpack_share.resource_id
+                    LEFT JOIN core_share ON core_share.creator = #{uid}
+                    AND vlji.target_dv_id = core_share.resource_id
                     </if>
                     left join snapshot_visualization_outer_params_info vopi on vopi.params_info_id = vljtvi.target_view_id
             WHERE
@@ -147,7 +147,7 @@
             dvi.type as target_dv_type,
             vlji.content,
             <if test="!isDesktop">
-            xpack_share.uuid AS publicJumpId,
+            core_share.uuid AS publicJumpId,
             </if>
             ifnull( vlji.checked, 0 ) AS checked,
             ifnull( vlji.attach_params, 0 ) AS attach_params,
@@ -167,8 +167,8 @@
                 LEFT JOIN data_visualization_info dvi ON vlji.target_dv_id = dvi.id
                 LEFT JOIN visualization_link_jump_target_view_info vljtvi ON vlji.id = vljtvi.link_jump_info_id
                 <if test="!isDesktop">
-                LEFT JOIN xpack_share ON xpack_share.creator = #{uid}
-                AND vlji.target_dv_id = xpack_share.resource_id
+                LEFT JOIN core_share ON core_share.creator = #{uid}
+                AND vlji.target_dv_id = core_share.resource_id
                 </if>
                 left join visualization_outer_params_info vopi on vopi.params_info_id = vljtvi.target_view_id
         WHERE
@@ -248,7 +248,7 @@
         WHERE ccv.id = #{viewId}
     </select>
 
-        <select id="queryOutParamsTargetWithDvId" resultType="io.dataease.api.visualization.vo.VisualizationOutParamsJumpVO">
+        <select id="queryOutParamsTargetWithDvId" resultType="io.crest.api.visualization.vo.VisualizationOutParamsJumpVO">
             SELECT
             	vopi.params_info_id as id,
             	vopi.param_name as name,
@@ -450,13 +450,13 @@
                             ON visualization_link_jump_target_view_info.link_jump_info_id = plji_copy.s_id
     </insert>
 
-    <select id="findLinkJumpWithDvId" resultType="io.dataease.api.visualization.vo.VisualizationLinkJumpVO">
+    <select id="findLinkJumpWithDvId" resultType="io.crest.api.visualization.vo.VisualizationLinkJumpVO">
         SELECT *
         FROM visualization_link_jump
         WHERE source_dv_id = #{dvId}
     </select>
 
-    <select id="findLinkJumpInfoWithDvId" resultType="io.dataease.api.visualization.vo.VisualizationLinkJumpInfoVO">
+    <select id="findLinkJumpInfoWithDvId" resultType="io.crest.api.visualization.vo.VisualizationLinkJumpInfoVO">
         SELECT *
         FROM visualization_link_jump_info
         WHERE link_type = 'outer'

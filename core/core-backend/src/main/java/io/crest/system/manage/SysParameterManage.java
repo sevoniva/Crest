@@ -1,0 +1,184 @@
+package io.crest.system.manage;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import io.crest.api.system.request.SQLBotConfigCreator;
+import io.crest.api.system.vo.SettingItemVO;
+import io.crest.api.system.vo.ShareBaseVO;
+import io.crest.datasource.server.DatasourceServer;
+import io.crest.system.dao.auto.entity.CoreSysSetting;
+import io.crest.system.dao.auto.mapper.CoreSysSettingMapper;
+import io.crest.system.dao.ext.mapper.ExtCoreSysSettingMapper;
+import io.crest.utils.BeanUtils;
+import io.crest.utils.CommonBeanFactory;
+import io.crest.utils.IDUtils;
+import io.crest.utils.SystemSettingUtils;
+import jakarta.annotation.Resource;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Component
+@SuppressWarnings("deprecation")
+public class SysParameterManage {
+
+    @Value("${crest.show-demo-tips:false}")
+    private boolean showDemoTips;
+
+    @Value("${crest.demo-tips-content:#{null}}")
+    private String demoTipsContent;
+
+    @Resource
+    private CoreSysSettingMapper coreSysSettingMapper;
+
+    @Resource
+    private ExtCoreSysSettingMapper extCoreSysSettingMapper;
+    @Resource
+    private DatasourceServer datasourceServer;
+
+    public String singleVal(String key) {
+        QueryWrapper<CoreSysSetting> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("pkey", key);
+        CoreSysSetting sysSetting = coreSysSettingMapper.selectOne(queryWrapper);
+        if (ObjectUtils.isNotEmpty(sysSetting)) {
+            return sysSetting.getPval();
+        }
+        return null;
+    }
+
+    public Map<String, String> groupVal(String groupKey) {
+        QueryWrapper<CoreSysSetting> queryWrapper = new QueryWrapper<>();
+        queryWrapper.likeRight("pkey", groupKey);
+        queryWrapper.orderByAsc("sort");
+        List<CoreSysSetting> sysSettings = coreSysSettingMapper.selectList(queryWrapper);
+        if (!CollectionUtils.isEmpty(sysSettings)) {
+            return sysSettings.stream().collect(Collectors.toMap(CoreSysSetting::getPkey, CoreSysSetting::getPval));
+        }
+        return new HashMap<>();
+    }
+
+    public List<CoreSysSetting> groupList(String groupKey) {
+        QueryWrapper<CoreSysSetting> queryWrapper = new QueryWrapper<>();
+        queryWrapper.likeRight("pkey", groupKey);
+        queryWrapper.orderByAsc("sort");
+        return coreSysSettingMapper.selectList(queryWrapper);
+    }
+    public List<SettingItemVO> convert(List<CoreSysSetting> sysSettings) {
+        return sysSettings.stream().sorted(Comparator.comparing(CoreSysSetting::getSort)).map(item -> BeanUtils.copyBean(new SettingItemVO(), item)).toList();
+    }
+    public List<Object> getUiList() {
+        List<Object> result = new ArrayList<>();
+        result.add(buildSettingItem("community", true));
+        result.add(buildSettingItem("showDemoTips", showDemoTips));
+        result.add(buildSettingItem("demoTipsContent", demoTipsContent));
+        String siteTitle = singleVal("basic.siteTitle");
+        result.add(buildSettingItem("siteTitle", StringUtils.defaultIfBlank(siteTitle, "Crest")));
+        return result;
+    }
+    public Integer defaultLogin() {
+        return 0;
+    }
+
+    private Map<String, Object> buildSettingItem(String pkey, Object pval) {
+        Map<String, Object> item = new HashMap<>();
+        item.put("pkey", pkey);
+        item.put("pval", pval);
+        return item;
+    }
+
+
+    @Transactional
+    public void saveGroup(List<SettingItemVO> vos, String groupKey) {
+        List<CoreSysSetting> sysSettings = vos.stream().filter(vo -> !SystemSettingUtils.restrictedSetting(vo.getPkey())).map(item -> {
+            CoreSysSetting sysSetting = BeanUtils.copyBean(new CoreSysSetting(), item);
+            sysSetting.setId(IDUtils.snowID());
+            return sysSetting;
+        }).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(sysSettings)) {
+            QueryWrapper<CoreSysSetting> queryWrapper = new QueryWrapper<>();
+            sysSettings.forEach(sysSetting -> {
+                queryWrapper.clear();
+                queryWrapper.eq("pkey", sysSetting.getPkey());
+                coreSysSettingMapper.delete(queryWrapper);
+            });
+            extCoreSysSettingMapper.saveBatch(sysSettings);
+        }
+        datasourceServer.addJob(sysSettings);
+    }
+
+    public void saveSqlBotConfig(SQLBotConfigCreator configVO) {
+        List<CoreSysSetting> configList = new ArrayList<>();
+        String key = "sqlbot.";
+        CoreSysSetting domainVo = new CoreSysSetting();
+        domainVo.setPkey(key + "domain");
+        domainVo.setPval(configVO.getDomain());
+        domainVo.setType("text");
+        domainVo.setSort(0);
+        domainVo.setId(IDUtils.snowID());
+        configList.add(domainVo);
+
+        CoreSysSetting idVo = new CoreSysSetting();
+        idVo.setPkey(key + "id");
+        idVo.setPval(configVO.getId());
+        idVo.setType("text");
+        idVo.setSort(0);
+        idVo.setId(IDUtils.snowID());
+        configList.add(idVo);
+
+        CoreSysSetting enabledVo = new CoreSysSetting();
+        enabledVo.setPkey(key + "enabled");
+        enabledVo.setPval(configVO.getEnabled().toString());
+        enabledVo.setType("text");
+        enabledVo.setSort(0);
+        enabledVo.setId(IDUtils.snowID());
+        configList.add(enabledVo);
+
+        CoreSysSetting validVo = new CoreSysSetting();
+        validVo.setPkey(key + "valid");
+        validVo.setPval(configVO.getValid().toString());
+        validVo.setType("text");
+        validVo.setSort(0);
+        validVo.setId(IDUtils.snowID());
+        configList.add(validVo);
+
+
+        QueryWrapper<CoreSysSetting> queryWrapper = new QueryWrapper<>();
+        queryWrapper.likeRight("pkey", key);
+        coreSysSettingMapper.delete(queryWrapper);
+
+        extCoreSysSettingMapper.saveBatch(configList);
+    }
+    @Transactional
+    public void saveBasic(List<SettingItemVO> vos) {
+        String key = "basic.";
+        proxy().saveGroup(vos, key);
+    }
+
+    private SysParameterManage proxy() {
+        return CommonBeanFactory.getBean(SysParameterManage.class);
+    }
+
+    public ShareBaseVO shareBase() {
+        String disableText = singleVal("basic.shareDisable");
+        String requireText = singleVal("basic.sharePeRequire");
+        ShareBaseVO vo = new ShareBaseVO();
+        if (StringUtils.isNotBlank(disableText) && Strings.CS.equals("true", disableText)) {
+            vo.setDisable(true);
+        }
+        if (StringUtils.isNotBlank(requireText) && Strings.CS.equals("true", requireText)) {
+            vo.setPeRequire(true);
+        }
+        return vo;
+    }
+
+    public void insert(CoreSysSetting coreSysSetting) {
+        coreSysSettingMapper.insert(coreSysSetting);
+    }
+
+}

@@ -98,6 +98,13 @@ export const routes: AppRouteRecordRaw[] = [
     component: () => import('@/views/visualized/data/dataset/form/index.vue')
   },
   {
+    path: '/dataset-form',
+    name: 'dataset-form',
+    hidden: true,
+    meta: {},
+    component: () => import('@/views/visualized/data/dataset/form/index.vue')
+  },
+  {
     path: '/preview',
     name: 'preview',
     hidden: true,

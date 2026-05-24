@@ -1,10 +1,10 @@
 # Crest 前端工程
 
-这里是内部轻量版前端，基于 Crest 品牌的 Vue 3、TypeScript 和 Vite 工程改造。
+这是 Crest 的 Vue 3、TypeScript 和 Vite 前端工程。前端负责工作台、仪表板、数据大屏、数据准备、数据血缘、分享、导出中心和系统管理等页面。
 
-## 主要边界
+## 产品边界
 
-保留的主路径：
+当前前端主路径：
 
 - 工作台；
 - 仪表板；
@@ -16,18 +16,9 @@
 - 数据血缘；
 - 系统参数和字体管理。
 
-下线的入口：
+当前不提供模板市场、工具箱、消息中心、独立移动端入口、地图类图表、地图运行时、外部插件入口、帮助中心和关于页。
 
-- SQLBot；
-- 模板市场；
-- 工具箱；
-- 消息中心；
-- 独立移动端入口；
-- 地图类图表和地图运行时；
-- 商业插件入口；
-- 帮助中心、关于页和相关导航。
-
-分享功能是保留项。不要因为代码里还有 `xpack_share`、`ShareTicket`、`de-link` 等命名就删除它们，这些名字要兼容已有表结构、接口路径和旧分享链接。
+分享功能属于 Crest 的稳定能力。`core_share`、`ShareTicket`、`de-link` 等名称与数据库表、接口路径和历史分享链接有关，调整前必须先设计迁移和兼容方案。
 
 ## 常用命令
 
@@ -37,7 +28,7 @@
 pnpm install --frozen-lockfile
 ```
 
-构建内部版前端：
+构建前端：
 
 ```bash
 pnpm run build:base
@@ -54,7 +45,7 @@ pnpm run build:lite:check
 
 ## 品牌资源
 
-内部版使用 Crest 品牌资源：
+Crest 品牌资源：
 
 - 顶部导航 logo：`src/assets/img/crest-logo-horizontal-dark-192h.png`
 - 登录页 logo：`src/assets/img/crest-logo-horizontal-192h.png`
@@ -97,7 +88,7 @@ src/api/relation/index.ts
 
 ## CodeMirror 组件命名
 
-项目依赖包里有 `codemirror`。本地组件不要再命名为 `CodeMirror.vue`，否则在 macOS 默认大小写不敏感文件系统上，构建产物容易和依赖 chunk 撞名，导致运行时动态加载 404。
+项目依赖包里有 `codemirror`。本地组件不要命名为 `CodeMirror.vue`，否则在 macOS 默认大小写不敏感文件系统上，构建产物容易和依赖 chunk 撞名，导致运行时动态加载 404。
 
 当前本地 SQL 编辑组件命名为：
 
