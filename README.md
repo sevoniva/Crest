@@ -210,6 +210,21 @@ docker-compose up -d --no-deps crest
 
 新安装默认运行目录为 `/opt/crest`，服务名为 `crest`，控制命令为 `crestctl`。
 
+## Kubernetes
+
+Kubernetes 清单位于：
+
+```text
+deploy/kubernetes
+```
+
+当前提供两种部署方式：
+
+- `deploy/kubernetes/internal-mysql`：同时安装 Crest 和 MySQL；
+- `deploy/kubernetes/external-mysql`：只安装 Crest，连接外部 MySQL。
+
+两种方式共用同一个应用 Deployment，差异主要是 `crest-env` ConfigMap 中的数据库地址、端口、库名和 JDBC 参数。详细说明见 [deploy/kubernetes/README.md](./deploy/kubernetes/README.md)。
+
 数据库初始化由后端 Flyway 迁移负责，脚本位于：
 
 ```text

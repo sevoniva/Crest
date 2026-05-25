@@ -1,0 +1,31 @@
+namespace: crest-internal
+
+resources:
+  - namespace.yaml
+  - ../base
+  - mysql.yaml
+
+configMapGenerator:
+  - name: crest-env
+    literals:
+      - CREST_CONTEXT_PATH=
+      - CREST_DB_HOST=crest-mysql
+      - CREST_DB_PORT=3306
+      - CREST_DB_NAME=crest
+      - CREST_DB_PARAMS=autoReconnect=false&useUnicode=true&characterEncoding=UTF-8&characterSetResults=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+      - CREST_ORIGIN_LIST=http://localhost:8100
+      - CREST_LOGIN_TIMEOUT=960
+  - name: crest-mysql-init
+    files:
+      - 01-init.sql=mysql-init.sql
+      - my.cnf=mysql-my.cnf
+
+secretGenerator:
+  - name: crest-db-secret
+    literals:
+      - CREST_DB_USERNAME=root
+      - CREST_DB_PASSWORD=Password123@mysql
+      - MYSQL_ROOT_PASSWORD=Password123@mysql
+
+generatorOptions:
+  disableNameSuffixHash: true

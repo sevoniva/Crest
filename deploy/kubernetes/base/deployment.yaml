@@ -1,0 +1,174 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crest
+  labels:
+    app.kubernetes.io/name: crest
+    app.kubernetes.io/component: bi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: crest
+      app.kubernetes.io/component: bi
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: crest
+        app.kubernetes.io/component: bi
+    spec:
+      serviceAccountName: crest
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-database
+          image: ghcr.io/sevoniva/crest:main
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -ec
+            - |
+              until nc -z "$CREST_DB_HOST" "$CREST_DB_PORT"; do
+                echo "waiting for database ${CREST_DB_HOST}:${CREST_DB_PORT}"
+                sleep 2
+              done
+          envFrom:
+            - configMapRef:
+                name: crest-env
+            - secretRef:
+                name: crest-db-secret
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+        - name: seed-static-resource
+          image: ghcr.io/sevoniva/crest:main
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -ec
+            - |
+              mkdir -p /work/static-resource
+              cp -an /opt/crest/data/static-resource/. /work/static-resource/ 2>/dev/null || true
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: crest-data
+              mountPath: /work/static-resource
+              subPath: static-resource
+      containers:
+        - name: crest
+          image: ghcr.io/sevoniva/crest:main
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8100
+          env:
+            - name: RUNNING_PORT
+              value: "8100"
+            - name: JAVA_APP_JAR
+              value: /opt/apps/app.jar
+            - name: JAVA_OPTIONS
+              value: >-
+                -Dfile.encoding=utf-8
+                -Dloader.path=/opt/apps
+                -Djava.io.tmpdir=/opt/crest/tmp
+                -Dspring.config.additional-location=/opt/apps/config/
+            - name: CREST_PATH_EXCEL
+              value: /opt/crest/data/excel/
+            - name: CREST_PATH_EXPORT_DATA
+              value: /opt/crest/data/exportData/
+          envFrom:
+            - configMapRef:
+                name: crest-env
+            - secretRef:
+                name: crest-db-secret
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /index.html
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /index.html
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: crest-app-config
+              mountPath: /opt/apps/config/application.yml
+              subPath: application.yml
+              readOnly: true
+            - name: crest-cache
+              mountPath: /opt/crest/cache
+            - name: crest-logs
+              mountPath: /opt/crest/logs/crest
+            - name: crest-tmp
+              mountPath: /opt/crest/tmp
+            - name: crest-data
+              mountPath: /opt/crest/data/static-resource
+              subPath: static-resource
+            - name: crest-data
+              mountPath: /opt/crest/data/appearance
+              subPath: appearance
+            - name: crest-data
+              mountPath: /opt/crest/data/exportData
+              subPath: exportData
+            - name: crest-data
+              mountPath: /opt/crest/data/excel
+              subPath: excel
+            - name: crest-data
+              mountPath: /opt/crest/data/font
+              subPath: font
+            - name: crest-data
+              mountPath: /opt/crest/data/i18n
+              subPath: i18n
+      volumes:
+        - name: crest-app-config
+          configMap:
+            name: crest-app-config
+        - name: crest-cache
+          emptyDir:
+            medium: Memory
+            sizeLimit: 512Mi
+        - name: crest-logs
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
+        - name: crest-tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 512Mi
+        - name: crest-data
+          persistentVolumeClaim:
+            claimName: crest-data

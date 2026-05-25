@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: crest-mysql
+  labels:
+    app.kubernetes.io/name: crest
+    app.kubernetes.io/component: mysql
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: crest
+    app.kubernetes.io/component: mysql
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: crest-mysql
+  labels:
+    app.kubernetes.io/name: crest
+    app.kubernetes.io/component: mysql
+spec:
+  serviceName: crest-mysql
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: crest
+      app.kubernetes.io/component: mysql
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: crest
+        app.kubernetes.io/component: mysql
+    spec:
+      securityContext:
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: mysql
+              containerPort: 3306
+          env:
+            - name: MYSQL_DATABASE
+              value: crest
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: crest-db-secret
+                  key: MYSQL_ROOT_PASSWORD
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -ec
+                - mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --protocol=tcp
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -ec
+                - mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --protocol=tcp
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -ec
+                - mysqladmin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --protocol=tcp
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+            - name: crest-mysql-init
+              mountPath: /docker-entrypoint-initdb.d/01-init.sql
+              subPath: 01-init.sql
+              readOnly: true
+            - name: crest-mysql-init
+              mountPath: /etc/mysql/conf.d/crest.cnf
+              subPath: my.cnf
+              readOnly: true
+      volumes:
+        - name: crest-mysql-init
+          configMap:
+            name: crest-mysql-init
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-data
+        labels:
+          app.kubernetes.io/name: crest
+          app.kubernetes.io/component: mysql
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi

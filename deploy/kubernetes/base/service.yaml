@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: crest
+  labels:
+    app.kubernetes.io/name: crest
+    app.kubernetes.io/component: bi
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: crest
+    app.kubernetes.io/component: bi
+  ports:
+    - name: http
+      port: 8100
+      targetPort: http

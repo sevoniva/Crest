@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crest-app-config
+data:
+  application.yml: |
+    server:
+      port: 8100
+      servlet:
+        context-path: ${CREST_CONTEXT_PATH:}
+
+    spring:
+      datasource:
+        url: jdbc:mysql://${CREST_DB_HOST}:${CREST_DB_PORT}/${CREST_DB_NAME}?${CREST_DB_PARAMS}
+        username: ${CREST_DB_USERNAME}
+        password: ${CREST_DB_PASSWORD}
+      messages:
+        basename: i18n/lic,i18n/core,i18n/permissions,i18n/sync
+      flyway:
+        enabled: true
+        table: de_standalone_version
+        validate-on-migrate: false
+        locations: classpath:db/migration
+        baseline-on-migrate: true
+        out-of-order: false
+
+    logging:
+      file:
+        path: /opt/crest/logs/crest
+      level:
+        "org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker": ERROR
+
+    mybatis-plus:
+      mapper-locations: classpath:mybatis/*.xml
+
+    crest:
+      internal-lite:
+        enabled: true
+      origin-list: ${CREST_ORIGIN_LIST:http://localhost:8100}
+      login_timeout: ${CREST_LOGIN_TIMEOUT:960}
+      path:
+        excel: ${CREST_PATH_EXCEL:/opt/crest/data/excel/}
+        exportData: ${CREST_PATH_EXPORT_DATA:/opt/crest/data/exportData/}
