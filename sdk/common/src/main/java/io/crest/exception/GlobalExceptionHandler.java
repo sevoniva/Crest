@@ -5,6 +5,7 @@ import io.crest.i18n.Translator;
 import io.crest.result.ResultCode;
 import io.crest.result.ResultMessage;
 import io.crest.utils.LogUtil;
+import org.apache.catalina.connector.ClientAbortException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.springframework.validation.ObjectError;
@@ -30,6 +31,11 @@ public class GlobalExceptionHandler {
     public ResultMessage deExceptionHandler(DEException e) {
         LogUtil.info(e.getMessage());
         return new ResultMessage(e.getCode(), e.getMessage());
+    }
+
+    @ExceptionHandler(ClientAbortException.class)
+    public void clientAbortExceptionHandler(ClientAbortException e) {
+        LogUtil.debug(StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName()));
     }
 
     @ExceptionHandler(NullPointerException.class)
