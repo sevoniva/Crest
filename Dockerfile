@@ -1,5 +1,5 @@
 ARG CREST_JDK_IMAGE=eclipse-temurin:21-jdk-alpine
-ARG CREST_BASE_IMAGE=alpine:3.20
+ARG CREST_BASE_IMAGE=alpine:3.22
 
 FROM ${CREST_JDK_IMAGE} AS java-runtime
 RUN "$JAVA_HOME/bin/jlink" \
@@ -31,13 +31,12 @@ RUN addgroup -S -g 10001 crest \
     /opt/crest/data/plugin/ \
     && chown -R 10001:10001 /opt/apps /opt/crest
 
-ADD drivers/* /opt/crest/drivers/
-ADD staticResource/ /opt/crest/data/static-resource/
+COPY --chown=10001:10001 drivers/ /opt/crest/drivers/
+COPY --chown=10001:10001 staticResource/ /opt/crest/data/static-resource/
 
 WORKDIR /opt/apps
 
-ADD core/core-backend/target/CoreApplication.jar /opt/apps/app.jar
-RUN chown crest:crest /opt/apps/app.jar
+COPY --chown=10001:10001 core/core-backend/target/CoreApplication.jar /opt/apps/app.jar
 
 ENV JAVA_APP_JAR=/opt/apps/app.jar
 ENV RUNNING_PORT=8100
