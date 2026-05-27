@@ -103,6 +103,7 @@
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-vue": "^9.9.0",
+    "htmlparser2": "8.0.2",
     "jquery": "^3.6.4",
     "less": "4.4.2",
     "postcss": "^8.4.21",

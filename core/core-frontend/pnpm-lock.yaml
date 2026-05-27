@@ -257,6 +257,9 @@ importers:
       eslint-plugin-vue:
         specifier: ^9.9.0
         version: 9.33.0(eslint@7.32.0)
+      htmlparser2:
+        specifier: 8.0.2
+        version: 8.0.2
       jquery:
         specifier: ^3.6.4
         version: 3.7.1
