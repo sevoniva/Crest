@@ -1,12 +1,15 @@
 name: Build and Publish Docker Images
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       image_tag:
         description: Crest image tag to publish
         required: false
-        default: v2.10.22-ob
+        default: v1.2.0
 
 permissions:
   contents: read
@@ -17,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMAGE_TAG: ${{ inputs.image_tag || 'v2.10.22-ob' }}
+  IMAGE_TAG: ${{ inputs.image_tag || github.ref_name || 'v1.2.0' }}
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/sevoniva/crest
 
