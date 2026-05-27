@@ -175,6 +175,7 @@ import EmptyBackground from '../empty-background/src/EmptyBackground.vue'
 import { supportExtremumChartType } from '@/views/chart/components/js/extremumUitl'
 import ChartCarouselTooltip from '@/views/chart/components/js/g2plot_tooltip_carousel'
 import html2canvas from 'html2canvas'
+import { getData } from '@/api/chart'
 const downLoading = ref(false)
 const dvMainStore = dvMainStoreWithOut()
 const dialogShow = ref(false)
@@ -302,7 +303,7 @@ const pixelOptions = [
 ]
 const dialogInit = (canvasStyle, view, item, opt, params = { scale: 0.5 }) => {
   state.scale = params.scale
-  sourceViewType.value = view.type
+  sourceViewType.value = view.type || ''
   detailsError.value = false
   optType.value = opt
   dialogShow.value = true
@@ -336,16 +337,77 @@ const dataDetailsOpt = () => {
   nextTick(() => {
     const viewDataInfo = dvMainStore.getViewDataDetails(viewInfo.value.id)
     if (viewDataInfo) {
-      if (sourceViewType.value.includes('chart-mix')) {
-        chartComponentDetails.value?.renderChartFromDialog(viewInfo.value, viewDataInfo.left)
-        chartComponentDetails2.value?.renderChartFromDialog(viewInfo.value, viewDataInfo.right)
-      } else {
-        chartComponentDetails.value.renderChartFromDialog(viewInfo.value, viewDataInfo)
-      }
-    } else {
-      detailsError.value = true
+      renderDetailsChart(viewDataInfo)
+      return
     }
+    queryDetailsData()
   })
+}
+
+const renderDetailsChart = (viewDataInfo, retry = 0) => {
+  if (!viewDataInfo) {
+    detailsError.value = true
+    return
+  }
+  if (sourceViewType.value.includes('chart-mix')) {
+    if (!viewDataInfo.left || !viewDataInfo.right) {
+      detailsError.value = true
+      return
+    }
+    if (!chartComponentDetails.value || !chartComponentDetails2.value) {
+      retryRenderDetails(viewDataInfo, retry)
+      return
+    }
+    chartComponentDetails.value.renderChartFromDialog(viewInfo.value, viewDataInfo.left)
+    chartComponentDetails2.value.renderChartFromDialog(viewInfo.value, viewDataInfo.right)
+    return
+  }
+  if (!chartComponentDetails.value) {
+    retryRenderDetails(viewDataInfo, retry)
+    return
+  }
+  chartComponentDetails.value.renderChartFromDialog(viewInfo.value, viewDataInfo)
+}
+
+const retryRenderDetails = (viewDataInfo, retry) => {
+  if (retry >= 6) {
+    detailsError.value = true
+    return
+  }
+  window.requestAnimationFrame(() => renderDetailsChart(viewDataInfo, retry + 1))
+}
+
+const queryDetailsData = async () => {
+  const sourceViewInfo = deepCopy(dvMainStore.getViewDetails(viewInfo.value.id) || viewInfo.value)
+  if (!sourceViewInfo?.tableId && sourceViewInfo?.dataFrom !== 'template') {
+    detailsError.value = true
+    return
+  }
+  try {
+    const chartExtRequest = dvMainStore.getLastViewRequestInfo(viewInfo.value.id) || {
+      filter: [],
+      drill: [],
+      resultCount: sourceViewInfo.resultCount || 1000,
+      resultMode: sourceViewInfo.resultMode || 'all'
+    }
+    const res = await getData({
+      ...sourceViewInfo,
+      chartExtRequest
+    })
+    if (res?.code && res.code !== 0) {
+      detailsError.value = true
+      return
+    }
+    if (!res?.data) {
+      detailsError.value = true
+      return
+    }
+    dvMainStore.setViewDataDetails(viewInfo.value.id, res)
+    detailsError.value = false
+    renderDetailsChart(res?.data)
+  } catch {
+    detailsError.value = true
+  }
 }
 
 const handleClick = tab => {

@@ -2,9 +2,11 @@
 
 Crest 是一款开源 BI 工具，面向私有化部署和企业内部数据分析场景。它提供数据源接入、数据集建模、仪表板、数据大屏、分享、导出、系统管理和字段级数据血缘能力，并内置 OceanBase Oracle 模式数据源支持。
 
+当前封版版本：`v1.2.0`。
+
 ## 项目来源与许可
 
-Crest 是 [DataEase](https://github.com/dataease/crest.git) 2.10.22 的 GPLv3 派生项目。原项目版权归 [FIT2CLOUD 飞致云](https://fit2cloud.com/) 及其贡献者所有。
+Crest 是 [DataEase](https://github.com/dataease/dataease) 2.10.22 的 GPLv3 派生项目。原项目版权归 [FIT2CLOUD 飞致云](https://fit2cloud.com/) 及其贡献者所有。
 
 本仓库保留原项目的 [LICENSE](./LICENSE) 文件，并继续按 GNU General Public License version 3 (GPLv3) 发布。使用、分发或继续开发本仓库代码时，请遵守 GPLv3：
 
@@ -29,6 +31,24 @@ Crest 当前包含这些核心模块：
 - 系统管理：管理用户、基础权限、系统参数和字体。
 
 产品边界以 BI 分析主链路为核心：数据接入、建模、可视化、分享、导出、权限和血缘分析。模板市场、帮助中心、关于页、SQLBot、消息中心、独立移动端入口、地图类图表和外部插件入口不属于当前 Crest 的运行范围。
+
+## 接口文档
+
+服务启动后可以直接访问接口文档：
+
+```text
+http://<host>:8100/doc.html
+```
+
+OpenAPI 原始描述地址：
+
+```text
+http://<host>:8100/v3/api-docs
+```
+
+接口分组按当前功能模块维护，包括可视化管理、图表管理、数据集管理、数据源管理、数据血缘、导出中心、系统管理、权限管理和同步管理。数据血缘接口位于 `数据血缘` 分组，覆盖全局血缘、数据源血缘、数据集血缘、仪表板/大屏血缘和资源下拉查询。
+
+生产环境建议通过网关限制接口文档访问范围，避免把内部接口结构暴露到公网。
 
 ## OceanBase Oracle
 
@@ -88,11 +108,11 @@ OceanBase Oracle 数据集支持结果缓存。Crest 会按数据集建模规则
 - 数据源：从数据源查看进入 Crest 后形成的字段链路；
 - 数据集：反查数据集上游表字段，并查看下游图表和展示资源；
 - 仪表板/大屏：从展示资源反查图表、数据集和源字段；
-- 表字段：先选物理表，再选字段，查看该字段完整上下游。
+- 表字段：先选物理表，再选字段，查看该字段上下游。
 
-这个功能适合字段口径排查、报表影响分析、数据源下线评估和数据集设计前检查。详细说明见 [docs/data-lineage.md](./docs/data-lineage.md)。
+这个功能适合字段口径排查、报表影响分析、数据源下线评估和数据集设计前检查。说明见 [docs/data-lineage.md](./docs/data-lineage.md)。
 
-新安装环境只保留默认管理员和系统基础菜单，不预置示例数据源、示例数据集、图表或仪表板。接入数据后，数据血缘会基于已保存的数据源、数据集和图表元数据自动生成关系图。
+`v1.2.0` 起，新安装环境会内置一套零售经营演示库、数据源、数据集和数据大屏。它用于展示建模、可视化和字段级血缘的完整链路。接入自己的业务数据后，血缘会继续基于已保存的数据源、数据集和图表元数据自动生成关系图。
 
 ## 本地开发
 
@@ -160,7 +180,7 @@ GitHub Actions 发布入口：
 默认镜像：
 
 ```text
-ghcr.io/sevoniva/crest:v2.10.22-ob
+ghcr.io/sevoniva/crest:v1.2.0
 ghcr.io/sevoniva/crest:main
 ```
 
@@ -223,7 +243,7 @@ deploy/kubernetes
 - `deploy/kubernetes/internal-mysql`：同时安装 Crest 和 MySQL；
 - `deploy/kubernetes/external-mysql`：只安装 Crest，连接外部 MySQL。
 
-两种方式共用同一个应用 Deployment，差异主要是 `crest-env` ConfigMap 中的数据库地址、端口、库名和 JDBC 参数。详细说明见 [deploy/kubernetes/README.md](./deploy/kubernetes/README.md)。
+两种方式共用同一个应用 Deployment，差异主要是 `crest-env` ConfigMap 中的数据库地址、端口、库名和 JDBC 参数。部署说明见 [deploy/kubernetes/README.md](./deploy/kubernetes/README.md)。
 
 数据库初始化由后端 Flyway 迁移负责，脚本位于：
 
@@ -234,11 +254,18 @@ core/core-backend/src/main/resources/db/migration
 当前初始状态包含：
 
 - 默认管理员账号 `admin`，初始密码 `admin`；
-- 无内置数据源、数据集、图表和仪表板；
-- 最近使用、收藏、导出任务、数据源任务日志和助手历史为空；
-- 不写入示例数据源、演示数据集、演示图表或演示大屏。
+- 内置零售经营演示库 `crest_demo_retail`；
+- 内置演示数据源 `Crest 演示零售经营库`；
+- 内置演示数据集、图表和一个数据大屏，用于展示产品主链路；
+- 最近使用、收藏、导出任务和数据源任务日志为空；
+- 不写入本地测试、压测或外部环境信息。
 
-安装脚本里的 MySQL `init.sql` 只负责创建数据库，不承载业务元数据。当前仓库使用 `V1.1__initial_schema.sql` 作为 Crest 的干净初始基线，后续数据库结构变化应在这个基线之后新增迁移脚本。
+安装脚本里的 MySQL `init.sql` 只负责创建数据库。当前迁移基线由后端 Flyway 执行：
+
+- `V1.1__initial_schema.sql`：创建 Crest 运行所需的表结构、默认管理员、基础菜单、系统参数、内置驱动和主题配置；
+- `V1.2__demo_retail_dashboard.sql`：创建零售经营演示库和对应的演示资源。
+
+后续数据库结构变化应继续添加新的迁移脚本，不直接修改已发布基线。
 
 ## 目录结构
 

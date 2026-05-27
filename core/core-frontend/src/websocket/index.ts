@@ -38,8 +38,10 @@ export default {
       if (window.DataEaseBi?.baseUrl) {
         prefix = window.DataEaseBi.baseUrl
       } else {
-        // const href = window.location.href
-        prefix = location.origin + location.pathname
+        const path = location.pathname.endsWith('/')
+          ? location.pathname
+          : location.pathname.replace(/\/[^/]*$/, '/')
+        prefix = location.origin + path
         if (env.MODE === 'dev') {
           prefix = dev.server.proxy[basePath].target + '/'
         }

@@ -55,9 +55,11 @@ onBeforeMount(async () => {
   // 添加外部参数
   let attachParams
   try {
-    await getOuterParamsInfo(embeddedParams.dvId).then(rsp => {
-      dvMainStore.setNowPanelOuterParamsInfoV2(rsp.data, embeddedParams.dvId)
-    })
+    const outerParamsResp = await getOuterParamsInfo(embeddedParams.dvId)
+    if (!outerParamsResp?.data) {
+      return
+    }
+    dvMainStore.setNowPanelOuterParamsInfoV2(outerParamsResp.data, embeddedParams.dvId)
   } catch (error) {
     if (error.status === 401) {
       return

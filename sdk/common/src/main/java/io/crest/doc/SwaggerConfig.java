@@ -3,7 +3,6 @@ package io.crest.doc;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
-import org.apache.commons.lang3.RandomUtils;
 import org.springdoc.core.customizers.GlobalOpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,21 +11,23 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
 @SuppressWarnings("deprecation")
 public class SwaggerConfig {
 
-    @Value("${crest.version:${crest.version:2.10.22}}")
+    @Value("${crest.version:1.2.0}")
     private String version;
 
     @Bean
     public GlobalOpenApiCustomizer orderGlobalOpenApiCustomizer() {
         return openApi -> {
             if (openApi.getTags() != null) {
+                AtomicInteger order = new AtomicInteger(1);
                 openApi.getTags().forEach(tag -> {
                     Map<String, Object> map = new HashMap<>();
-                    map.put("x-order", RandomUtils.nextInt(0, 100));
+                    map.put("x-order", order.getAndIncrement());
                     tag.setExtensions(map);
                 });
             }
@@ -41,7 +42,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Crest API")
-                        .description("人人可用的开源 BI 工具")
+                        .description("看见数据，读懂业务")
                         .termsOfService("https://github.com/sevoniva/Crest")
                         .contact(contact)
                         .version(version));
@@ -69,26 +70,38 @@ public class SwaggerConfig {
     }
 
     @Bean
+    public GroupedOpenApi relationApi() {
+        return GroupedOpenApi.builder().group("5-relation").displayName("数据血缘").packagesToScan("io.crest.relation").build();
+    }
+
+    @Bean
+    public GroupedOpenApi exportApi() {
+        return GroupedOpenApi.builder().group("6-export").displayName("导出中心").packagesToScan("io.crest.exportCenter").build();
+    }
+
+    @Bean
     public GroupedOpenApi basicSettingApi() {
         String[] packageArray = {
                 "io.crest.system",
+                "io.crest.font",
+                "io.crest.menu",
         };
-        return GroupedOpenApi.builder().group("5-permission").displayName("系统设置").packagesToScan(packageArray).build();
+        return GroupedOpenApi.builder().group("7-system").displayName("系统管理").packagesToScan(packageArray).build();
     }
 
     @Bean
     public GroupedOpenApi baseApi() {
-        return GroupedOpenApi.builder().group("6-base").displayName("基础功能").packagesToScan("io.crest.base").build();
+        return GroupedOpenApi.builder().group("8-base").displayName("基础功能").packagesToScan("io.crest.base", "io.crest.resource").build();
     }
 
     @Bean
     public GroupedOpenApi systemApi() {
-        return GroupedOpenApi.builder().group("7-permission").displayName("权限相关").packagesToScan("io.crest.permissions").build();
+        return GroupedOpenApi.builder().group("9-permission").displayName("权限管理").packagesToScan("io.crest.substitute.permissions").build();
     }
 
     @Bean
     public GroupedOpenApi syncApi() {
-        return GroupedOpenApi.builder().group("8-sync").displayName("同步管理").packagesToScan("io.crest.sync.task").build();
+        return GroupedOpenApi.builder().group("10-sync").displayName("同步管理").packagesToScan("io.crest.sync.task").build();
     }
 
 

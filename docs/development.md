@@ -1,6 +1,6 @@
 # Crest 开发说明
 
-Crest 是 DataEase 2.10.22 的 GPLv3 派生项目。仓库保留上游许可和版权声明，产品品牌使用 Crest，并包含 OceanBase Oracle 模式数据源和字段级数据血缘能力。
+Crest 是 DataEase 2.10.22 的 GPLv3 派生项目。仓库保留上游许可和版权声明，产品品牌使用 Crest，并包含 OceanBase Oracle 模式数据源、字段级数据血缘和内置演示看板能力。
 
 ## 目录
 
@@ -88,7 +88,7 @@ Schema 留空时，系统默认使用用户名中 `@` 或 `#` 前面的账号名
 
 ## 产品边界
 
-Crest 保持 BI 主链路清晰：
+Crest 保持 BI 主链路明确：
 
 - 数据源、数据集、数据集缓存同步；
 - 字段级数据血缘；
@@ -97,9 +97,32 @@ Crest 保持 BI 主链路清晰：
 - 登录、用户、角色、系统参数；
 - OceanBase Oracle 模式数据源。
 
-当前不提供 SQLBot、模板市场、工具箱、消息中心、独立移动端入口、地图类图表、地图运行时、地图 API、演示模板资源、帮助中心、关于页和外部插件入口。
+当前不提供 SQLBot、模板市场、工具箱、消息中心、独立移动端入口、地图类图表、地图运行时、地图 API、帮助中心、关于页和外部插件入口。
 
 分享模块保留 `core_share`、`CoreShare*` 和 `io.crest.api.share` 等历史兼容名称。这些名称关联数据库表、接口路径、Mapper 语句和旧分享链接。调整前必须先设计迁移、回滚和链接兼容方案。
+
+## 接口文档
+
+接口文档由 Springdoc 和 Knife4j 在运行时生成：
+
+```text
+/doc.html
+/v3/api-docs
+```
+
+文档配置在：
+
+```text
+sdk/common/src/main/java/io/crest/doc/SwaggerConfig.java
+```
+
+添加后端接口时，同步检查三件事：
+
+- 所在包是否已经进入对应的 `GroupedOpenApi` 分组；
+- 控制器是否有清楚的 `@Tag` 和 `@Operation`；
+- 请求和响应对象是否有必要的 `@Schema` 说明。
+
+当前分组以运行模块为准：可视化、图表、数据集、数据源、数据血缘、导出中心、系统管理、权限管理和同步管理。移除的功能不再出现在接口文档分组里。
 
 ## 部署命名
 
@@ -122,29 +145,33 @@ Crest 保持 BI 主链路清晰：
 core/core-backend/src/main/resources/db/migration
 ```
 
-当前迁移目录只保留 Crest V1.1 的初始化基线：
+当前迁移目录包含 Crest 的初始化基线和公开演示资源：
 
-- `V1.1__initial_schema.sql`：创建当前运行所需的全部表结构，写入默认管理员、基础菜单、系统参数、内置驱动和必要主题配置。
+- `V1.1__initial_schema.sql`：创建当前运行所需的全部表结构，写入默认管理员、基础菜单、系统参数、内置驱动和必要主题配置；
+- `V1.2__demo_retail_dashboard.sql`：创建 `crest_demo_retail` 零售演示库，写入演示数据源、数据集、图表和数据大屏。
 
-初始化脚本只处理安装态数据，不能内置业务示例。新环境应保持无数据源、无数据集、无图表、无仪表板。
+演示数据只用于新用户理解产品主链路，必须保持环境无关：不能写入本地 IP、个人账号、压测数据、外部库连接串或临时资源。应用启动时会根据当前元数据库连接信息同步演示数据源地址，避免在 SQL 里写死容器名或宿主机地址。
 
-后续版本涉及数据库结构或必要初始化数据时，在 `V1.1__initial_schema.sql` 之后新增迁移脚本，不直接改已发布基线。脚本内容要保持可审计：只处理产品运行必需的数据，不写入本地测试数据、压测数据、演示看板或外部环境信息。
+后续版本涉及数据库结构或必要初始化数据时，在已发布脚本之后添加新的迁移脚本，不直接改已发布基线。脚本内容要保持可审计：只处理产品运行必需的数据和公开演示资源。
 
 每次调整迁移脚本后，都要至少做一次空库安装验证：
 
 ```bash
-docker exec dataease-mysql-local mysql -uroot -pPassword123@mysql \
+docker exec crest-mysql-local mysql -uroot -pPassword123@mysql \
   -e "DROP DATABASE IF EXISTS crest_simplify; CREATE DATABASE crest_simplify DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
 launchctl kickstart -k gui/$(id -u)/com.crest.local
 ```
 
 验证点：
 
-- `de_standalone_version` 最新版本成功；
+- `de_standalone_version` 最新迁移成功，包含 `1.2:demo retail dashboard`；
 - 只有一个默认管理员账号；
 - `core_opt_recent`、`core_export_task` 等运行残留为空；
-- 没有内置数据源、数据集、图表和仪表板；
+- 演示数据源、数据集、图表和数据大屏存在，且不包含本地环境连接串；
 - `index.html` 和 `doc.html` 返回 200；
+- `/v3/api-docs` 和 `/v3/api-docs/5-relation` 返回 200；
+- 演示大屏能打开，图表明细弹窗能看到数据；
+- 数据血缘能从演示数据源追踪到字段、数据集、图表和数据大屏；
 - `error.log` 为空。
 
 ## 数据血缘

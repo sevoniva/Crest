@@ -19,11 +19,13 @@ import { useRoute } from 'vue-router_2'
 import { filterEnumMapSync } from '@/utils/componentUtils'
 import CanvasOptBar from '@/components/visualization/CanvasOptBar.vue'
 import DvPreview from '@/views/data-visualization/DvPreview.vue'
+import { useCache } from '@/hooks/web/useCache'
 const routeWatch = useRoute()
 
 const dvMainStore = dvMainStoreWithOut()
 const { t } = useI18n()
 const embeddedStore = useEmbedded()
+const { wsCache } = useCache()
 const previewCanvasContainer = ref(null)
 const downloadStatus = ref(false)
 const state = reactive({
@@ -60,6 +62,14 @@ const props = defineProps({
 })
 
 const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
+  const needsUserToken = !props.publicLinkStatus && !props.outerId && !embeddedStore.getToken
+  if (needsUserToken && !wsCache.get('user.token')) {
+    await router.replace(
+      `/login?redirect=${encodeURIComponent(router.currentRoute.value.fullPath)}`
+    )
+    return
+  }
+
   const jumpInfoParam = embeddedStore.jumpInfoParam || router.currentRoute.value.query.jumpInfoParam
   let jumpParam
   // 获取外部跳转参数
@@ -92,9 +102,11 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
 
   // 添加外部参数
   let attachParam
-  await getOuterParamsInfo(dvId).then(rsp => {
-    dvMainStore.setNowPanelOuterParamsInfoV2(rsp.data, dvId)
-  })
+  const outerParamsResp = await getOuterParamsInfo(dvId)
+  if (!outerParamsResp?.data) {
+    return
+  }
+  dvMainStore.setNowPanelOuterParamsInfoV2(outerParamsResp.data, dvId)
 
   // 外部参数（iframe 或者 iframe嵌入）
   const attachParamsEncode = router.currentRoute.value.query.attachParams

@@ -60,7 +60,28 @@ const getCurLocation = () => {
   if (router.currentRoute.value.query.redirect) {
     queryRedirectPath = router.currentRoute.value.query.redirect as string
   }
-  return queryRedirectPath
+  try {
+    let decodedRedirectPath = queryRedirectPath
+    for (let i = 0; i < 5; i++) {
+      const nextPath = decodeURIComponent(decodedRedirectPath)
+      if (nextPath === decodedRedirectPath) {
+        break
+      }
+      decodedRedirectPath = nextPath
+    }
+    queryRedirectPath = decodedRedirectPath
+  } catch {
+    // keep the original path below when an invalid escape sequence is passed in
+  }
+  const [path, search = ''] = queryRedirectPath.split('?')
+  const query: Record<string, string> = {}
+  new URLSearchParams(search).forEach((value, key) => {
+    query[key] = value
+  })
+  return {
+    path,
+    query
+  }
 }
 const enterHandler = e => {
   e.target.blur()
@@ -99,8 +120,7 @@ const handleLogin = () => {
           userStore.setToken(token)
           userStore.setExp(exp)
           userStore.setTime(Date.now())
-          const queryRedirectPath = getCurLocation()
-          router.push({ path: queryRedirectPath })
+          router.push(getCurLocation())
         })
         .catch(() => {
           duringLogin.value = false

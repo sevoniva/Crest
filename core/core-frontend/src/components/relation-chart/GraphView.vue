@@ -186,13 +186,46 @@ const selectedStats = computed(() => {
   )
 })
 
+const getChartSize = () => ({
+  width: chartRef.value?.clientWidth || 0,
+  height: chartRef.value?.clientHeight || 0
+})
+
+const resizeChartToContainer = (force = false) => {
+  const { width, height } = getChartSize()
+  if (!width || !height || !chart) {
+    return false
+  }
+  const sizeChanged = width !== lastWidth || height !== lastHeight
+  if (force || sizeChanged) {
+    if (sizeChanged) {
+      resetViewOnNextRender = true
+      knowledgeLayoutCacheKey = ''
+      knowledgeLayoutCache.clear()
+      lastWidth = width
+      lastHeight = height
+    }
+    chart.resize({ width, height })
+  }
+  return true
+}
+
 const ensureChart = async () => {
   await nextTick()
   if (!chartRef.value) return
+  const { width, height } = getChartSize()
+  if (!width || !height) return
   if (!chart) {
-    chart = echarts.init(chartRef.value, undefined, { renderer: 'canvas', useDirtyRect: true })
+    chart = echarts.init(chartRef.value, undefined, {
+      renderer: 'canvas',
+      devicePixelRatio: window.devicePixelRatio || 1,
+      useDirtyRect: false,
+      width,
+      height
+    })
     chart.on('click', handleChartClick)
   }
+  resizeChartToContainer()
 }
 
 const clearFocus = () => {
@@ -366,8 +399,8 @@ const layoutLayeredNodes = () => {
     const step = height / (group.length + 1)
     return {
       ...node,
-      x: width * (lanes[level] ?? 0.5),
-      y: step * (index + 1),
+      x: Math.round(width * (lanes[level] ?? 0.5)),
+      y: Math.round(step * (index + 1)),
       ...getNodeVisual(node)
     }
   })
@@ -531,8 +564,8 @@ const layoutKnowledgeNodes = () => {
   fitNodesToViewport(nodes, width, height, paddingX, paddingY)
 
   const layoutNodes = nodes.map(node => {
-    const x = clamp(node.x || centerX, 36, width - 36)
-    const y = clamp(node.y || centerY, 36, height - 36)
+    const x = Math.round(clamp(node.x || centerX, 36, width - 36))
+    const y = Math.round(clamp(node.y || centerY, 36, height - 36))
     const degree = node.degree || 0
     return {
       ...node,
@@ -593,6 +626,10 @@ const formatLinks = () => {
 const renderChart = async () => {
   await ensureChart()
   if (!chart) return
+  if (!resizeChartToContainer()) {
+    scheduleResize()
+    return
+  }
   if (!hasData.value) {
     chart.clear()
     return
@@ -678,10 +715,11 @@ const renderChart = async () => {
     },
     {
       notMerge: false,
-      lazyUpdate: true,
+      lazyUpdate: false,
       replaceMerge: ['series']
     }
   )
+  resizeChartToContainer(true)
 }
 
 const scheduleRender = () => {
@@ -700,17 +738,7 @@ const scheduleResize = () => {
   }
   resizeFrame = requestAnimationFrame(() => {
     resizeFrame = null
-    const width = chartRef.value?.clientWidth || 0
-    const height = chartRef.value?.clientHeight || 0
-    if (width === lastWidth && height === lastHeight) {
-      return
-    }
-    lastWidth = width
-    lastHeight = height
-    resetViewOnNextRender = true
-    knowledgeLayoutCacheKey = ''
-    knowledgeLayoutCache.clear()
-    chart?.resize()
+    if (!resizeChartToContainer()) return
     if (resizeTimer !== null) {
       window.clearTimeout(resizeTimer)
     }
@@ -723,6 +751,7 @@ const scheduleResize = () => {
 
 onMounted(() => {
   scheduleRender()
+  window.setTimeout(scheduleResize, 120)
   if (chartRef.value) {
     resizeObserver = new ResizeObserver(scheduleResize)
     resizeObserver.observe(chartRef.value)

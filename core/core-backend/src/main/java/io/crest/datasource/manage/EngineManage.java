@@ -3,6 +3,7 @@ package io.crest.datasource.manage;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.crest.datasource.dao.auto.entity.CoreDatasource;
 import io.crest.datasource.dao.auto.entity.CoreDeEngine;
+import io.crest.datasource.dao.auto.mapper.CoreDatasourceMapper;
 import io.crest.datasource.dao.auto.mapper.CoreDeEngineMapper;
 import io.crest.datasource.type.H2;
 import io.crest.datasource.type.Mysql;
@@ -31,10 +32,16 @@ import java.util.regex.Pattern;
 @Transactional(rollbackFor = Exception.class)
 @SuppressWarnings("unchecked")
 public class EngineManage {
+    private static final Long DEMO_RETAIL_DATASOURCE_ID = 910001L;
+    private static final String DEMO_RETAIL_DATABASE = "crest_demo_retail";
+    private static final Pattern MYSQL_JDBC_PATTERN = Pattern.compile("jdbc:mysql://([^:/?]+):(\\d+)/([^?]+)(?:\\?(.*))?");
+
     @Resource
     private Environment env;
     @Resource
     private CoreDeEngineMapper deEngineMapper;
+    @Resource
+    private CoreDatasourceMapper coreDatasourceMapper;
 
     @Value("${crest.path.engine:jdbc:h2:/opt/crest/desktop_data;AUTO_SERVER=TRUE;AUTO_RECONNECT=TRUE;MODE=MySQL;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DATABASE_TO_UPPER=FALSE}")
     private String engineUrl;
@@ -118,17 +125,15 @@ public class EngineManage {
         } else {
             engine.setType(engineType.mysql.name());
             Mysql mysqlConfiguration = new Mysql();
-            Pattern WITH_SQL_FRAGMENT = Pattern.compile("jdbc:mysql://(.*):(\\d+)/(.*)");
-            Matcher matcher = WITH_SQL_FRAGMENT.matcher(env.getProperty("spring.datasource.url"));
+            Matcher matcher = MYSQL_JDBC_PATTERN.matcher(env.getProperty("spring.datasource.url"));
             if (!matcher.find()) {
                 return;
             }
             mysqlConfiguration.setHost(matcher.group(1));
             mysqlConfiguration.setPort(Integer.valueOf(matcher.group(2)));
-            String[] databasePrams = matcher.group(3).split("\\?");
-            mysqlConfiguration.setDataBase(databasePrams[0]);
-            if (databasePrams.length == 2) {
-                mysqlConfiguration.setExtraParams(databasePrams[1]);
+            mysqlConfiguration.setDataBase(matcher.group(3));
+            if (StringUtils.isNotBlank(matcher.group(4))) {
+                mysqlConfiguration.setExtraParams(matcher.group(4));
             }
             mysqlConfiguration.setUsername(env.getProperty("spring.datasource.username"));
             mysqlConfiguration.setPassword(env.getProperty("spring.datasource.password"));
@@ -155,6 +160,53 @@ public class EngineManage {
     }
 
     public void initLocalDataSource() {
-        // Crest V1.1 keeps a clean initial workspace. Users add their own datasource after installation.
+        Matcher matcher = MYSQL_JDBC_PATTERN.matcher(env.getProperty("spring.datasource.url", ""));
+        if (!matcher.find()) {
+            return;
+        }
+
+        Mysql mysqlConfiguration = new Mysql();
+        mysqlConfiguration.setType(engineType.mysql.name());
+        mysqlConfiguration.setName(engineType.mysql.getAlias());
+        mysqlConfiguration.setCatalog("OLTP");
+        mysqlConfiguration.setHost(matcher.group(1));
+        mysqlConfiguration.setPort(Integer.valueOf(matcher.group(2)));
+        mysqlConfiguration.setDataBase(DEMO_RETAIL_DATABASE);
+        if (StringUtils.isNotBlank(matcher.group(4))) {
+            mysqlConfiguration.setExtraParams(matcher.group(4));
+        }
+        mysqlConfiguration.setUsername(env.getProperty("spring.datasource.username"));
+        mysqlConfiguration.setPassword(env.getProperty("spring.datasource.password"));
+        mysqlConfiguration.setUrlType("hostName");
+        mysqlConfiguration.setInitialPoolSize(5);
+        mysqlConfiguration.setMinPoolSize(5);
+        mysqlConfiguration.setMaxPoolSize(20);
+        mysqlConfiguration.setQueryTimeout(30);
+        mysqlConfiguration.setUseSSH(false);
+
+        long now = System.currentTimeMillis();
+        CoreDatasource datasource = coreDatasourceMapper.selectById(DEMO_RETAIL_DATASOURCE_ID);
+        CoreDatasource demoDatasource = new CoreDatasource();
+        demoDatasource.setId(DEMO_RETAIL_DATASOURCE_ID);
+        demoDatasource.setName("Crest 演示零售经营库");
+        demoDatasource.setDescription("连锁茶饮/零售演示数据源，含订单、商品、会员、门店、营销、库存、履约主题。");
+        demoDatasource.setType(engineType.mysql.name());
+        demoDatasource.setPid(0L);
+        demoDatasource.setEditType("0");
+        demoDatasource.setConfiguration(JsonUtil.toJSONString(mysqlConfiguration).toString());
+        demoDatasource.setUpdateTime(now);
+        demoDatasource.setUpdateBy(1L);
+        demoDatasource.setStatus("Success");
+        demoDatasource.setTaskStatus("Success");
+        demoDatasource.setEnableDataFill(false);
+        if (datasource == null) {
+            demoDatasource.setCreateTime(now);
+            demoDatasource.setCreateBy("1");
+            coreDatasourceMapper.insert(demoDatasource);
+            return;
+        }
+        demoDatasource.setCreateTime(datasource.getCreateTime());
+        demoDatasource.setCreateBy(datasource.getCreateBy());
+        coreDatasourceMapper.updateById(demoDatasource);
     }
 }

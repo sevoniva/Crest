@@ -21,14 +21,14 @@
 应用镜像默认使用：
 
 ```text
-ghcr.io/sevoniva/crest:main
+ghcr.io/sevoniva/crest:v1.2.0
 ```
 
 Dockerfile 默认使用 JDK Alpine 生成裁剪运行时，并以 Alpine 作为最终基础镜像：
 
 ```text
 构建阶段：eclipse-temurin:21-jdk-alpine
-运行阶段：alpine:3.20
+运行阶段：alpine:3.22
 ```
 
 最终镜像只保留运行应用需要的 Java runtime、应用包、驱动和静态资源，不包含 JDK 工具链。容器以固定非 root 用户 `10001:10001` 运行，Kubernetes 清单默认开启：
@@ -129,17 +129,17 @@ docker exec devops-kind-control-plane \
 外部 MySQL 模式在 Docker Desktop 上可使用宿主机地址 `host.docker.internal`。例如本机 MySQL 映射到 `13306` 时：
 
 ```bash
-docker exec dataease-mysql-local mysql -uroot -pPassword123@mysql \
+docker exec crest-mysql-local mysql -uroot -pPassword123@mysql \
   -e "DROP DATABASE IF EXISTS crest_k8s_external; CREATE DATABASE crest_k8s_external DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
 ```
 
 验证点：
 
 - Pod 全部 Ready，应用容器重启次数为 0；
-- `/index.html`、`/doc.html`、`/v3/api-docs` 返回 200；
+- `/index.html`、`/doc.html`、`/v3/api-docs`、`/v3/api-docs/5-relation` 返回 200；
 - `admin/admin` 可以登录；
-- `de_standalone_version` 最新记录为 `1.1:initial schema`；
-- 初始状态无数据源、无数据集、无图表、无仪表板；
+- `de_standalone_version` 最新迁移成功，包含 `1.2:demo retail dashboard`；
+- 初始状态包含零售经营演示数据源、数据集、图表和数据大屏；
 - 应用日志没有 `WARN`、`ERROR`、`Exception`。
 
 清理：

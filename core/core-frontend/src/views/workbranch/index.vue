@@ -164,7 +164,7 @@ fillCardInfo()
       </div>
     </div>
     <div class="workbranch-content">
-      <el-scrollbar style="height: 100%">
+      <el-scrollbar class="workbranch-content-scroll">
         <shortcut-table />
       </el-scrollbar>
     </div>
@@ -178,7 +178,10 @@ fillCardInfo()
   background: #f5f6f7;
   padding: 24px;
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
+  --workbranch-card-radius: 6px;
+  --workbranch-panel-height: 480px;
 
   .main-btn {
     display: inline-flex;
@@ -197,7 +200,7 @@ fillCardInfo()
     .user-info {
       padding: 24px 16px 16px 16px;
       background: #fff;
-      border-radius: 6px;
+      border-radius: var(--workbranch-card-radius);
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
@@ -372,6 +375,20 @@ fillCardInfo()
 
   .workbranch-content {
     width: calc(100% - 376px);
+    height: var(--workbranch-panel-height);
+    overflow: hidden;
+    border-radius: var(--workbranch-card-radius);
+
+    .workbranch-content-scroll {
+      height: 100%;
+      border-radius: inherit;
+
+      :deep(.ed-scrollbar__wrap),
+      :deep(.ed-scrollbar__view) {
+        height: 100%;
+        border-radius: inherit;
+      }
+    }
   }
 }
 </style>

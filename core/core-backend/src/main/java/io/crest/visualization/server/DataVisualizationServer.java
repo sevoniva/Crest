@@ -149,7 +149,7 @@ public class DataVisualizationServer implements DataVisualizationApi {
     @Resource
     private CoreBusiManage coreBusiManage;
 
-    @Value("${crest.version:${crest.version:2.10.22}}")
+    @Value("${crest.version:1.2.0}")
     private String crestVersion;
 
     @Resource
@@ -221,7 +221,7 @@ public class DataVisualizationServer implements DataVisualizationApi {
             List<ChartViewDTO> chartViewDTOS = chartViewManege.listBySceneId(dvId, resourceTable);
             if (!CollectionUtils.isEmpty(chartViewDTOS)) {
                 // 增加过滤当前使用的图表信息
-                Map<Long, ChartViewDTO> viewInfo = chartViewDTOS.stream().filter(item -> result.getComponentData().indexOf("\"id\":\"" + item.getId()) > 0).collect(Collectors.toMap(ChartViewDTO::getId, chartView -> chartView));
+                Map<Long, ChartViewDTO> viewInfo = chartViewDTOS.stream().filter(item -> componentDataContainsView(result.getComponentData(), item.getId())).collect(Collectors.toMap(ChartViewDTO::getId, chartView -> chartView));
                 result.setCanvasViewInfo(viewInfo);
             }
             VisualizationWatermark watermark = watermarkMapper.selectById("system_default");
@@ -254,6 +254,42 @@ public class DataVisualizationServer implements DataVisualizationApi {
             DEException.throwException(Translator.get("i18n_resource_not_exists"));
         }
         return null;
+    }
+
+    private boolean componentDataContainsView(String componentData, Long viewId) {
+        if (StringUtils.isBlank(componentData) || viewId == null) {
+            return false;
+        }
+        String viewIdText = viewId.toString();
+        try {
+            List<Map<String, Object>> components = JsonUtil.parseList(componentData, new TypeReference<List<Map<String, Object>>>() {
+            });
+            return containsComponentId(components, viewIdText);
+        } catch (Exception e) {
+            return componentData.contains("\"id\":\"" + viewIdText + "\"")
+                    || componentData.contains("\"id\": \"" + viewIdText + "\"");
+        }
+    }
+
+    private boolean containsComponentId(Object value, String viewId) {
+        if (value instanceof Map<?, ?> map) {
+            Object id = map.get("id");
+            if (viewId.equals(String.valueOf(id))) {
+                return true;
+            }
+            for (Object item : map.values()) {
+                if (containsComponentId(item, viewId)) {
+                    return true;
+                }
+            }
+        } else if (value instanceof Collection<?> collection) {
+            for (Object item : collection) {
+                if (containsComponentId(item, viewId)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void appDatasetMatch(VisualizationExport2AppVO appData, Map<Long, Long> datasourceIdMap, Map<Long, Long> dsGroupIdMap, Map<Long, Long> dsTableIdMap, Map<Long, Long> dsTableFieldsIdMap,Map<String, String> dsTableFieldsDatasetNameMap) {

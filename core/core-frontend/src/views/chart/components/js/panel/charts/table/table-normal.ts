@@ -399,7 +399,8 @@ export class TableNormal extends S2ChartView<TableSheet> {
       ) as any
       data.push(summaryObj)
     }
-    s2Options.dataCell = viewMeta => {
+    s2Options.dataCell = (viewMeta, spreadsheet) => {
+      const sheet = spreadsheet || viewMeta?.spreadsheet
       // 总计行处理
       if (showSummary && viewMeta.rowIndex === data.length - 1) {
         if (viewMeta.colIndex === 0) {
@@ -408,12 +409,12 @@ export class TableNormal extends S2ChartView<TableSheet> {
             viewMeta.isSummaryLabel = true
           }
         }
-        return new SummaryCell(viewMeta, viewMeta?.spreadsheet)
+        return new SummaryCell(viewMeta, sheet)
       }
       if (viewMeta.colIndex === 0 && s2Options.showSeriesNumber) {
         viewMeta.fieldValue = pageInfo.pageSize * (pageInfo.currentPage - 1) + viewMeta.rowIndex + 1
       }
-      return new CustomDataCell(viewMeta, viewMeta?.spreadsheet)
+      return new CustomDataCell(viewMeta, sheet)
     }
   }
 

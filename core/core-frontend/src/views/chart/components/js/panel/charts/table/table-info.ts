@@ -540,7 +540,8 @@ export class TableInfo extends S2ChartView<TableSheet> {
         return p
       }, mergedCellsInfoMap)
     }
-    s2Options.dataCell = viewMeta => {
+    s2Options.dataCell = (viewMeta, spreadsheet) => {
+      const sheet = spreadsheet || viewMeta?.spreadsheet
       // 总计行处理
       if (showSummary && viewMeta.rowIndex === data.length - 1) {
         if (viewMeta.colIndex === 0) {
@@ -555,11 +556,11 @@ export class TableInfo extends S2ChartView<TableSheet> {
             }
           }
         }
-        return new SummaryCell(viewMeta, viewMeta?.spreadsheet)
+        return new SummaryCell(viewMeta, sheet)
       }
       const field = fields.find(f => f.dataeaseName === viewMeta.valueField)
       if (field?.deType === 7 && chart.showPosition !== 'dialog') {
-        return new ImageCell(viewMeta, viewMeta?.spreadsheet)
+        return new ImageCell(viewMeta, sheet)
       }
       if (viewMeta.colIndex === 0 && s2Options.showSeriesNumber) {
         if (tableCell.mergeCells) {
@@ -576,7 +577,7 @@ export class TableInfo extends S2ChartView<TableSheet> {
       if (mergeCells && mergedCellsInfoMap[`${viewMeta.rowIndex}-${viewMeta.colIndex}`]) {
         viewMeta.isMergedCell = true
       }
-      return new CustomDataCell(viewMeta, viewMeta?.spreadsheet)
+      return new CustomDataCell(viewMeta, sheet)
     }
   }
 

@@ -469,7 +469,7 @@ const getEmptyDesc = (): string => {
     </template>
   </div>
   <el-empty
-    class="dashboard-type"
+    class="dashboard-type border-radius-12"
     v-else
     :description="t('work_branch.administrator_for_authorization')"
   />
@@ -480,8 +480,14 @@ const getEmptyDesc = (): string => {
   padding: 8px 24px 24px 24px;
   background: #fff;
   border-radius: 6px;
-  min-height: calc(100% - 280px);
-  margin-top: 16px;
+  height: 100%;
+  min-height: 0;
+  margin-top: 0;
+  overflow: hidden;
+
+  :deep(.ed-loading-mask) {
+    border-radius: inherit;
+  }
 
   .select-type-list {
     width: 120px;

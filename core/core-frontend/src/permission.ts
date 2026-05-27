@@ -28,6 +28,31 @@ const { loadStart, loadDone } = usePageLoading()
 const whiteList = ['/login', '/chart-view', '/admin-login', '/401'] // 不重定向白名单
 const embeddedWindowWhiteList = ['/dvCanvas', '/dashboard', '/preview', '/dataset-embedded-form']
 const embeddedRouteWhiteList = ['/dataset-embedded', '/dataset-form', '/dataset-embedded-form']
+
+const parseRedirectLocation = (redirectPath: string) => {
+  let target = redirectPath || '/workbranch/index'
+  try {
+    for (let i = 0; i < 5; i++) {
+      const nextTarget = decodeURIComponent(target)
+      if (nextTarget === target) {
+        break
+      }
+      target = nextTarget
+    }
+  } catch {
+    // keep the original path when an invalid escape sequence is passed in
+  }
+  const [path, search = ''] = target.split('?')
+  const query: Record<string, string> = {}
+  new URLSearchParams(search).forEach((value, key) => {
+    query[key] = value
+  })
+  return {
+    path,
+    query
+  }
+}
+
 router.beforeEach(async (to, from, next) => {
   if (['/chart-view'].includes(to.path)) {
     open()
@@ -55,7 +80,10 @@ router.beforeEach(async (to, from, next) => {
       permissionStore.setCurrentPath(to.path)
       if (permissionStore.getIsAddRouters) {
         let str = ''
-        if (((from.query.redirect as string) || '?').split('?')[0] === to.path) {
+        if (
+          !Object.keys(to.query || {}).length &&
+          ((from.query.redirect as string) || '?').split('?')[0] === to.path
+        ) {
           str = ((window.location.hash as string) || '?').split('?').reverse()[0]
           if (str.includes('redirect=')) {
             str = ''
@@ -93,9 +121,11 @@ router.beforeEach(async (to, from, next) => {
         router.addRoute(route as unknown as RouteRecordRaw) // 动态添加可访问路由表
       })
 
-      const redirectPath = from.query.redirect || to.path
-      const redirect = decodeURIComponent(redirectPath as string)
-      const nextData = to.path === redirect ? { ...to, replace: true } : { path: redirect }
+      const redirectTarget = parseRedirectLocation((from.query.redirect as string) || to.fullPath || to.path)
+      const nextData =
+        to.path === redirectTarget.path
+          ? { ...to, query: Object.keys(to.query).length ? to.query : redirectTarget.query, replace: true }
+          : redirectTarget
 
       permissionStore.setIsAddRouters(true)
       await interactiveStore.initInteractive(true)
