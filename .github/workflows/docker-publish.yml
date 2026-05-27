@@ -23,6 +23,7 @@ env:
   IMAGE_TAG: ${{ inputs.image_tag || github.ref_name || 'v1.2.0' }}
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/sevoniva/crest
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-crest:
