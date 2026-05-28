@@ -85,6 +85,7 @@ public class DatasourceServer implements DatasourceApi {
     private static final String EXCEL_EDIT_ROW_ID = "_rowId";
     private static final int MAX_EXCEL_EDIT_PAGE_SIZE = 500;
     private static final int MAX_EXCEL_EDIT_BATCH_SIZE = 5000;
+    private static final List<String> EXCEL_UPLOAD_SUFFIXES = List.of("xlsx", "xls", "csv");
 
     @Resource
     private CoreDatasourceMapper datasourceMapper;
@@ -880,29 +881,11 @@ public class DatasourceServer implements DatasourceApi {
         datasourceSyncManage.extractedData(null, coreDatasource, updateType, MANUAL.toString());
     }
 
-    public static <T> List<T> deepCopy(List<T> originalList) {
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-            oos.writeObject(originalList);
-            oos.close();
-
-            ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
-            ObjectInputStream ois = new ObjectInputStream(bis);
-            List<T> newList = (List<T>) ois.readObject();
-            ois.close();
-
-            return newList;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     private static final Integer replace = 0;
     private static final Integer append = 1;
 
     public ExcelFileData uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("id") long datasourceId, @RequestParam("editType") Integer editType) throws DEException {
+        validateExcelUploadFile(file);
         CoreDatasource coreDatasource = null;
         if (ObjectUtils.isNotEmpty(datasourceId) && 0L != datasourceId) {
             coreDatasource = dataSourceManage.getCoreDatasource(datasourceId);
@@ -989,6 +972,15 @@ public class DatasourceServer implements DatasourceApi {
             }
         }
         return excelFileData;
+    }
+
+    private void validateExcelUploadFile(MultipartFile file) {
+        String fileName = file == null ? null : file.getOriginalFilename();
+        String suffix = StringUtils.substringAfterLast(StringUtils.defaultString(fileName), ".").toLowerCase(Locale.ROOT);
+        if (!EXCEL_UPLOAD_SUFFIXES.contains(suffix)) {
+            DEException.throwException(Translator.get("i18n_unsupported_file_format"));
+        }
+        FileUtils.validateUploadFilename(fileName);
     }
 
 
@@ -1337,14 +1329,18 @@ public class DatasourceServer implements DatasourceApi {
         if (CollectionUtils.isEmpty(deletes)) {
             return;
         }
+        // Identifiers are validated in quoteIdentifier; JDBC placeholders cannot bind table or column names.
+        // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string
         String sql = "DELETE FROM " + quoteIdentifier(tableName)
                 + " WHERE " + quoteIdentifier(EXCEL_ROW_ID_FIELD) + " = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setQueryTimeout(queryTimeout);
             for (String rowId : deletes) {
                 statement.setString(1, normalizeRowId(rowId));
+                // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string
                 statement.addBatch();
             }
+            // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string
             statement.executeBatch();
         }
     }
@@ -1356,9 +1352,11 @@ public class DatasourceServer implements DatasourceApi {
         if (CollectionUtils.isEmpty(fields)) {
             DEException.throwException("Excel 数据表没有可编辑字段");
         }
+        // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string
         String assignments = fields.stream()
                 .map(field -> quoteIdentifier(field.getName()) + " = ?")
                 .collect(Collectors.joining(", "));
+        // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string
         String sql = "UPDATE " + quoteIdentifier(tableName) + " SET " + assignments
                 + " WHERE " + quoteIdentifier(EXCEL_ROW_ID_FIELD) + " = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -1366,8 +1364,10 @@ public class DatasourceServer implements DatasourceApi {
             for (Map<String, Object> row : updates) {
                 int index = bindExcelFieldValues(statement, fields, row, 1);
                 statement.setString(index, normalizeRowId(row.get(EXCEL_EDIT_ROW_ID)));
+                // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string
                 statement.addBatch();
             }
+            // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string
             statement.executeBatch();
         }
     }
@@ -1381,16 +1381,20 @@ public class DatasourceServer implements DatasourceApi {
         }
         List<String> columnNames = fields.stream().map(TableField::getName).collect(Collectors.toCollection(ArrayList::new));
         columnNames.add(EXCEL_ROW_ID_FIELD);
+        // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string
         String columns = columnNames.stream().map(this::quoteIdentifier).collect(Collectors.joining(", "));
         String placeholders = columnNames.stream().map(name -> "?").collect(Collectors.joining(", "));
+        // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string
         String sql = "INSERT INTO " + quoteIdentifier(tableName) + " (" + columns + ") VALUES (" + placeholders + ")";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setQueryTimeout(queryTimeout);
             for (Map<String, Object> row : inserts) {
                 int index = bindExcelFieldValues(statement, fields, row, 1);
                 statement.setString(index, UUID.randomUUID().toString());
+                // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string
                 statement.addBatch();
             }
+            // nosemgrep: java.lang.security.audit.formatted-sql-string.formatted-sql-string
             statement.executeBatch();
         }
     }

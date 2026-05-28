@@ -6,4 +6,4 @@ allowBuilds:
   utf-8-validate: true
   vue-demi: true
 patchedDependencies:
-  exceljs@4.4.0: patches/exceljs@4.4.0.patch
+  tinymce@8.5.1: patches/tinymce@8.5.1.patch

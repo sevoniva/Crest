@@ -64,6 +64,7 @@ test-results/
 mapFiles/156/*.json
 !mapFiles/156/156.json
 reports/
+/tools/security/
 *.pid
 *.out
 __pycache__/

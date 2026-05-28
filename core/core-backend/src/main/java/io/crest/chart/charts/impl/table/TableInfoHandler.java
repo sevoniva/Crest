@@ -92,8 +92,7 @@ public class TableInfoHandler extends DefaultChartHandler {
         }
         boolean crossDs = ((DatasetGroupInfoDTO) formatResult.getContext().get("dataset")).getIsCross();
         DatasourceRequest datasourceRequest = new DatasourceRequest();
-        datasourceRequest.setIsCross(crossDs);
-        datasourceRequest.setDsList(dsMap);
+        fillDatasourceRequest(datasourceRequest, crossDs, dsMap, sqlMap);
         var xAxis = formatResult.getAxisMap().get(ChartAxis.xAxis);
         var allFields = (List<ChartViewFieldDTO>) filterResult.getContext().get("allFields");
         PageInfo pageInfo = new PageInfo();
@@ -231,8 +230,7 @@ public class TableInfoHandler extends DefaultChartHandler {
                     String customSumSql = SQLProvider.createQuerySQL(sqlMeta, false, !Strings.CI.equals(dsMap.values().iterator().next().getType(), "es"), view);
                     customSumSql = provider.rebuildSQL(customSumSql, sqlMeta, crossDs, dsMap);
                     var customSumReq = new DatasourceRequest();
-                    customSumReq.setIsCross(crossDs);
-                    customSumReq.setDsList(dsMap);
+                    fillDatasourceRequest(customSumReq, crossDs, dsMap, sqlMap);
                     customSumReq.setQuery(customSumSql);
                     var customSumData = (List<String[]>) provider.fetchResultField(customSumReq).get("data");
                     if (CollectionUtils.isNotEmpty(customSumData)) {

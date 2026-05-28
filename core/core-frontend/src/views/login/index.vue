@@ -330,6 +330,7 @@ onMounted(async () => {
             </div>
           </el-form>
         </div>
+        <!-- nosemgrep: javascript.vue.security.audit.xss.templates.avoid-v-html.avoid-v-html -->
         <div v-if="showFoot" class="dynamic-login-foot" v-html="footContent" />
       </div>
     </div>

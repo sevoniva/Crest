@@ -21,6 +21,7 @@ public enum ResultCode {
     SPECIFIED_QUESTIONED_USER_NOT_EXIST(30001, "某业务出现问题"),
 
     /* 系统错误：40001-49999 */
+    RESOURCE_NOT_FOUND(404, "资源不存在"),
     SYSTEM_INNER_ERROR(40001, "系统错误"),
 
     /* 数据错误：50001-599999 */

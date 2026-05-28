@@ -4,6 +4,7 @@ import io.crest.api.dataset.union.*;
 import io.crest.api.permissions.auth.dto.BusiPerCheckDTO;
 import io.crest.api.permissions.dataset.api.RowPermissionsApi;
 import io.crest.api.permissions.user.vo.UserFormVO;
+import io.crest.commons.utils.SqlVariableHandleResult;
 import io.crest.commons.utils.SqlparserUtils;
 import io.crest.constant.AuthEnum;
 import io.crest.constant.SQLConstants;
@@ -24,6 +25,7 @@ import io.crest.extensions.datasource.dto.DatasetTableDTO;
 import io.crest.extensions.datasource.dto.DatasetTableFieldDTO;
 import io.crest.extensions.datasource.dto.DatasourceSchemaDTO;
 import io.crest.extensions.datasource.dto.DsTypeDTO;
+import io.crest.extensions.datasource.dto.TableFieldWithValue;
 import io.crest.extensions.datasource.factory.ProviderFactory;
 import io.crest.extensions.datasource.model.SQLObj;
 import io.crest.extensions.datasource.provider.Provider;
@@ -136,6 +138,7 @@ public class DatasetSQLManage {
         Map<String, String[]> checkedInfo = new LinkedHashMap<>();
         List<UnionParamDTO> unionList = new ArrayList<>();
         List<DatasetTableFieldDTO> checkedFields = new ArrayList<>();
+        List<TableFieldWithValue> tableFieldWithValues = new ArrayList<>();
         String sql = "";
         if (ObjectUtils.isEmpty(union)) {
             return null;
@@ -154,7 +157,7 @@ public class DatasetSQLManage {
             } else {
                 schema = putObj2Map(dsMap, datasetTable, isCross, coreDatasource);
             }
-            SQLObj table = getUnionTable(datasetTable, tableInfo, schema, i, filterParameters(chartExtRequest, currentDs.getId()), isFromDataSet, isCross, dsMap);
+            SQLObj table = getUnionTable(datasetTable, tableInfo, schema, i, filterParameters(chartExtRequest, currentDs.getId()), isFromDataSet, isCross, dsMap, tableFieldWithValues);
             if (i == 0) {
                 tableName = table;
             }
@@ -205,7 +208,7 @@ public class DatasetSQLManage {
             checkedFields.addAll(fields);
             // 获取child的fields和union
             if (!CollectionUtils.isEmpty(unionDTO.getChildrenDs())) {
-                getUnionForEdit(datasetTable, table, unionDTO.getChildrenDs(), checkedInfo, unionList, checkedFields, dsMap, chartExtRequest, isCross, allFields);
+                getUnionForEdit(datasetTable, table, unionDTO.getChildrenDs(), checkedInfo, unionList, checkedFields, dsMap, chartExtRequest, isCross, allFields, tableFieldWithValues);
             }
         }
         // build sql
@@ -317,6 +320,7 @@ public class DatasetSQLManage {
         map.put("join", unionList);
         map.put("dsMap", dsMap);
         map.put("isFullJoin", isFullJoin);
+        map.put("tableFieldWithValues", tableFieldWithValues);
         return map;
     }
 
@@ -325,7 +329,8 @@ public class DatasetSQLManage {
                                  List<UnionDTO> childrenDs, Map<String, String[]> checkedInfo,
                                  List<UnionParamDTO> unionList, List<DatasetTableFieldDTO> checkedFields,
                                  Map<Long, DatasourceSchemaDTO> dsMap, ChartExtRequest chartExtRequest,
-                                 boolean isCross, List<DatasetTableFieldDTO> allFields) throws Exception {
+                                 boolean isCross, List<DatasetTableFieldDTO> allFields,
+                                 List<TableFieldWithValue> tableFieldWithValues) throws Exception {
         for (int i = 0; i < childrenDs.size(); i++) {
             int index = unionList.size() + 1;
 
@@ -339,7 +344,7 @@ public class DatasetSQLManage {
             } else {
                 schema = putObj2Map(dsMap, datasetTable, isCross);
             }
-            SQLObj table = getUnionTable(datasetTable, tableInfo, schema, index, filterParameters(chartExtRequest, datasetTable.getId()), chartExtRequest == null, isCross, dsMap);
+            SQLObj table = getUnionTable(datasetTable, tableInfo, schema, index, filterParameters(chartExtRequest, datasetTable.getId()), chartExtRequest == null, isCross, dsMap, tableFieldWithValues);
 
             List<DatasetTableFieldDTO> fields = unionDTO.getCurrentDsFields();
             fields = fields.stream().filter(DatasetTableFieldDTO::getChecked).collect(Collectors.toList());
@@ -389,7 +394,7 @@ public class DatasetSQLManage {
             unionToParent.setCurrentSQLObj(table);
             unionList.add(unionToParent);
             if (!CollectionUtils.isEmpty(unionDTO.getChildrenDs())) {
-                getUnionForEdit(datasetTable, table, unionDTO.getChildrenDs(), checkedInfo, unionList, checkedFields, dsMap, chartExtRequest, isCross, allFields);
+                getUnionForEdit(datasetTable, table, unionDTO.getChildrenDs(), checkedInfo, unionList, checkedFields, dsMap, chartExtRequest, isCross, allFields, tableFieldWithValues);
             }
         }
     }
@@ -486,7 +491,7 @@ public class DatasetSQLManage {
         return getRowPermissionsApi().getUserById(AuthUtils.getUser().getUserId());
     }
 
-    private SQLObj getUnionTable(DatasetTableDTO currentDs, DatasetTableInfoDTO infoDTO, String tableSchema, int index, List<SqlVariableDetails> parameters, boolean isFromDataSet, boolean isCross, Map<Long, DatasourceSchemaDTO> dsMap) {
+    private SQLObj getUnionTable(DatasetTableDTO currentDs, DatasetTableInfoDTO infoDTO, String tableSchema, int index, List<SqlVariableDetails> parameters, boolean isFromDataSet, boolean isCross, Map<Long, DatasourceSchemaDTO> dsMap, List<TableFieldWithValue> tableFieldWithValues) {
         SQLObj tableObj;
         String tableAlias = String.format(SQLConstants.TABLE_ALIAS_PREFIX, index);
         if (Strings.CI.equals(currentDs.getType(), DatasetTableTypeConstants.DATASET_TABLE_DB)) {
@@ -495,7 +500,9 @@ public class DatasetSQLManage {
             Provider provider = ProviderFactory.getProvider(dsMap.entrySet().iterator().next().getValue().getType());
             // parser sql params and replace default value
             String s = new String(Base64.getDecoder().decode(infoDTO.getSql()));
-            String sql = new SqlparserUtils().handleVariableDefaultValue(s, currentDs.getSqlVariableDetails(), false, isFromDataSet, parameters, isCross, dsMap, pluginManage, getUserEntity());
+            SqlVariableHandleResult sqlResult = new SqlparserUtils().handleVariableDefaultValueWithPreparedParams(s, currentDs.getSqlVariableDetails(), false, isFromDataSet, parameters, isCross, dsMap, pluginManage, getUserEntity());
+            String sql = sqlResult.getSql();
+            tableFieldWithValues.addAll(sqlResult.getTableFieldWithValues());
             sql = provider.replaceComment(sql);
             // add table schema
             if (isCross) {

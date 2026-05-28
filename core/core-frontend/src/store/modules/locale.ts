@@ -40,7 +40,7 @@ const loadCustomLocaleData = async (lang: string) => {
     const localeData = localeModule.default || localeModule
     return localeData.element_plus || {}
   } catch (error) {
-    console.warn(`Failed to load custom locale data for ${lang}:`, error)
+    console.warn('Failed to load custom locale data', lang, error)
     return {}
   }
 }

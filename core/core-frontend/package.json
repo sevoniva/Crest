@@ -43,7 +43,7 @@
     "dayjs": "^1.11.9",
     "decimal.js": "^10.5.0",
     "dingtalk-jsapi": "^3.1.0",
-    "echarts": "^5.5.1",
+    "echarts": "^6.1.0",
     "element-plus-secondary": "^1.0.0",
     "element-resize-detector": "^1.2.4",
     "exceljs": "^4.4.0",
@@ -52,7 +52,7 @@
     "html-to-image": "^1.11.11",
     "html2canvas": "^1.4.1",
     "js-base64": "^3.7.5",
-    "jsencrypt": "3.3.2",
+    "jsencrypt": "3.5.4",
     "jspdf": "^4.2.0",
     "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
@@ -137,17 +137,23 @@
       "inflight": "npm:inflight-lru@^1.0.0"
     },
     "uuid": "^11.1.1",
+    "tmp": "0.2.6",
     "exceljs": {
-      "uuid": "^11.1.1"
+      "uuid": "^11.1.1",
+      "tmp": "0.2.6"
     },
+    "exceljs>tmp": "0.2.6",
     "d3-color": "^3.1.0"
   },
   "pnpm": {
     "overrides": {
       "glob>inflight": "npm:inflight-lru@^1.0.0",
       "uuid": "^11.1.1",
+      "tmp": "0.2.6",
       "exceljs>uuid": "^11.1.1",
       "exceljs@4.4.0>uuid": "^11.1.1",
+      "exceljs>tmp": "0.2.6",
+      "exceljs@4.4.0>tmp": "0.2.6",
       "d3-color": "^3.1.0"
     },
     "onlyBuiltDependencies": [

@@ -1145,8 +1145,9 @@ const clearG2Tooltip = () => {
                     wordWrap: 'break-word',
                     whiteSpace: 'pre-wrap'
                   }"
-                  v-html="state.title_remark.remark"
-                ></div>
+                >
+                  {{ state.title_remark.remark }}
+                </div>
               </template>
               <el-icon :size="iconSize" class="inner-icon">
                 <Icon name="icon_info_outlined"><icon_info_outlined class="svg-icon" /></Icon>

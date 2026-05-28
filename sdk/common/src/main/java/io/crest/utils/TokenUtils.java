@@ -5,7 +5,6 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import io.crest.auth.bo.TokenUserBO;
-import io.crest.auth.config.SubstituleLoginConfig;
 import io.crest.exception.DEException;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,15 +43,25 @@ public class TokenUtils {
         try {
             DecodedJWT jwt = JWT.decode(token);
             Long uid = jwt.getClaim("uid").asLong();
+            if (ObjectUtils.isEmpty(uid)) {
+                DEException.throwException("token格式错误！");
+            }
             Object userManage = CommonBeanFactory.getBean("crestUserManage");
+            if (userManage == null) {
+                DEException.throwException("token is invalid");
+            }
             Method method = DeReflectUtil.findMethod(userManage.getClass(), "secretByUid");
             Object secret = ReflectionUtils.invokeMethod(method, userManage, uid);
             if (secret != null && StringUtils.isNotBlank(secret.toString())) {
                 return secret.toString();
             }
-        } catch (Exception ignored) {
+        } catch (DEException e) {
+            throw e;
+        } catch (Exception e) {
+            DEException.throwException("token is invalid");
         }
-        return Md5Utils.md5(SubstituleLoginConfig.getPwd());
+        DEException.throwException("token is invalid");
+        return null;
     }
 
 

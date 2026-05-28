@@ -8,10 +8,13 @@ import io.crest.utils.LogUtil;
 import org.apache.catalina.connector.ClientAbortException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 @SuppressWarnings("deprecation")
@@ -36,6 +39,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ClientAbortException.class)
     public void clientAbortExceptionHandler(ClientAbortException e) {
         LogUtil.debug(StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName()));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResultMessage noResourceFoundExceptionHandler(NoResourceFoundException e) {
+        String message = StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName());
+        LogUtil.debug(message);
+        return new ResultMessage(ResultCode.RESOURCE_NOT_FOUND.code(), message);
     }
 
     @ExceptionHandler(NullPointerException.class)

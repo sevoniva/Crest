@@ -690,7 +690,7 @@ const isProgressBar = computed(() => {
           v-if="chart.type.includes('chart-mix')"
         >
           <template #content>
-            <span v-html="t('chart.chart_mix_label_only_left')"></span>
+            <span>{{ t('chart.chart_mix_label_only_left') }}</span>
           </template>
           <span style="vertical-align: middle">
             <el-icon style="cursor: pointer">
@@ -1541,7 +1541,7 @@ const isProgressBar = computed(() => {
               v-if="chart.type.includes('chart-mix')"
             >
               <template #content>
-                <span v-html="t('chart.chart_mix_label_only_left')"></span>
+                <span>{{ t('chart.chart_mix_label_only_left') }}</span>
               </template>
               <span style="vertical-align: middle">
                 <el-icon style="cursor: pointer">

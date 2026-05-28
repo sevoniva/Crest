@@ -70,7 +70,7 @@ public class WhitelistUtils {
             requestURI = requestURI.replaceFirst(AuthConstant.DE_OIDCAPI_PREFIX, "");
         }
         return WHITE_PATH.contains(requestURI)
-                || Strings.CS.endsWithAny(requestURI, ".gif",".ico", "js", ".css", "svg", "png", "jpg", "js.map", ".otf", ".ttf", ".woff2")
+                || Strings.CS.endsWithAny(requestURI, ".gif", ".ico", ".js", ".css", ".svg", ".png", ".jpg", ".jpeg", ".js.map", ".otf", ".ttf", ".woff2")
                 || Strings.CS.startsWithAny(requestURI, "data:image")
                 || Strings.CS.startsWithAny(requestURI, "/login/platformLogin/")
                 || Strings.CS.startsWithAny(requestURI, "/v3/api-docs")

@@ -7,8 +7,10 @@ import io.crest.dataset.utils.FieldUtils;
 import io.crest.datasource.dao.auto.entity.CoreDatasource;
 import io.crest.datasource.dao.auto.entity.CoreDriver;
 import io.crest.datasource.dao.auto.mapper.CoreDatasourceMapper;
+import io.crest.datasource.dao.auto.mapper.CoreDriverMapper;
 import io.crest.datasource.manage.EngineManage;
 import io.crest.datasource.request.EngineRequest;
+import io.crest.datasource.security.JdbcUrlSecurityPolicy;
 import io.crest.datasource.type.*;
 import io.crest.exception.DEException;
 import io.crest.extensions.datasource.dto.*;
@@ -61,6 +63,8 @@ public class CalciteProvider extends Provider {
 
     @Resource
     protected CoreDatasourceMapper coreDatasourceMapper;
+    @Resource
+    protected CoreDriverMapper coreDriverMapper;
     @Resource
     private EngineManage engineManage;
     protected ExtendedJdbcClassLoader extendedJdbcClassLoader;
@@ -219,14 +223,12 @@ public class CalciteProvider extends Provider {
             setConnectionReadOnly(con.getConnection(), readOnly);
             try {
                 datasourceRequest.setDsVersion(con.getConnection().getMetaData().getDatabaseMajorVersion());
-                String querySql = getTablesSql(datasourceRequest).get(0);
-                Statement statement = getStatement(con.getConnection(), 30);
-                ResultSet resultSet = statement.executeQuery(querySql);
-                if (resultSet != null) {
-                    resultSet.close();
-                }
-                if (statement != null) {
-                    statement.close();
+                QueryAndParams queryAndParams = getTablesSql(datasourceRequest).get(0);
+                try (PreparedStatement statement = prepareStatement(con.getConnection(), queryAndParams, 30);
+                     ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet != null) {
+                        resultSet.close();
+                    }
                 }
             } finally {
                 resetConnectionReadOnly(con.getConnection(), readOnly);
@@ -240,8 +242,7 @@ public class CalciteProvider extends Provider {
     @Override
     public List<DatasetTableDTO> getTables(DatasourceRequest datasourceRequest) {
         List<DatasetTableDTO> tables = new ArrayList<>();
-        try (Connection con = getConnectionFromPool(datasourceRequest.getDatasource().getId());
-             Statement statement = getStatement(con, 30)) {
+        try (Connection con = getConnectionFromPool(datasourceRequest.getDatasource().getId())) {
             DatasourceConfiguration datasourceConfiguration = parseDatasourceConfiguration(
                     datasourceRequest.getDatasource().getConfiguration(),
                     datasourceRequest.getDatasource().getType()
@@ -254,11 +255,13 @@ public class CalciteProvider extends Provider {
             setConnectionReadOnly(con, readOnly);
             try {
                 datasourceRequest.setDsVersion(con.getMetaData().getDatabaseMajorVersion());
-                List<String> tablesSqls = getTablesSql(datasourceRequest);
-                for (String tablesSql : tablesSqls) {
-                    ResultSet resultSet = statement.executeQuery(tablesSql);
-                    while (resultSet.next()) {
-                        tables.add(getTableDesc(datasourceRequest, resultSet));
+                List<QueryAndParams> tablesSqls = getTablesSql(datasourceRequest);
+                for (QueryAndParams tablesSql : tablesSqls) {
+                    try (PreparedStatement statement = prepareStatement(con, tablesSql, 30);
+                         ResultSet resultSet = statement.executeQuery()) {
+                        while (resultSet.next()) {
+                            tables.add(getTableDesc(datasourceRequest, resultSet));
+                        }
                     }
                 }
             } finally {
@@ -286,6 +289,7 @@ public class CalciteProvider extends Provider {
         try {
             CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
             statement = calciteConnection.prepareStatement(datasourceRequest.getQuery());
+            bindPreparedStatementValues(statement, datasourceRequest.getTableFieldWithValues());
             resultSet = statement.executeQuery();
             ResultSetMetaData metaData = resultSet.getMetaData();
             int columnCount = metaData.getColumnCount();
@@ -410,6 +414,24 @@ public class CalciteProvider extends Provider {
         return "`" + identifier.replace("`", "``") + "`";
     }
 
+    private void bindPreparedStatementValues(PreparedStatement statement, List<TableFieldWithValue> tableFieldWithValues) throws SQLException {
+        if (statement == null || CollectionUtils.isEmpty(tableFieldWithValues)) {
+            return;
+        }
+        for (int i = 0; i < tableFieldWithValues.size(); i++) {
+            TableFieldWithValue tableFieldWithValue = tableFieldWithValues.get(i);
+            Object valueObject = tableFieldWithValue.getValue();
+            if (Objects.equals(tableFieldWithValue.getType(), Types.CLOB) && valueObject instanceof String stringValue) {
+                Reader reader = new StringReader(stringValue);
+                statement.setCharacterStream(i + 1, reader, stringValue.length());
+            } else if (tableFieldWithValue.getType() != null) {
+                statement.setObject(i + 1, valueObject, tableFieldWithValue.getType());
+            } else {
+                statement.setObject(i + 1, valueObject);
+            }
+        }
+    }
+
     @Override
     public List<TableField> fetchTableField(DatasourceRequest datasourceRequest) throws DEException {
         if (datasourceRequest.getIsCross() != null && datasourceRequest.getIsCross()) {
@@ -420,6 +442,7 @@ public class CalciteProvider extends Provider {
             try {
                 CalciteConnection calciteConnection = connection.unwrap(CalciteConnection.class);
                 statement = calciteConnection.prepareStatement(datasourceRequest.getQuery());
+                bindPreparedStatementValues(statement, datasourceRequest.getTableFieldWithValues());
                 resultSet = statement.executeQuery();
                 ResultSetMetaData metaData = resultSet.getMetaData();
                 int columnCount = metaData.getColumnCount();
@@ -591,6 +614,9 @@ public class CalciteProvider extends Provider {
             default:
                 configuration = JsonUtil.parseObject(coreDatasource.getConfiguration(), Mysql.class);
         }
+        CoreDriver customDriver = resolveCustomDriver(coreDatasource.getType(), configuration.getCustomDriver());
+        String driverClassName = JdbcUrlSecurityPolicy.resolveDriverClass(coreDatasource.getType(), configuration.getDriver(), configuration.getCustomDriver(), customDriver);
+        configuration.setDriver(driverClassName);
         startSshSession(configuration, connectionObj, null);
         Properties props = new Properties();
         if (StringUtils.isNotBlank(configuration.getUsername())) {
@@ -599,18 +625,36 @@ public class CalciteProvider extends Provider {
         if (StringUtils.isNotBlank(configuration.getPassword())) {
             props.setProperty("password", configuration.getPassword());
         }
-        String driverClassName = configuration.getDriver();
-        ExtendedJdbcClassLoader jdbcClassLoader = extendedJdbcClassLoader;
+        ExtendedJdbcClassLoader jdbcClassLoader = JdbcUrlSecurityPolicy.isDefaultCustomDriver(configuration.getCustomDriver()) ? extendedJdbcClassLoader : getCustomJdbcClassLoader(customDriver);
         Connection conn = null;
         try {
             Driver driverClass = (Driver) jdbcClassLoader.loadClass(driverClassName).newInstance();
-            conn = driverClass.connect(configuration.getJdbc(), props);
+            String jdbcUrl = JdbcUrlSecurityPolicy.validate(coreDatasource.getType(), configuration.getJdbc(), configuration.getExtraParams());
+            conn = driverClass.connect(jdbcUrl, props);
 
         } catch (Exception e) {
             DEException.throwException(e.getMessage());
         }
         connectionObj.setConnection(conn);
         return connectionObj;
+    }
+
+    private CoreDriver resolveCustomDriver(String datasourceType, String customDriver) {
+        if (JdbcUrlSecurityPolicy.isDefaultCustomDriver(customDriver)) {
+            return null;
+        }
+        Long customDriverId;
+        try {
+            customDriverId = Long.valueOf(customDriver);
+        } catch (NumberFormatException e) {
+            DEException.throwException("invalid driver");
+            return null;
+        }
+        CoreDriver coreDriver = coreDriverMapper.selectById(customDriverId);
+        if (coreDriver == null || !StringUtils.equalsIgnoreCase(coreDriver.getType(), datasourceType)) {
+            DEException.throwException("invalid driver");
+        }
+        return coreDriver;
     }
 
     private DatasetTableDTO getTableDesc(DatasourceRequest datasourceRequest, ResultSet resultSet) throws SQLException {
@@ -1179,6 +1223,17 @@ public class CalciteProvider extends Provider {
         return connection;
     }
 
+    private void applyDatasourceUrl(BasicDataSource dataSource, DatasourceSchemaDTO ds, DatasourceConfiguration configuration) {
+        CoreDriver customDriver = resolveCustomDriver(ds.getType(), configuration.getCustomDriver());
+        String driverClassName = JdbcUrlSecurityPolicy.resolveDriverClass(ds.getType(), configuration.getDriver(), configuration.getCustomDriver(), customDriver);
+        configuration.setDriver(driverClassName);
+        dataSource.setDriverClassName(driverClassName);
+        if (!JdbcUrlSecurityPolicy.isDefaultCustomDriver(configuration.getCustomDriver())) {
+            dataSource.setDriverClassLoader(getCustomJdbcClassLoader(customDriver));
+        }
+        dataSource.setUrl(JdbcUrlSecurityPolicy.validate(ds.getType(), configuration.getJdbc(), configuration.getExtraParams()));
+    }
+
     // 构建root schema
     private SchemaPlus buildSchema(DatasourceRequest datasourceRequest, CalciteConnection calciteConnection) {
         SchemaPlus rootSchema = calciteConnection.getRootSchema();
@@ -1224,7 +1279,7 @@ public class CalciteProvider extends Provider {
                                 dataSource.setMaxTotal(configuration.getMaxPoolSize());
                                 dataSource.setMinIdle(configuration.getMinPoolSize());
                                 startSshSession(configuration, null, ds.getId());
-                                dataSource.setUrl(configuration.getJdbc());
+                                applyDatasourceUrl(dataSource, ds, configuration);
                                 schema = JdbcSchema.create(rootSchema, ds.getSchemaAlias(), dataSource, null, configuration.getDataBase());
                                 rootSchema.add(ds.getSchemaAlias(), schema);
                                 break;
@@ -1241,7 +1296,7 @@ public class CalciteProvider extends Provider {
                                 dataSource.setMinIdle(configuration.getMinPoolSize());
                                 dataSource.setDefaultQueryTimeout(Integer.valueOf(configuration.getQueryTimeout()));
                                 startSshSession(configuration, null, ds.getId());
-                                dataSource.setUrl(configuration.getJdbc());
+                                applyDatasourceUrl(dataSource, ds, configuration);
                                 schema = JdbcSchema.create(rootSchema, ds.getSchemaAlias(), dataSource, null, configuration.getDataBase());
                                 rootSchema.add(ds.getSchemaAlias(), schema);
                                 break;
@@ -1258,7 +1313,7 @@ public class CalciteProvider extends Provider {
                                 dataSource.setMinIdle(configuration.getMinPoolSize());
                                 dataSource.setDefaultQueryTimeout(Integer.valueOf(configuration.getQueryTimeout()));
                                 startSshSession(configuration, null, ds.getId());
-                                dataSource.setUrl(configuration.getJdbc());
+                                applyDatasourceUrl(dataSource, ds, configuration);
                                 schema = JdbcSchema.create(rootSchema, ds.getSchemaAlias(), dataSource, null, configuration.getSchema());
                                 rootSchema.add(ds.getSchemaAlias(), schema);
                                 break;
@@ -1277,7 +1332,7 @@ public class CalciteProvider extends Provider {
                                 dataSource.setMinIdle(configuration.getMinPoolSize());
                                 dataSource.setDefaultQueryTimeout(Integer.valueOf(configuration.getQueryTimeout()));
                                 startSshSession(configuration, null, ds.getId());
-                                dataSource.setUrl(configuration.getJdbc());
+                                applyDatasourceUrl(dataSource, ds, configuration);
                                 schema = JdbcSchema.create(rootSchema, ds.getSchemaAlias(), dataSource, null, configuration.getSchema());
                                 rootSchema.add(ds.getSchemaAlias(), schema);
                                 break;
@@ -1295,7 +1350,7 @@ public class CalciteProvider extends Provider {
                                 dataSource.setMinIdle(configuration.getMinPoolSize());
                                 dataSource.setDefaultQueryTimeout(Integer.valueOf(configuration.getQueryTimeout()));
                                 startSshSession(configuration, null, ds.getId());
-                                dataSource.setUrl(configuration.getJdbc());
+                                applyDatasourceUrl(dataSource, ds, configuration);
                                 schema = JdbcSchema.create(rootSchema, ds.getSchemaAlias(), dataSource, null, configuration.getSchema());
                                 rootSchema.add(ds.getSchemaAlias(), schema);
                                 break;
@@ -1312,7 +1367,7 @@ public class CalciteProvider extends Provider {
                                 dataSource.setMinIdle(configuration.getMinPoolSize());
                                 dataSource.setDefaultQueryTimeout(Integer.valueOf(configuration.getQueryTimeout()));
                                 startSshSession(configuration, null, ds.getId());
-                                dataSource.setUrl(configuration.getJdbc());
+                                applyDatasourceUrl(dataSource, ds, configuration);
                                 schema = JdbcSchema.create(rootSchema, ds.getSchemaAlias(), dataSource, null, configuration.getDataBase());
                                 rootSchema.add(ds.getSchemaAlias(), schema);
                                 break;
@@ -1329,7 +1384,7 @@ public class CalciteProvider extends Provider {
                                 dataSource.setMinIdle(configuration.getMinPoolSize());
                                 dataSource.setDefaultQueryTimeout(Integer.valueOf(configuration.getQueryTimeout()));
                                 startSshSession(configuration, null, ds.getId());
-                                dataSource.setUrl(configuration.getJdbc());
+                                applyDatasourceUrl(dataSource, ds, configuration);
                                 schema = JdbcSchema.create(rootSchema, ds.getSchemaAlias(), dataSource, null, configuration.getSchema());
                                 rootSchema.add(ds.getSchemaAlias(), schema);
                                 break;
@@ -1346,7 +1401,7 @@ public class CalciteProvider extends Provider {
                                 dataSource.setMinIdle(configuration.getMinPoolSize());
                                 dataSource.setDefaultQueryTimeout(Integer.valueOf(configuration.getQueryTimeout()));
                                 startSshSession(configuration, null, ds.getId());
-                                dataSource.setUrl(configuration.getJdbc());
+                                applyDatasourceUrl(dataSource, ds, configuration);
                                 schema = JdbcSchema.create(rootSchema, ds.getSchemaAlias(), dataSource, null, configuration.getSchema());
                                 rootSchema.add(ds.getSchemaAlias(), schema);
                                 break;
@@ -1363,7 +1418,7 @@ public class CalciteProvider extends Provider {
                                 dataSource.setMinIdle(configuration.getMinPoolSize());
                                 dataSource.setDefaultQueryTimeout(Integer.valueOf(configuration.getQueryTimeout()));
                                 startSshSession(configuration, null, ds.getId());
-                                dataSource.setUrl(configuration.getJdbc());
+                                applyDatasourceUrl(dataSource, ds, configuration);
                                 schema = JdbcSchema.create(rootSchema, ds.getSchemaAlias(), dataSource, null, configuration.getDataBase());
                                 rootSchema.add(ds.getSchemaAlias(), schema);
                                 break;
@@ -1380,7 +1435,7 @@ public class CalciteProvider extends Provider {
                                 dataSource.setMinIdle(configuration.getMinPoolSize());
                                 dataSource.setDefaultQueryTimeout(Integer.valueOf(configuration.getQueryTimeout()));
                                 startSshSession(configuration, null, ds.getId());
-                                dataSource.setUrl(configuration.getJdbc());
+                                applyDatasourceUrl(dataSource, ds, configuration);
                                 schema = JdbcSchema.create(rootSchema, ds.getSchemaAlias(), dataSource, null, configuration.getDataBase());
                                 rootSchema.add(ds.getSchemaAlias(), schema);
                         }
@@ -1614,8 +1669,8 @@ public class CalciteProvider extends Provider {
         return sql;
     }
 
-    private List<String> getTablesSql(DatasourceRequest datasourceRequest) throws DEException {
-        List<String> tableSqls = new ArrayList<>();
+    private List<QueryAndParams> getTablesSql(DatasourceRequest datasourceRequest) throws DEException {
+        List<QueryAndParams> tableSqls = new ArrayList<>();
         DatasourceConfiguration.DatasourceType datasourceType = DatasourceConfiguration.DatasourceType.valueOf(datasourceRequest.getDatasource().getType());
         DatasourceConfiguration configuration = null;
         String database = "";
@@ -1633,13 +1688,13 @@ public class CalciteProvider extends Provider {
                     database = databasePrams[0];
                 }
                 if (database.contains(".")) {
-                    tableSqls.add("show tables");
+                    tableSqls.add(new QueryAndParams("show tables"));
                 } else {
-                    tableSqls.add(String.format("SELECT TABLE_NAME,TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '%s' ;", database));
+                    tableSqls.add(new QueryAndParams("SELECT TABLE_NAME,TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?", database));
                 }
                 break;
             case mongo:
-                tableSqls.add("show tables");
+                tableSqls.add(new QueryAndParams("show tables"));
                 break;
             case mysql:
             case mariadb:
@@ -1654,7 +1709,7 @@ public class CalciteProvider extends Provider {
                     String[] databasePrams = matcher.group(3).split("\\?");
                     database = databasePrams[0];
                 }
-                tableSqls.add(String.format("SELECT TABLE_NAME,TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '%s' ;", database));
+                tableSqls.add(new QueryAndParams("SELECT TABLE_NAME,TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?", database));
                 break;
             case oracle:
             case obOracle:
@@ -1662,10 +1717,10 @@ public class CalciteProvider extends Provider {
                 if (StringUtils.isEmpty(configuration.getSchema())) {
                     DEException.throwException(Translator.get("i18n_schema_is_empty"));
                 }
-                tableSqls.add("select table_name, comments, owner  from all_tab_comments where owner='" + configuration.getSchema() + "' AND table_type = 'TABLE'");
-                tableSqls.add("select table_name, comments, owner  from all_tab_comments where owner='" + configuration.getSchema() + "' AND table_type = 'VIEW'");
+                tableSqls.add(new QueryAndParams("select table_name, comments, owner from all_tab_comments where owner = ? AND table_type = 'TABLE'", configuration.getSchema()));
+                tableSqls.add(new QueryAndParams("select table_name, comments, owner from all_tab_comments where owner = ? AND table_type = 'VIEW'", configuration.getSchema()));
                 if (!isObOracle(datasourceRequest.getDatasource().getType())) {
-                    tableSqls.add("SELECT \n" + "    m.mview_name,\n" + "    c.comments\n" + "FROM \n" + "    ALL_MVIEWS m\n" + "LEFT JOIN \n" + "    ALL_TAB_COMMENTS c \n" + "ON \n" + "    m.owner = c.owner \n" + "    AND m.mview_name = c.table_name\n" + "    AND c.table_type = 'MATERIALIZED VIEW'\n" + "WHERE m.OWNER ='DE_SCHEMA'".replace("DE_SCHEMA", configuration.getSchema()));
+                    tableSqls.add(new QueryAndParams("SELECT \n" + "    m.mview_name,\n" + "    c.comments\n" + "FROM \n" + "    ALL_MVIEWS m\n" + "LEFT JOIN \n" + "    ALL_TAB_COMMENTS c \n" + "ON \n" + "    m.owner = c.owner \n" + "    AND m.mview_name = c.table_name\n" + "    AND c.table_type = 'MATERIALIZED VIEW'\n" + "WHERE m.OWNER = ?", configuration.getSchema()));
                 }
                 break;
             case db2:
@@ -1673,28 +1728,28 @@ public class CalciteProvider extends Provider {
                 if (StringUtils.isEmpty(configuration.getSchema())) {
                     DEException.throwException(Translator.get("i18n_schema_is_empty"));
                 }
-                tableSqls.add("select TABNAME, REMARKS from syscat.tables  WHERE TABSCHEMA ='DE_SCHEMA' AND \"TYPE\" = 'T'".replace("DE_SCHEMA", configuration.getSchema()));
+                tableSqls.add(new QueryAndParams("select TABNAME, REMARKS from syscat.tables WHERE TABSCHEMA = ? AND \"TYPE\" = 'T'", configuration.getSchema()));
                 break;
             case sqlServer:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Sqlserver.class);
                 if (StringUtils.isEmpty(configuration.getSchema())) {
                     DEException.throwException(Translator.get("i18n_schema_is_empty"));
                 }
-                tableSqls.add("SELECT   \n" + "    t.name AS TableName,  \n" + "    ep.value AS TableDescription  \n" + "FROM   \n" + "    sys.tables t  \n" + "LEFT OUTER JOIN   sys.schemas sc ON sc.schema_id =t.schema_id \n" + "LEFT OUTER JOIN   \n" + "    sys.extended_properties ep ON t.object_id = ep.major_id   \n" + "                               AND ep.minor_id = 0   \n" + "                               AND ep.class = 1  \n" + "                               AND ep.name = 'MS_Description'\n" + "where sc.name ='DS_SCHEMA'".replace("DS_SCHEMA", configuration.getSchema()));
-                tableSqls.add("SELECT   \n" + "    t.name AS TableName,  \n" + "    ep.value AS TableDescription  \n" + "FROM   \n" + "    sys.views t  \n" + "LEFT OUTER JOIN   sys.schemas sc ON sc.schema_id =t.schema_id \n" + "LEFT OUTER JOIN   \n" + "    sys.extended_properties ep ON t.object_id = ep.major_id   \n" + "                               AND ep.minor_id = 0   \n" + "                               AND ep.class = 1  \n" + "                               AND ep.name = 'MS_Description'\n" + "where sc.name ='DS_SCHEMA'".replace("DS_SCHEMA", configuration.getSchema()));
+                tableSqls.add(new QueryAndParams("SELECT   \n" + "    t.name AS TableName,  \n" + "    ep.value AS TableDescription  \n" + "FROM   \n" + "    sys.tables t  \n" + "LEFT OUTER JOIN   sys.schemas sc ON sc.schema_id =t.schema_id \n" + "LEFT OUTER JOIN   \n" + "    sys.extended_properties ep ON t.object_id = ep.major_id   \n" + "                               AND ep.minor_id = 0   \n" + "                               AND ep.class = 1  \n" + "                               AND ep.name = 'MS_Description'\n" + "where sc.name = ?", configuration.getSchema()));
+                tableSqls.add(new QueryAndParams("SELECT   \n" + "    t.name AS TableName,  \n" + "    ep.value AS TableDescription  \n" + "FROM   \n" + "    sys.views t  \n" + "LEFT OUTER JOIN   sys.schemas sc ON sc.schema_id =t.schema_id \n" + "LEFT OUTER JOIN   \n" + "    sys.extended_properties ep ON t.object_id = ep.major_id   \n" + "                               AND ep.minor_id = 0   \n" + "                               AND ep.class = 1  \n" + "                               AND ep.name = 'MS_Description'\n" + "where sc.name = ?", configuration.getSchema()));
                 break;
             case pg:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), Pg.class);
                 if (StringUtils.isEmpty(configuration.getSchema())) {
                     DEException.throwException(Translator.get("i18n_schema_is_empty"));
                 }
-                tableSqls.add("SELECT  \n" + "    relname AS TableName,  \n" + "    obj_description(relfilenode::regclass, 'pg_class') AS TableDescription  \n" + "FROM  \n" + "    pg_class  \n" + "WHERE  \n" + "   relkind in  ('r','p', 'f')  \n" + "    AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'SCHEMA') ".replace("SCHEMA", configuration.getSchema()));
-                tableSqls.add("SELECT \n" + "    c.relname AS view_name,\n" + "    COALESCE(d.description, 'No description provided') AS view_description\n" + "FROM \n" + "    pg_class c\n" + "JOIN \n" + "    pg_namespace n ON c.relnamespace = n.oid\n" + "LEFT JOIN \n" + "    pg_description d ON c.oid = d.objoid\n" + "WHERE \n" + "    c.relkind = 'v'  \n" + "    AND n.nspname = 'SCHEMA'".replace("SCHEMA", configuration.getSchema()));
-                tableSqls.add("SELECT \n" + "    c.relname AS materialized_view_name,\n" + "    COALESCE(d.description, '') AS view_description\n" + "FROM \n" + "    pg_class c\n" + "JOIN \n" + "    pg_namespace n ON c.relnamespace = n.oid\n" + "LEFT JOIN \n" + "    pg_description d ON c.oid = d.objoid\n" + "WHERE \n" + "    c.relkind = 'm' and n.nspname ='SCHEMA';  ".replace("SCHEMA", configuration.getSchema()));
+                tableSqls.add(new QueryAndParams("SELECT  \n" + "    relname AS TableName,  \n" + "    obj_description(relfilenode::regclass, 'pg_class') AS TableDescription  \n" + "FROM  \n" + "    pg_class  \n" + "WHERE  \n" + "   relkind in  ('r','p', 'f')  \n" + "    AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = ?) ", configuration.getSchema()));
+                tableSqls.add(new QueryAndParams("SELECT \n" + "    c.relname AS view_name,\n" + "    COALESCE(d.description, 'No description provided') AS view_description\n" + "FROM \n" + "    pg_class c\n" + "JOIN \n" + "    pg_namespace n ON c.relnamespace = n.oid\n" + "LEFT JOIN \n" + "    pg_description d ON c.oid = d.objoid\n" + "WHERE \n" + "    c.relkind = 'v'  \n" + "    AND n.nspname = ?", configuration.getSchema()));
+                tableSqls.add(new QueryAndParams("SELECT \n" + "    c.relname AS materialized_view_name,\n" + "    COALESCE(d.description, '') AS view_description\n" + "FROM \n" + "    pg_class c\n" + "JOIN \n" + "    pg_namespace n ON c.relnamespace = n.oid\n" + "LEFT JOIN \n" + "    pg_description d ON c.oid = d.objoid\n" + "WHERE \n" + "    c.relkind = 'm' and n.nspname = ?", configuration.getSchema()));
                 break;
             case redshift:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), CK.class);
-                tableSqls.add("SELECT  \n" + "    relname AS TableName,  \n" + "    obj_description(relfilenode::regclass, 'pg_class') AS TableDescription  \n" + "FROM  \n" + "    pg_class  \n" + "WHERE  \n" + "   relkind in  ('r','p', 'f')  \n" + "    AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'SCHEMA') ".replace("SCHEMA", configuration.getSchema()));
+                tableSqls.add(new QueryAndParams("SELECT  \n" + "    relname AS TableName,  \n" + "    obj_description(relfilenode::regclass, 'pg_class') AS TableDescription  \n" + "FROM  \n" + "    pg_class  \n" + "WHERE  \n" + "   relkind in  ('r','p', 'f')  \n" + "    AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = ?) ", configuration.getSchema()));
                 break;
             case ck:
                 configuration = JsonUtil.parseObject(datasourceRequest.getDatasource().getConfiguration(), CK.class);
@@ -1708,18 +1763,38 @@ public class CalciteProvider extends Provider {
                     database = databasePrams[0];
                 }
                 if (datasourceRequest.getDsVersion() < 22) {
-                    tableSqls.add("SELECT name, name FROM system.tables where database='DATABASE';".replace("DATABASE", database));
+                    tableSqls.add(new QueryAndParams("SELECT name, name FROM system.tables where database = ?", database));
                 } else {
-                    tableSqls.add("SELECT name, comment FROM system.tables where database='DATABASE';".replace("DATABASE", database));
+                    tableSqls.add(new QueryAndParams("SELECT name, comment FROM system.tables where database = ?", database));
                 }
 
 
                 break;
             default:
-                tableSqls.add("show tables");
+                tableSqls.add(new QueryAndParams("show tables"));
         }
         return tableSqls;
 
+    }
+
+    private PreparedStatement prepareStatement(Connection connection, QueryAndParams queryAndParams, int queryTimeout) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement(queryAndParams.sql());
+        statement.setQueryTimeout(queryTimeout);
+        List<Object> params = queryAndParams.params();
+        for (int i = 0; i < params.size(); i++) {
+            statement.setObject(i + 1, params.get(i));
+        }
+        return statement;
+    }
+
+    private record QueryAndParams(String sql, List<Object> params) {
+        private QueryAndParams(String sql) {
+            this(sql, Collections.emptyList());
+        }
+
+        private QueryAndParams(String sql, Object... params) {
+            this(sql, Arrays.asList(params));
+        }
     }
 
     private String getSchemaSql(DatasourceDTO datasource) throws DEException {

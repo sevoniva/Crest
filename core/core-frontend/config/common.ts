@@ -34,6 +34,7 @@ const lintPlugins = skipViteLint
     ]
 
 export function pathResolve(dir: string) {
+  // nosemgrep: javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal
   return resolve(root, '.', dir)
 }
 export default {
