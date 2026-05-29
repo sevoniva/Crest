@@ -21,7 +21,7 @@
 应用镜像默认使用：
 
 ```text
-ghcr.io/sevoniva/crest:v1.2.0
+ghcr.io/sevoniva/crest:v1.3.0
 ```
 
 Dockerfile 默认使用 JDK Alpine 生成裁剪运行时，并以 Alpine 作为最终基础镜像：
@@ -138,8 +138,8 @@ docker exec crest-mysql-local mysql -uroot -pPassword123@mysql \
 - Pod 全部 Ready，应用容器重启次数为 0；
 - `/index.html`、`/doc.html`、`/v3/api-docs`、`/v3/api-docs/5-relation` 返回 200；
 - `admin/admin` 可以登录；
-- `de_standalone_version` 最新迁移成功，包含 `1.2:demo retail dashboard`；
-- 初始状态包含零售经营演示数据源、数据集、图表和数据大屏；
+- `de_standalone_version` 最新迁移成功，包含 `1.3:demo engineering efficiency`；
+- 初始状态包含零售经营和研发效能演示数据源、数据集、图表和数据大屏；
 - 应用日志没有 `WARN`、`ERROR`、`Exception`。
 
 清理：

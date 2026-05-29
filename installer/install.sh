@@ -106,7 +106,17 @@ function prepare_de_run_base() {
    env | grep DE_ >.env
 
    mkdir -p ${DE_RUN_BASE}/{cache,logs,conf}
-   mkdir -p ${DE_RUN_BASE}/data/{mysql,static-resource,appearance,exportData,font,i18n}
+   mkdir -p ${DE_RUN_BASE}/data/{mysql,static-resource,appearance,exportData,excel,font,i18n,plugin}
+   chown -R 10001:10001 \
+      ${DE_RUN_BASE}/cache \
+      ${DE_RUN_BASE}/logs \
+      ${DE_RUN_BASE}/data/static-resource \
+      ${DE_RUN_BASE}/data/appearance \
+      ${DE_RUN_BASE}/data/exportData \
+      ${DE_RUN_BASE}/data/excel \
+      ${DE_RUN_BASE}/data/font \
+      ${DE_RUN_BASE}/data/i18n \
+      ${DE_RUN_BASE}/data/plugin 2>/dev/null || true
 
    if [[ "${DE_INTERNAL_LITE}" != "true" ]]; then
       mkdir -p ${DE_RUN_BASE}/task/logs
@@ -263,19 +273,17 @@ function load_de_images() {
    log_title "加载 Crest 镜像"
    cd ${CURRENT_DIR}
 
-   for i in $(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E 'crest'); do
-      current_images[${#current_images[@]}]=${i##*/}
-   done
-
    # 加载镜像
    if [[ -d images ]]; then
-      for i in $(ls images); do
-         if [[ "${current_images[@]}"  =~ "${i%.tar.gz}" ]]; then
-            log_content "已存在镜像 ${i%.tar.gz}"
-         else
-            log_content "加载镜像 ${i%.tar.gz}"
-            docker load -i images/$i >/dev/null 2>&1 | tee -a ${CURRENT_DIR}/install.log
-         fi
+      shopt -s nullglob
+      image_archives=(images/*.tar images/*.tar.gz images/*.tgz)
+      if [[ ${#image_archives[@]} -eq 0 ]]; then
+         log_content "离线镜像目录为空，后续将从 docker-compose.yml 中定义的镜像仓库拉取"
+         return
+      fi
+      for image_archive in "${image_archives[@]}"; do
+         log_content "加载镜像 $(basename "$image_archive")"
+         docker load -i "$image_archive" 2>&1 | tee -a ${CURRENT_DIR}/install.log
       done
    else
       log_content "未检测到离线镜像目录，后续将从 docker-compose.yml 中定义的镜像仓库拉取"

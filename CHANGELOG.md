@@ -1,36 +1,39 @@
 # Changelog
 
-## v1.2.0 - 2026-05-27
+## v1.3.0 - 2026-05-29
 
-This is the first Crest public release baseline.
+本版本是 Crest 的首个公开发布基线，包含产品重命名、部署脚本、内置演示资源和研发效能分析能力。
 
-### Added
+### 新增
 
-- Field-level data lineage across datasources, physical tables, fields, datasets, chart fields, charts, dashboards, and dataV screens.
-- OceanBase Oracle mode datasource support based on OceanBase Connector/J.
-- Built-in retail operation demo with a datasource, modeled datasets, charts, and a dataV showcase screen.
-- Kubernetes deployment manifests for internal MySQL and external MySQL modes.
-- GHCR image publishing workflow and a slim runtime image based on a JDK 21 Alpine build stage.
-- Runtime API documentation grouped by current Crest modules.
+- 数据源、物理表、字段、数据集字段、图表字段、仪表板和数据大屏的字段级血缘。
+- 基于 OceanBase Connector/J 的 OceanBase Oracle 模式数据源。
+- 内置零售经营演示库，包含数据源、数据集、图表和数据大屏。
+- 内置研发效能分析资源，包含研发经营、需求流动、人力容量、工程活动、质量风险等主题大屏。
+- 支持内置 MySQL 和外部 MySQL 的 Kubernetes 部署清单。
+- GHCR 镜像发布 workflow，以及基于 JDK 21 Alpine 构建阶段的精简运行镜像。
+- 按 Crest 当前模块分组的运行时 API 文档。
 
-### Changed
+### 调整
 
-- Default administrator password is `admin`.
-- Product branding, navigation, login, and API documentation use Crest naming.
-- Removed non-current product entries from the visible navigation and documentation.
-- Demo datasource connection is synchronized from the active metadata database settings at startup, so fresh installs work without host-specific SQL.
+- 默认管理员密码为 `admin`。
+- 产品品牌、导航、登录页和 API 文档统一使用 Crest 命名。
+- 移除可见导航和文档中的非当前产品入口。
+- 内置演示数据源在应用启动时根据当前元数据库连接自动同步，安装 SQL 不写入宿主机地址。
+- 工作台页面改为浅色布局，保留现有业务标签页，快捷创建和资源列表沿用系统文案。
 
-### Fixed
+### 修复
 
-- DataV chart detail dialogs now fetch chart data when no local cache is available.
-- Custom SQL dataset editing no longer hits a missing `/sysVariable/query` route.
-- Large lineage graphs use a canvas renderer and steadier sizing to reduce blur and layout jitter.
-- Workbench shortcut and favorite panels keep consistent spacing while loading.
-- Initialization SQL can be replayed on a clean database without SQL warnings.
+- DataV 图表明细弹窗在没有本地缓存时会主动获取图表数据。
+- 自定义 SQL 数据集编辑不再请求缺失的 `/sysVariable/query` 路由。
+- 大规模血缘图改用 canvas 渲染，并优化尺寸计算，减少模糊和布局抖动。
+- 工作台快捷入口和资源面板在加载中保持稳定间距。
+- 初始化 SQL 可在空库重复执行，不产生 SQL 警告。
 
-### Upgrade Notes
+### 升级说明
 
-- Back up the metadata database and runtime directory before upgrading.
-- Flyway `V1.2__demo_retail_dashboard.sql` creates or rebuilds the `crest_demo_retail` demo schema.
-- The default image tag for this release is `ghcr.io/sevoniva/crest:v1.2.0`.
-- Crest remains a GPLv3 project derived from DataEase 2.10.22. Keep the upstream copyright and license notices when redistributing.
+- 升级前请备份元数据库和运行目录。
+- Flyway `V1.2__demo_retail_dashboard.sql` 会创建或重建 `crest_demo_retail` 演示库。
+- Flyway `V1.3__demo_engineering_efficiency.sql` 会写入研发效能主题表、指标视图、图表和大屏。
+- 本版本默认镜像为 `ghcr.io/sevoniva/crest:v1.3.0`。
+- Crest 基于 DataEase 2.10.22 二次开发，仍遵循 GPLv3。再分发时请保留上游版权和许可声明。

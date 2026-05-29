@@ -149,6 +149,7 @@ core/core-backend/src/main/resources/db/migration
 
 - `V1.1__initial_schema.sql`：创建当前运行所需的全部表结构，写入默认管理员、基础菜单、系统参数、内置驱动和必要主题配置；
 - `V1.2__demo_retail_dashboard.sql`：创建 `crest_demo_retail` 零售演示库，写入演示数据源、数据集、图表和数据大屏。
+- `V1.3__demo_engineering_efficiency.sql`：写入研发效能主题数据、指标视图、图表和数据大屏。
 
 演示数据只用于新用户理解产品主链路，必须保持环境无关：不能写入本地 IP、个人账号、压测数据、外部库连接串或临时资源。应用启动时会根据当前元数据库连接信息同步演示数据源地址，避免在 SQL 里写死容器名或宿主机地址。
 
@@ -164,13 +165,13 @@ launchctl kickstart -k gui/$(id -u)/com.crest.local
 
 验证点：
 
-- `de_standalone_version` 最新迁移成功，包含 `1.2:demo retail dashboard`；
+- `de_standalone_version` 最新迁移成功，包含 `1.3:demo engineering efficiency`；
 - 只有一个默认管理员账号；
 - `core_opt_recent`、`core_export_task` 等运行残留为空；
 - 演示数据源、数据集、图表和数据大屏存在，且不包含本地环境连接串；
 - `index.html` 和 `doc.html` 返回 200；
 - `/v3/api-docs` 和 `/v3/api-docs/5-relation` 返回 200；
-- 演示大屏能打开，图表明细弹窗能看到数据；
+- 零售经营和研发效能大屏能打开，图表明细弹窗能看到数据；
 - 数据血缘能从演示数据源追踪到字段、数据集、图表和数据大屏；
 - `error.log` 为空。
 

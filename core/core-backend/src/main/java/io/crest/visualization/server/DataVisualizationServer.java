@@ -149,7 +149,7 @@ public class DataVisualizationServer implements DataVisualizationApi {
     @Resource
     private CoreBusiManage coreBusiManage;
 
-    @Value("${crest.version:1.2.0}")
+    @Value("${crest.version:1.3.0}")
     private String crestVersion;
 
     @Resource

@@ -9,7 +9,7 @@ on:
       image_tag:
         description: Crest image tag to publish
         required: false
-        default: v1.2.0
+        default: v1.3.0
 
 permissions:
   contents: read
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMAGE_TAG: ${{ inputs.image_tag || github.ref_name || 'v1.2.0' }}
+  IMAGE_TAG: ${{ inputs.image_tag || github.ref_name || 'v1.3.0' }}
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/sevoniva/crest
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

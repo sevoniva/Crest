@@ -1,7 +1,7 @@
 services:
 
   mysql-crest:
-    image: ghcr.io/sevoniva/crest-mysql:8.4.5
+    image: ${DE_MYSQL_IMAGE:-mysql:8.4.5}
     container_name: mysql-crest
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u${DE_MYSQL_USER}", "-p${DE_MYSQL_PASSWORD}", "--protocol","tcp"]
@@ -18,7 +18,7 @@ services:
       - crest-network
 
   crest:
-    image: ghcr.io/sevoniva/crest:DE_TAG
+    image: ${DE_APP_IMAGE:-ghcr.io/sevoniva/crest:v1.3.0}
     stop_signal: SIGTERM
     stop_grace_period: 15s
     container_name: crest
@@ -31,8 +31,10 @@ services:
       - ${DE_RUN_BASE}/cache:/opt/crest/cache
       - ${DE_RUN_BASE}/data/appearance:/opt/crest/data/appearance
       - ${DE_RUN_BASE}/data/exportData:/opt/crest/data/exportData
+      - ${DE_RUN_BASE}/data/excel:/opt/crest/data/excel
       - ${DE_RUN_BASE}/data/font:/opt/crest/data/font
       - ${DE_RUN_BASE}/data/i18n:/opt/crest/data/i18n
+      - ${DE_RUN_BASE}/data/plugin:/opt/crest/data/plugin
     depends_on:
       mysql-crest:
         condition: service_healthy

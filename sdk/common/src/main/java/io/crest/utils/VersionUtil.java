@@ -8,7 +8,7 @@ public class VersionUtil {
     public static String getRandomVersion() {
         Environment environment = CommonBeanFactory.getBean(Environment.class);
         assert environment != null;
-        return environment.getProperty("crest.version", "1.2.0");
+        return environment.getProperty("crest.version", "1.3.0");
     }
 
 }

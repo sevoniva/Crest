@@ -17,3 +17,12 @@ DE_INTERNAL_LITE=false
 DE_EXTERNAL_PLAYWRIGHT=false
 DE_EXTERNAL_SYNC_TASK=false
 ```
+
+## 正式离线包
+
+发布离线包按 CPU 架构分别制作，命名格式为 `crest-offline-v1.3.0-linux-amd64.tar.gz` 和 `crest-offline-v1.3.0-linux-arm64.tar.gz`。包内只包含安装脚本、Docker Compose 配置、正式说明文档和 `images/` 镜像归档。
+
+```bash
+bash make-offline-package.sh v1.3.0 linux-amd64
+bash make-offline-package.sh v1.3.0 linux-arm64
+```

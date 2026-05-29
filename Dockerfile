@@ -27,6 +27,7 @@ RUN addgroup -S -g 10001 crest \
     /opt/crest/data/appearance/ \
     /opt/crest/data/exportData/ \
     /opt/crest/data/excel/ \
+    /opt/crest/data/font/ \
     /opt/crest/data/i18n/ \
     /opt/crest/data/plugin/ \
     && chown -R 10001:10001 /opt/apps /opt/crest
