@@ -251,22 +251,29 @@ const initOpenHandler = newWindow => {
 .preview-head {
   width: 100%;
   min-width: 300px;
-  height: 56px;
-  padding: 16px 24px;
-  border-bottom: 1px solid rgba(31, 35, 41, 0.15);
+  height: 58px;
+  padding: 12px 22px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  font-family: var(--de-custom_font, var(--crest-font-sans));
   .canvas-name {
     max-width: 200px;
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 700;
+    color: #0f172a;
   }
   .canvas-have-update {
-    background-color: rgba(52, 199, 36, 0.2);
-    color: rgba(44, 169, 31, 1);
-    font-weight: 400;
+    background-color: #ecfdf5;
+    color: #059669;
+    border: 1px solid #bbf7d0;
+    border-radius: 999px;
+    font-weight: 600;
     font-size: 12px;
     line-height: 20px;
     vertical-align: middle;
-    padding: 0 4px;
+    padding: 0 8px;
     margin-left: 8px;
   }
   .custom-icon {
@@ -274,8 +281,8 @@ const initOpenHandler = newWindow => {
     margin-left: 8px;
   }
   .create-area {
-    color: #646a73;
-    font-weight: 400;
+    color: #64748b;
+    font-weight: 500;
     font-size: 14px;
   }
   .canvas-opt-button {
@@ -283,24 +290,58 @@ const initOpenHandler = newWindow => {
     justify-content: right;
     align-items: center;
     flex: 1;
+    gap: 8px;
+
+    .ed-button {
+      height: 34px;
+      margin-left: 0;
+      border-radius: 10px;
+      border-color: #e2e8f0;
+      background: #ffffff;
+      color: #334155;
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+      &:hover,
+      &:focus {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+        color: var(--ed-color-primary);
+      }
+
+      &.ed-button--primary {
+        border-color: var(--ed-color-primary);
+        background: var(--ed-color-primary);
+        color: #ffffff;
+
+        &:hover,
+        &:focus {
+          border-color: #2563eb;
+          background: #2563eb;
+          color: #ffffff;
+        }
+      }
+    }
+
     .head-more-icon {
-      color: #1f2329;
-      margin-left: 12px;
+      width: 34px;
+      height: 34px;
+      color: #334155;
+      margin-left: 0;
       cursor: pointer;
       font-size: 20px;
-      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
       position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
       &:hover {
-        &::after {
-          content: '';
-          position: absolute;
-          top: -4px;
-          left: -4px;
-          border-radius: 6px;
-          height: 28px;
-          width: 28px;
-          background: #1f23291a;
-        }
+        color: var(--ed-color-primary);
+        border-color: #bfdbfe;
+        background: #eff6ff;
       }
     }
   }
@@ -308,10 +349,10 @@ const initOpenHandler = newWindow => {
 .info-tips {
   margin-left: 4px;
   font-size: 16px;
-  color: #646a73;
+  color: #64748b;
 }
 
 .custom-button {
-  margin-left: 12px;
+  margin-left: 0;
 }
 </style>

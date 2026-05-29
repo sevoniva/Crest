@@ -93,6 +93,8 @@ const typeLevelMap: Record<string, number> = {
 
 const fieldNodeTypes = new Set(['table_field', 'dataset_field', 'chart_field'])
 
+const getTypeClass = (type: string) => `lineage-type-${String(type || '').replace(/_/g, '-')}`
+
 const getNodeLookup = (sourceGraph: RelationGraph) => {
   return (sourceGraph.nodes || []).reduce<Record<string, RelationNode>>((acc, node) => {
     acc[node.id] = node
@@ -668,9 +670,10 @@ onBeforeUnmount(() => {
           <el-table :data="resourceRows" height="240" size="small">
             <el-table-column label="类型" width="94">
               <template #default="{ row }">
-                <el-tag size="small" effect="plain">{{
-                  typeLabelMap[row.type] || row.type
-                }}</el-tag>
+                <span class="type-dot-tag" :class="getTypeClass(row.type)">
+                  <i></i>
+                  {{ typeLabelMap[row.type] || row.type }}
+                </span>
               </template>
             </el-table-column>
             <el-table-column prop="name" label="名称" show-overflow-tooltip />
@@ -706,10 +709,14 @@ onBeforeUnmount(() => {
 <style lang="less" scoped>
 .lineage-page {
   height: 100%;
-  padding: 16px 20px 20px;
+  padding: 22px 26px;
   overflow: hidden;
-  background: #f6f8fb;
-  color: #1f2329;
+  background: #f8fafc;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--crest-font-sans);
 }
 
 .lineage-toolbar {
@@ -717,25 +724,40 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 56px;
+  min-height: 68px;
+  padding: 14px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .lineage-title {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
+  flex: 0 0 auto;
+  min-width: 150px;
 
   h1 {
     margin: 0;
-    font-size: 20px;
+    font-size: 18px;
     line-height: 28px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0;
+    white-space: nowrap;
   }
 
   span {
-    color: #646a73;
-    font-size: 13px;
+    flex: none;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-family: var(--crest-font-mono);
+    font-size: 12px;
+    line-height: 18px;
+    white-space: nowrap;
   }
 }
 
@@ -777,7 +799,8 @@ onBeforeUnmount(() => {
 }
 
 .filter-stats {
-  color: #646a73;
+  color: #64748b;
+  font-family: var(--crest-font-mono);
   font-size: 12px;
   line-height: 22px;
   white-space: nowrap;
@@ -790,7 +813,8 @@ onBeforeUnmount(() => {
   gap: 12px;
 
   small {
-    color: #8f959e;
+    color: #94a3b8;
+    font-family: var(--crest-font-mono);
   }
 }
 
@@ -798,81 +822,92 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: repeat(8, minmax(96px, 1fr));
   gap: 10px;
-  margin: 12px 0;
 }
 
 .summary-item {
+  position: relative;
   height: 64px;
-  padding: 10px 14px;
-  border: 1px solid #dee0e3;
-  border-radius: 8px;
+  padding: 10px 14px 10px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
   background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+  &::before {
+    position: absolute;
+    left: 0;
+    top: 14px;
+    bottom: 14px;
+    width: 4px;
+    border-radius: 0 3px 3px 0;
+    background: var(--summary-color, #3b82f6);
+    content: '';
+  }
 
   span {
-    color: #646a73;
+    color: #64748b;
     font-size: 13px;
   }
 
   strong {
     font-size: 24px;
     line-height: 30px;
-    font-weight: 600;
+    font-weight: 700;
+    font-family: var(--crest-font-mono);
+    color: var(--summary-color, #3b82f6);
   }
 
-  &.is-datasource strong {
-    color: #3b82f6;
+  &.is-datasource {
+    --summary-color: #f5a623;
   }
 
-  &.is-table strong {
-    color: #06b6d4;
+  &.is-table {
+    --summary-color: #3b82f6;
   }
 
-  &.is-table-field strong {
-    color: #22c55e;
+  &.is-table-field {
+    --summary-color: #60a5fa;
   }
 
-  &.is-dataset-field strong {
-    color: #14b8a6;
+  &.is-dataset-field {
+    --summary-color: #8b5cf6;
   }
 
-  &.is-dataset strong {
-    color: #84cc16;
+  &.is-dataset {
+    --summary-color: #6e62e8;
   }
 
-  &.is-chart-field strong {
-    color: #f59e0b;
+  &.is-chart-field {
+    --summary-color: #1fb6a6;
   }
 
-  &.is-chart strong {
-    color: #f97316;
+  &.is-chart {
+    --summary-color: #10b981;
   }
 
-  &.is-dv strong {
-    color: #ec4899;
-  }
-
-  &.is-edge strong {
-    color: #1f2329;
+  &.is-edge {
+    --summary-color: #334155;
   }
 }
 
 .lineage-content {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
-  gap: 12px;
-  height: calc(100vh - 184px);
-  min-height: 460px;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
 }
 
 .graph-panel,
 .detail-panel {
-  border: 1px solid #dee0e3;
-  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
   overflow: hidden;
   background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .graph-panel {
@@ -896,10 +931,16 @@ onBeforeUnmount(() => {
   gap: 8px;
 
   :deep(.ed-button) {
-    border-color: rgba(222, 224, 227, 0.72);
-    background: rgba(255, 255, 255, 0.86);
-    box-shadow: 0 10px 24px rgba(31, 35, 41, 0.1);
-    backdrop-filter: blur(10px);
+    border-color: #e2e8f0;
+    background: #ffffff;
+    color: #334155;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+    &:hover {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+      color: #3b82f6;
+    }
   }
 }
 
@@ -921,10 +962,10 @@ onBeforeUnmount(() => {
 }
 
 .block-title {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-size: 13px;
-  font-weight: 600;
-  color: #1f2329;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .edge-cell {
@@ -933,7 +974,119 @@ onBeforeUnmount(() => {
   line-height: 18px;
 
   small {
-    color: #8f959e;
+    color: #94a3b8;
+    font-family: var(--crest-font-mono);
+  }
+}
+
+.type-dot-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 84px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--type-bg, #eff6ff);
+  color: var(--type-color, #3b82f6);
+  font-family: var(--crest-font-mono);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+
+  i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--type-color, #3b82f6);
+  }
+}
+
+.lineage-type-datasource {
+  --type-color: #f5a623;
+  --type-bg: #fff7ed;
+}
+
+.lineage-type-table,
+.lineage-type-table-field {
+  --type-color: #3b82f6;
+  --type-bg: #eff6ff;
+}
+
+.lineage-type-dataset,
+.lineage-type-dataset-field {
+  --type-color: #6e62e8;
+  --type-bg: #f3f0ff;
+}
+
+.lineage-type-chart,
+.lineage-type-chart-field,
+.lineage-type-dv {
+  --type-color: #10b981;
+  --type-bg: #ecfdf5;
+}
+
+:deep(.ed-input__wrapper) {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: none;
+  background: #ffffff;
+
+  &:hover {
+    border-color: #bfdbfe;
+  }
+
+  &.is-focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+  }
+}
+
+:deep(.ed-button) {
+  height: 32px;
+  border-radius: 10px;
+  font-family: var(--crest-font-sans);
+  font-weight: 600;
+}
+
+:deep(.ed-button--primary) {
+  background: #3b82f6;
+  border-color: #3b82f6;
+
+  &:hover,
+  &:focus {
+    background: #2563eb;
+    border-color: #2563eb;
+  }
+}
+
+:deep(.ed-radio-button__inner) {
+  border-color: #e2e8f0;
+  color: #64748b;
+  font-family: var(--crest-font-sans);
+  font-weight: 600;
+}
+
+:deep(.ed-radio-button__original-radio:checked + .ed-radio-button__inner) {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+  box-shadow: -1px 0 0 0 #0f172a;
+}
+
+:deep(.ed-table) {
+  color: #334155;
+  font-family: var(--crest-font-sans);
+
+  th.ed-table__cell {
+    background: #ffffff;
+    color: #94a3b8;
+    font-family: var(--crest-font-mono);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .ed-table__row:hover > td.ed-table__cell {
+    background: #fafbfc;
   }
 }
 
@@ -967,8 +1120,31 @@ onBeforeUnmount(() => {
 
 <style lang="less">
 .lineage-select-dropdown {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1) !important;
+
   .ed-select-dropdown__wrap {
     max-height: 420px;
+  }
+
+  .ed-select-dropdown__item {
+    height: 34px;
+    border-radius: 8px;
+    color: #334155;
+    font-family: var(--crest-font-sans);
+    font-weight: 500;
+
+    &.hover,
+    &:hover {
+      background: #f8fafc;
+    }
+
+    &.selected {
+      color: #3b82f6;
+      background: #eff6ff;
+      font-weight: 700;
+    }
   }
 }
 </style>

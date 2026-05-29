@@ -19,7 +19,7 @@ const handleClick = val => {
 <template>
   <div
     @click="handleClick(false)"
-    v-if="appStore.getArrowSide && !isInside"
+    v-if="!isInside"
     class="arrow-side-tree arrow-side-tree-left"
   >
     <el-icon>
@@ -28,7 +28,7 @@ const handleClick = val => {
   </div>
   <div
     @click="handleClick(true)"
-    v-else-if="!appStore.getArrowSide && isInside"
+    v-else
     class="arrow-side-tree arrow-side-tree-right"
   >
     <el-icon>
@@ -40,38 +40,41 @@ const handleClick = val => {
 <style lang="less" scoped>
 .arrow-side-tree-left {
   top: 44px;
-  height: 24px;
-  width: 24px;
+  height: 28px;
+  width: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0px 5px 10px 0px #1f23291a;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
 }
 
 .arrow-side-tree-right {
-  box-shadow: 0px 4px 8px 0px #0000001a;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
   top: 44px;
-  height: 24px;
-  width: 20px;
+  height: 28px;
+  width: 22px;
   display: flex;
   align-items: center;
   padding-left: 2px;
-  border-top-right-radius: 12px;
-  border-bottom-right-radius: 12px;
+  border-top-right-radius: 14px;
+  border-bottom-right-radius: 14px;
   &:hover {
     padding-left: 4px;
-    width: 24px;
+    width: 28px;
   }
 }
 
 .arrow-side-tree {
   position: absolute;
-  border: 1px solid #dee0e3;
+  border: 1px solid #e2e8f0;
   background: #fff;
+  color: #334155;
   cursor: pointer;
   z-index: 10;
   &:hover {
+    border-color: #bfdbfe;
+    background: #eff6ff;
     .ed-icon {
       color: var(--ed-color-primary);
     }

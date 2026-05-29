@@ -45,27 +45,65 @@ export default HeaderMenuItem
 
 <style lang="less">
 .popper-class-menu {
-  --active-color: #1f2329;
+  --active-color: #0f172a;
+  min-width: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+
   &.is-light {
-    border: none !important;
     margin-top: -2px;
+    background: transparent !important;
+    border: 0 !important;
   }
-  .popper-class-menu {
-    min-width: 152px;
-    border-radius: 6px;
-    border: 1px solid #dee0e3 !important;
 
-    .ed-menu--popup {
-      min-width: 150px;
-      padding: 3px 0;
-      .ed-menu-item {
-        padding-left: 11px !important;
-      }
-    }
+  .ed-popper__arrow {
+    display: none;
+  }
 
-    .ed-menu--popup .ed-menu-item.is-active.is-active:not(:hover) {
-      background-color: transparent;
+  .ed-menu--popup {
+    min-width: 132px !important;
+    padding: 8px !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1) !important;
+  }
+
+  .ed-menu-item,
+  .ed-sub-menu__title {
+    height: 34px;
+    margin: 2px 0;
+    padding: 0 12px !important;
+    border-radius: 8px;
+    color: #334155;
+    font-family: var(--crest-font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 34px;
+    background: transparent;
+  }
+
+  .ed-menu-item:hover,
+  .ed-sub-menu__title:hover {
+    color: #0f172a;
+    background: #f8fafc;
+  }
+
+  .ed-menu-item.is-active,
+  .ed-menu-item.is-active:not(:hover) {
+    color: var(--ed-color-primary);
+    background: #eff6ff;
+
+    &::after {
+      display: none;
     }
+  }
+
+  .ed-sub-menu__icon-arrow {
+    right: 10px;
+    color: #94a3b8;
   }
 }
 </style>

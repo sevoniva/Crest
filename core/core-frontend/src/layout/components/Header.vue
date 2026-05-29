@@ -132,6 +132,9 @@ onMounted(() => {
   :deep(.ed-menu--horizontal > .ed-sub-menu .ed-sub-menu__title) {
     height: 60px;
     padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-family: var(--crest-font-sans);
     font-size: 14px;
     font-weight: 500;
@@ -166,6 +169,19 @@ onMounted(() => {
     content: '';
     background: #3b82f6;
     border-radius: 2px 2px 0 0;
+  }
+
+  :deep(.ed-menu--horizontal > .ed-sub-menu .ed-sub-menu__title .ed-sub-menu__icon-arrow) {
+    position: static;
+    flex: 0 0 14px;
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    transform: none;
+  }
+
+  :deep(.ed-menu--horizontal > .ed-sub-menu.is-opened .ed-sub-menu__title .ed-sub-menu__icon-arrow) {
+    transform: rotate(180deg);
   }
 }
 

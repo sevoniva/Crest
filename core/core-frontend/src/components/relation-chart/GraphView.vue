@@ -82,14 +82,14 @@ let knowledgeLayoutCache = new Map<string, { x: number; y: number; degree: numbe
 const selectedNodeId = ref<string>()
 
 const typeMeta: Record<string, { label: string; color: string; level: number; symbol: string }> = {
-  datasource: { label: '数据源', color: '#3b82f6', level: 0, symbol: 'roundRect' },
-  table: { label: '物理表', color: '#06b6d4', level: 1, symbol: 'roundRect' },
-  table_field: { label: '物理字段', color: '#22c55e', level: 2, symbol: 'circle' },
-  dataset_field: { label: '数据集字段', color: '#14b8a6', level: 3, symbol: 'circle' },
-  dataset: { label: '数据集', color: '#84cc16', level: 4, symbol: 'roundRect' },
-  chart_field: { label: '图表字段', color: '#f59e0b', level: 5, symbol: 'circle' },
-  chart: { label: '图表', color: '#f97316', level: 6, symbol: 'roundRect' },
-  dv: { label: '仪表板/大屏', color: '#ec4899', level: 7, symbol: 'roundRect' }
+  datasource: { label: '数据源', color: '#f5a623', level: 0, symbol: 'roundRect' },
+  table: { label: '物理表', color: '#3b82f6', level: 1, symbol: 'roundRect' },
+  table_field: { label: '物理字段', color: '#60a5fa', level: 2, symbol: 'circle' },
+  dataset_field: { label: '数据集字段', color: '#8b5cf6', level: 3, symbol: 'circle' },
+  dataset: { label: '数据集', color: '#6e62e8', level: 4, symbol: 'roundRect' },
+  chart_field: { label: '图表字段', color: '#1fb6a6', level: 5, symbol: 'circle' },
+  chart: { label: '图表', color: '#10b981', level: 6, symbol: 'roundRect' },
+  dv: { label: '仪表板/大屏', color: '#10b981', level: 7, symbol: 'roundRect' }
 }
 
 const dashedEdgeTypes = new Set([
@@ -356,13 +356,13 @@ const getNodeVisual = (node: RelationNode, degree = 0) => {
     category: meta.label,
     itemStyle: {
       color: isField && !knowledgeMode ? '#ffffff' : meta.color,
-      borderColor: selected ? '#1f2329' : isField && !knowledgeMode ? meta.color : '#ffffff',
-      borderType: isField && !knowledgeMode ? 'dashed' : 'solid',
-      borderWidth: selected ? 3 : isField && !knowledgeMode ? 1.6 : 2,
+      borderColor: selected ? '#0f172a' : isField && !knowledgeMode ? meta.color : '#ffffff',
+      borderType: 'solid',
+      borderWidth: selected ? 3 : isField && !knowledgeMode ? 2 : 1.5,
       opacity: visible ? 1 : 0.18,
-      shadowBlur: selected ? 18 : isRenderHeavyGraph.value ? 0 : knowledgeMode ? 10 : 8,
-      shadowOffsetY: selected ? 10 : knowledgeMode ? 7 : 0,
-      shadowColor: selected ? `${meta.color}70` : `${meta.color}42`
+      shadowBlur: 0,
+      shadowOffsetY: 0,
+      shadowColor: 'transparent'
     },
     symbol: knowledgeMode ? 'circle' : meta.symbol,
     symbolSize,
@@ -375,7 +375,9 @@ const getNodeVisual = (node: RelationNode, degree = 0) => {
       width: knowledgeMode ? (isField ? 96 : 82) : node.type === 'dv' ? 96 : isField ? 52 : 82,
       overflow: 'truncate',
       fontSize: selected ? 12 : isField ? 10 : 12,
-      fontWeight: selected ? 700 : 500
+      fontWeight: selected ? 700 : 600,
+      fontFamily:
+        "Outfit, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif"
     }
   }
 }
@@ -599,23 +601,25 @@ const formatLinks = () => {
     return {
       ...edge,
       lineStyle: {
-        color: selectedContext ? (isHighlighted ? '#2563eb' : '#94a3b8') : '#d7dde8',
+        color: selectedContext ? (isHighlighted ? '#3b82f6' : '#94a3b8') : '#d7dde8',
         type: dashedEdgeTypes.has(edge.type || '') ? 'dashed' : 'solid',
-        width: selectedContext ? (isHighlighted ? 2.1 : isLargeGraph.value ? 0.9 : 1.35) : 0.7,
+        width: selectedContext ? (isHighlighted ? 2.2 : isLargeGraph.value ? 1.05 : 1.55) : 0.8,
         curveness:
           props.layoutMode === 'knowledge'
             ? 0.12
             : edge.type === 'dataset_table_join'
             ? 0.08
             : 0.18,
-        opacity: selectedContext ? (isHighlighted ? 0.9 : isLargeGraph.value ? 0.5 : 0.74) : 0.16
+        opacity: selectedContext ? (isHighlighted ? 0.95 : isLargeGraph.value ? 0.64 : 0.86) : 0.2
       },
       label: {
         show: showLabel || (!!selectedNodeId.value && selectedContext && !!edge.label),
         formatter: edge.label || '',
-        color: '#245bdb',
+        color: '#334155',
         fontSize: 10,
-        backgroundColor: 'rgba(255,255,255,0.82)',
+        fontFamily:
+          "Outfit, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif",
+        backgroundColor: '#ffffff',
         borderRadius: 4,
         padding: [2, 4]
       }
@@ -649,6 +653,15 @@ const renderChart = async () => {
       tooltip: {
         trigger: 'item',
         confine: true,
+        backgroundColor: '#ffffff',
+        borderColor: '#e2e8f0',
+        borderWidth: 1,
+        textStyle: {
+          color: '#334155',
+          fontFamily:
+            "Outfit, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif",
+          fontSize: 12
+        },
         formatter: params => {
           if (params.dataType === 'edge') {
             return params.data?.label || '资源依赖'
@@ -673,7 +686,10 @@ const renderChart = async () => {
         itemWidth: 10,
         itemHeight: 10,
         textStyle: {
-          color: '#646a73'
+          color: '#64748b',
+          fontFamily:
+            "Outfit, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif",
+          fontWeight: 500
         },
         data: categoryMeta.value.map(item => item.label)
       },
@@ -695,10 +711,10 @@ const renderChart = async () => {
           data: layoutNodes(),
           links: formatLinks(),
           lineStyle: {
-            color: '#8f959e',
-            width: isLargeGraph.value ? 0.9 : 1.3,
+            color: '#94a3b8',
+            width: isLargeGraph.value ? 1 : 1.5,
             curveness: props.layoutMode === 'knowledge' ? 0.12 : 0.18,
-            opacity: isLargeGraph.value ? 0.46 : 0.72
+            opacity: isLargeGraph.value ? 0.62 : 0.84
           },
           labelLayout: {
             hideOverlap: true
@@ -837,20 +853,11 @@ watch(
   position: relative;
   min-height: 360px;
   overflow: hidden;
-  background: radial-gradient(circle at 18% 16%, rgba(59, 130, 246, 0.1), transparent 30%),
-    radial-gradient(circle at 76% 24%, rgba(20, 184, 166, 0.1), transparent 28%),
-    linear-gradient(90deg, rgba(31, 35, 41, 0.035) 1px, transparent 1px),
-    linear-gradient(rgba(31, 35, 41, 0.035) 1px, transparent 1px), #f8fafc;
-  background-size: 32px 32px;
+  background: #ffffff;
 }
 
 .relation-graph-view.is-knowledge {
-  background: radial-gradient(circle at 14% 18%, rgba(59, 130, 246, 0.12), transparent 32%),
-    radial-gradient(circle at 84% 18%, rgba(20, 184, 166, 0.12), transparent 30%),
-    radial-gradient(circle at 72% 84%, rgba(236, 72, 153, 0.08), transparent 34%),
-    linear-gradient(90deg, rgba(100, 116, 139, 0.045) 1px, transparent 1px),
-    linear-gradient(rgba(100, 116, 139, 0.045) 1px, transparent 1px), #f8fbff;
-  background-size: auto, auto, auto, 28px 28px, 28px 28px, auto;
+  background: #ffffff;
 }
 
 .relation-canvas {
@@ -865,40 +872,49 @@ watch(
   z-index: 2;
   width: 248px;
   padding: 14px;
-  border: 1px solid rgba(222, 224, 227, 0.9);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 14px 38px rgba(31, 35, 41, 0.13);
-  backdrop-filter: blur(10px);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   display: flex;
   flex-direction: column;
   gap: 8px;
 
   strong {
-    color: #1f2329;
+    color: #0f172a;
+    font-family: var(--crest-font-sans);
     font-size: 14px;
     line-height: 20px;
     font-weight: 600;
   }
 
   span {
-    color: #646a73;
+    color: #64748b;
+    font-family: var(--crest-font-sans);
     font-size: 12px;
     line-height: 18px;
   }
 
   button {
     height: 28px;
-    border: 1px solid #dee0e3;
-    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
     background: #ffffff;
-    color: #245bdb;
+    color: #3b82f6;
+    font-family: var(--crest-font-sans);
+    font-weight: 600;
     cursor: pointer;
+
+    &:hover {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+    }
   }
 }
 
 .float-card-type {
-  color: #8f959e;
+  color: #94a3b8;
+  font-family: var(--crest-font-mono);
   font-size: 12px;
   line-height: 16px;
 }
@@ -910,8 +926,9 @@ watch(
   small {
     padding: 3px 8px;
     border-radius: 999px;
-    background: #f2f4f7;
-    color: #646a73;
+    background: #f1f5f9;
+    color: #64748b;
+    font-family: var(--crest-font-mono);
   }
 }
 
@@ -922,7 +939,8 @@ watch(
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #8f959e;
+  color: #94a3b8;
+  font-family: var(--crest-font-sans);
   font-size: 14px;
 }
 </style>

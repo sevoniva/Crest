@@ -224,14 +224,6 @@ const changeSideTreeStatus = val => {
   sideTreeStatus.value = val
 }
 
-const mouseenter = () => {
-  appStore.setArrowSide(true)
-}
-
-const mouseleave = () => {
-  appStore.setArrowSide(false)
-}
-
 const getPreviewStateInfo = () => {
   return state
 }
@@ -270,18 +262,10 @@ onBeforeMount(() => {
     ></ArrowSide>
     <el-aside
       class="resource-area"
-      @mouseenter="mouseenter"
-      @mouseleave="mouseleave"
       :class="{ 'close-side': !slideShow, retract: !sideTreeStatus }"
       ref="node"
       :style="{ width: width + 'px' }"
     >
-      <ArrowSide
-        v-if="!noClose"
-        :isInside="!sideTreeStatus"
-        :style="{ left: (sideTreeStatus ? width - 12 : 0) + 'px' }"
-        @change-side-tree-status="changeSideTreeStatus"
-      ></ArrowSide>
       <de-resource-tree
         ref="resourceTreeRef"
         v-show="slideShow"
@@ -375,7 +359,9 @@ onBeforeMount(() => {
   height: 100%;
   overflow: hidden;
   display: flex;
-  background: #ffffff;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: var(--de-custom_font, var(--crest-font-sans));
   position: relative;
   .resource-area {
     position: relative;
@@ -383,7 +369,10 @@ onBeforeMount(() => {
     width: 279px;
     padding: 0;
     overflow: visible;
-    border-right: 1px solid #d7d7d7;
+    border-right: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    z-index: 4;
 
     &.retract {
       display: none;
@@ -399,7 +388,7 @@ onBeforeMount(() => {
     //transition: 0.5s;
 
     &.no-data {
-      background-color: rgba(245, 246, 247, 1);
+      background-color: #f8fafc;
     }
 
     .content {
@@ -430,13 +419,14 @@ onBeforeMount(() => {
   z-index: 10;
   display: flex;
   align-items: center;
-  border-top: 1px solid #d7d7d7;
-  border-right: 1px solid #d7d7d7;
-  border-bottom: 1px solid #d7d7d7;
+  border-top: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .multiplexing-content {
   padding: 12px;
-  background-color: rgb(245, 246, 247);
+  background-color: #f8fafc;
 }
 </style>

@@ -803,36 +803,44 @@ defineExpose({
 </template>
 <style lang="less" scoped>
 .filter-icon-span {
-  border: 1px solid #d9dcdf;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  color: #1f2329;
+  border: 1px solid #e2e8f0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  color: #334155;
   padding: 8px;
   margin-left: 8px;
   font-size: 16px;
   cursor: pointer;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 
   .opt-icon:focus {
     outline: none !important;
   }
   &:hover {
-    background: #f5f6f7;
+    color: var(--ed-color-primary);
+    border-color: #bfdbfe;
+    background: #eff6ff;
   }
 
   &:active {
-    background: #eff0f1;
+    background: #dbeafe;
   }
 }
 .resource-tree {
-  padding: 16px 0 0;
+  padding: 18px 12px 0;
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: var(--de-custom_font, var(--crest-font-sans));
 
   .tree-header {
-    padding: 0 16px;
+    padding: 0 4px 14px;
+    border-bottom: 1px solid #e2e8f0;
   }
 
   .icon-methods {
@@ -840,14 +848,14 @@ defineExpose({
     align-items: center;
     justify-content: flex-end;
     font-size: 20px;
-    font-weight: 500;
-    color: var(--TextPrimary, #1f2329);
-    padding-bottom: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    padding-bottom: 14px;
     .title {
       margin-right: auto;
       font-size: 16px;
       font-style: normal;
-      font-weight: 500;
+      font-weight: 700;
       line-height: 24px;
     }
     .custom-icon {
@@ -856,26 +864,47 @@ defineExpose({
       outline: none;
       &.btn {
         color: var(--ed-color-primary);
+        width: 34px;
+        height: 34px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
       }
       &:hover {
+        color: var(--ed-color-primary);
+        border-color: #bfdbfe;
+        background: #eff6ff;
         cursor: pointer;
         &::after {
-          content: '';
-          background-color: var(--ed-color-primary-1a, #3B82F61a);
-          width: 28px;
-          height: 28px;
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          border-radius: 6px;
-          transform: translate(-50%, -50%);
+          content: none;
         }
       }
     }
   }
   .search-bar {
-    padding-bottom: 10px;
-    width: calc(100% - 40px);
+    padding-bottom: 0;
+    width: calc(100% - 42px);
+  }
+
+  :deep(.ed-input__wrapper) {
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    background: #ffffff;
+
+    &:hover {
+      border-color: #bfdbfe;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    &.is-focus {
+      border-color: var(--ed-color-primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+    }
   }
 }
 .title-area {
@@ -906,12 +935,12 @@ defineExpose({
 }
 
 :deep(.ed-input__wrapper) {
-  width: 80px;
+  width: 100%;
 }
 
 .custom-tree {
-  height: calc(100vh - 148px);
-  padding: 0 8px;
+  height: calc(100vh - 158px);
+  padding: 10px 0 0;
 }
 
 .custom-tree-node {
@@ -927,6 +956,8 @@ defineExpose({
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    color: #334155;
+    font-weight: 500;
   }
   .icon-more {
     margin-left: auto;
@@ -947,6 +978,33 @@ defineExpose({
     border-radius: 6px;
     color: #fff;
     padding: 3px;
+  }
+}
+
+:deep(.ed-tree) {
+  --ed-tree-node-hover-bg-color: #f8fafc;
+  color: #334155;
+  background: transparent;
+}
+
+:deep(.ed-tree-node__content) {
+  height: 36px;
+  border-radius: 10px;
+  margin-bottom: 4px;
+  padding-right: 6px;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+:deep(.ed-tree--highlight-current .ed-tree-node.is-current > .ed-tree-node__content) {
+  background: #eff6ff;
+  color: var(--ed-color-primary);
+  box-shadow: inset 3px 0 0 var(--ed-color-primary);
+
+  .label-tooltip {
+    color: var(--ed-color-primary);
   }
 }
 </style>
