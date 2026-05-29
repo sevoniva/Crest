@@ -931,13 +931,6 @@ public class DataVisualizationServer implements DataVisualizationApi {
     public List<VisualizationResourceVO> findRecent(@RequestBody VisualizationWorkbranchQueryRequest request) {
         request.setQueryFrom("recent");
         IPage<VisualizationResourceVO> result = coreVisualizationManage.query(1, 20, request);
-        List<VisualizationResourceVO> resourceVOS = result.getRecords();
-        if (!CollectionUtils.isEmpty(resourceVOS)) {
-            resourceVOS.forEach(item -> {
-                item.setCreator(Strings.CS.equals(item.getCreator(), "1") ? Translator.get("i18n_sys_admin") : item.getCreator());
-                item.setLastEditor(Strings.CS.equals(item.getLastEditor(), "1") ? Translator.get("i18n_sys_admin") : item.getLastEditor());
-            });
-        }
         return result.getRecords();
     }
 

@@ -121,25 +121,26 @@ const getLeafTimes = item => {
 }
 
 const getSparkValues = item => {
-  const values = new Array(7).fill(0)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const dayMs = 24 * 60 * 60 * 1000
-  const times = getLeafTimes(item)
-
-  times.forEach(time => {
-    const day = new Date(time)
-    day.setHours(0, 0, 0, 0)
-    const diff = Math.floor((today.getTime() - day.getTime()) / dayMs)
-    if (diff >= 0 && diff < 7) {
-      values[6 - diff] += 1
-    }
-  })
-
-  if (times.length) {
-    return values
+  const times = getLeafTimes(item).sort((a, b) => a - b)
+  const total = Number(item?.leafNodeCount || times.length || 0)
+  if (!times.length || total <= 0) {
+    return new Array(7).fill(0)
   }
-  return values.fill(Number(item?.leafNodeCount || 0))
+
+  const min = times[0]
+  const max = times[times.length - 1]
+  if (min === max) {
+    return [0, 0, Math.ceil(total * 0.18), Math.ceil(total * 0.42), Math.ceil(total * 0.68), Math.ceil(total * 0.86), total]
+  }
+
+  let cursor = 0
+  return new Array(7).fill(0).map((_, index) => {
+    const threshold = min + ((max - min) / 6) * index
+    while (cursor < times.length && times[cursor] <= threshold) {
+      cursor += 1
+    }
+    return cursor
+  })
 }
 
 const getSparkPoints = item => {
@@ -260,11 +261,12 @@ const getSparkLastPoint = item => {
   display: grid;
   grid-template-columns: clamp(320px, 18vw, 360px) minmax(0, 1fr);
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
   width: 100%;
-  min-height: calc(100vh - 60px);
+  height: calc(100vh - 60px);
+  min-height: 640px;
   padding: clamp(22px, 2vw, 32px) clamp(28px, 4vw, 72px);
-  overflow: auto;
+  overflow: hidden;
   font-family: var(--crest-font-sans);
   background: #f8fafc;
   --workbranch-card-radius: 14px;
@@ -288,6 +290,7 @@ const getSparkLastPoint = item => {
     flex-direction: column;
     gap: 16px;
     width: 100%;
+    height: 100%;
     min-height: 0;
 
     .main-color {
@@ -430,6 +433,7 @@ const getSparkLastPoint = item => {
 
     .quick-creation {
       display: flex;
+      flex: 1;
       flex-direction: column;
       min-height: 0;
       padding: 18px 22px 22px;
@@ -563,8 +567,8 @@ const getSparkLastPoint = item => {
 
   .workbranch-content {
     min-width: 0;
-    height: clamp(520px, calc(100vh - 220px), 640px);
-    min-height: 520px;
+    height: 100%;
+    min-height: 0;
     overflow: hidden;
     border-radius: var(--workbranch-card-radius);
 
@@ -592,10 +596,12 @@ const getSparkLastPoint = item => {
   .workbranch {
     grid-template-columns: 1fr;
     height: auto;
+    min-height: calc(100vh - 60px);
+    overflow: auto;
   }
 
   .workbranch .workbranch-content {
-    height: auto;
+    height: 620px;
     min-height: 520px;
   }
 }

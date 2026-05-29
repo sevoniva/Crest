@@ -20,6 +20,9 @@
   --ed-color-primary-light-9: #ebf4ff !important;
   --ed-color-primary-1a: rgba(59, 130, 246, 0.1) !important;
   --ed-color-primary-33: rgba(59, 130, 246, 0.2) !important;
+  --crest-motion-fast: 120ms;
+  --crest-motion-base: 160ms;
+  --crest-ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
   font-family: var(--de-custom_font, var(--crest-font-sans));
   font-weight: 400;
   color-scheme: light dark;
@@ -37,6 +40,41 @@
 
 body {
   background: #ffffff;
+}
+
+.common-layout {
+  .ed-button:not(.is-disabled),
+  .ed-input__wrapper,
+  .ed-select__wrapper,
+  .ed-textarea__inner,
+  .ed-menu-item,
+  .ed-sub-menu__title,
+  .ed-tabs__item,
+  .ed-pagination button,
+  .ed-pagination .number {
+    transition:
+      color var(--crest-motion-fast) var(--crest-ease-soft),
+      background-color var(--crest-motion-fast) var(--crest-ease-soft),
+      border-color var(--crest-motion-fast) var(--crest-ease-soft),
+      box-shadow var(--crest-motion-base) var(--crest-ease-soft);
+  }
+
+  .ed-table__row > td.ed-table__cell {
+    transition:
+      background-color var(--crest-motion-fast) var(--crest-ease-soft),
+      box-shadow var(--crest-motion-base) var(--crest-ease-soft);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
 }
 
 * {

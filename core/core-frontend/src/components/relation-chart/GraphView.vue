@@ -89,7 +89,7 @@ const typeMeta: Record<string, { label: string; color: string; level: number; sy
   dataset: { label: '数据集', color: '#6e62e8', level: 4, symbol: 'circle' },
   chart_field: { label: '图表字段', color: '#1fb6a6', level: 5, symbol: 'circle' },
   chart: { label: '图表', color: '#10b981', level: 6, symbol: 'circle' },
-  dv: { label: '仪表板/大屏', color: '#10b981', level: 7, symbol: 'circle' }
+  dv: { label: '仪表盘/大屏', color: '#10b981', level: 7, symbol: 'circle' }
 }
 
 const dashedEdgeTypes = new Set([

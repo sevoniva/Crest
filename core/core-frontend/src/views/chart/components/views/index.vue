@@ -529,7 +529,7 @@ const jumpClick = param => {
         }
         windowsJump(url, jumpInfo.jumpType, jumpInfo.windowSize)
       } else {
-        ElMessage.warning('未指定跳转仪表板')
+        ElMessage.warning('未指定跳转仪表盘')
       }
     } else {
       const colList = [...param.dimensionList, ...param.quotaList]

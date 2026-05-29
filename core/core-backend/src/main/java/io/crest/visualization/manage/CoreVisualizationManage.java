@@ -17,6 +17,7 @@ import io.crest.model.BusiNodeRequest;
 import io.crest.model.BusiNodeVO;
 import io.crest.operation.manage.CoreOptRecentManage;
 import io.crest.share.manage.ShareManage;
+import io.crest.system.manage.CoreUserManage;
 import io.crest.utils.*;
 import io.crest.visualization.dao.auto.entity.DataVisualizationInfo;
 import io.crest.visualization.dao.auto.entity.SnapshotDataVisualizationInfo;
@@ -43,6 +44,9 @@ public class CoreVisualizationManage {
 
     @Resource
     private CoreVisualiationExtMapper extMapper;
+
+    @Resource
+    private CoreUserManage coreUserManage;
 
     @Resource
     private DataVisualizationInfoMapper mapper;
@@ -291,7 +295,7 @@ public class CoreVisualizationManage {
         return pos.stream().map(po ->
                 new VisualizationResourceVO(
                         po.getId(), po.getResourceId(), po.getName(),
-                        po.getType(), String.valueOf(po.getCreator()), String.valueOf(po.getLastEditor()), po.getLastEditTime(),
+                        po.getType(), coreUserManage.getUserName(po.getCreator()), coreUserManage.getUserName(po.getLastEditor()), po.getLastEditTime(),
                         po.getFavorite(), 9, po.getExtFlag())).toList();
     }
 

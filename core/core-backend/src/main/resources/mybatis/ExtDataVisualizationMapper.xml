@@ -209,8 +209,8 @@
                dvResource.ext_flag,
                dvResource.type,
                dvResource.creator,
-               core_opt_recent.uid  AS last_editor,
-               core_opt_recent.time AS last_edit_time,
+               dvResource.last_editor,
+               dvResource.last_edit_time,
                (
                    CASE
 
@@ -224,7 +224,9 @@
                      core_dataset_group.NAME,
                      0 as ext_flag,
                      'dataset'                    AS type,
-                     core_dataset_group.create_by AS creator
+                     core_dataset_group.create_by AS creator,
+                     COALESCE(core_dataset_group.update_by, core_dataset_group.create_by) AS last_editor,
+                     COALESCE(NULLIF(core_dataset_group.last_update_time, 0), core_dataset_group.create_time) AS last_edit_time
               FROM core_dataset_group
               WHERE core_dataset_group.node_type = 'dataset'
               UNION ALL
@@ -233,7 +235,9 @@
                      core_datasource.NAME,
                      0 as ext_flag,
                      'datasource'              AS type,
-                     core_datasource.create_by AS creator
+                     core_datasource.create_by AS creator,
+                     COALESCE(core_datasource.update_by, core_datasource.create_by) AS last_editor,
+                     COALESCE(core_datasource.update_time, core_datasource.create_time) AS last_edit_time
               FROM core_datasource
               WHERE core_datasource.type != 'folder'
               UNION ALL
@@ -249,7 +253,9 @@
                   'screen' ELSE 'panel'
                   END
                   ) AS type,
-                  data_visualization_info.create_by AS creator
+                  data_visualization_info.create_by AS creator,
+                  COALESCE(data_visualization_info.update_by, data_visualization_info.create_by) AS last_editor,
+                  COALESCE(data_visualization_info.update_time, data_visualization_info.create_time) AS last_edit_time
               FROM
                   data_visualization_info
               WHERE

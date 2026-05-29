@@ -8,6 +8,7 @@ import io.crest.api.visualization.request.VisualizationWorkbranchQueryRequest;
 import io.crest.api.visualization.vo.VisualizationStoreVO;
 import io.crest.constant.BusiResourceEnum;
 import io.crest.exception.DEException;
+import io.crest.system.manage.CoreUserManage;
 import io.crest.utils.AuthUtils;
 import io.crest.utils.CommonBeanFactory;
 import io.crest.utils.CommunityUtils;
@@ -34,6 +35,9 @@ public class VisualizationStoreManage {
 
     @Resource
     private CoreStoreExtMapper coreStoreExtMapper;
+
+    @Resource
+    private CoreUserManage coreUserManage;
 
     public void execute(VisualizationStoreRequest request) {
         Long resourceId = request.getId();
@@ -84,7 +88,7 @@ public class VisualizationStoreManage {
         return pos.stream().map(po ->
                 new VisualizationStoreVO(
                         po.getStoreId(), po.getResourceId(), po.getName(),
-                        po.getType(), String.valueOf(po.getCreator()), ObjectUtils.isEmpty(po.getEditor()) ? null : String.valueOf(po.getEditor()),
+                        po.getType(), coreUserManage.getUserName(po.getCreator()), coreUserManage.getUserName(po.getEditor()),
                         po.getEditTime(), 9, po.getExtFlag(), po.getExtFlag1())).toList();
     }
 

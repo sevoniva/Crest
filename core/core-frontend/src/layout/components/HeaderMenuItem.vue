@@ -63,8 +63,8 @@ export default HeaderMenuItem
   }
 
   .ed-menu--popup {
-    min-width: 132px !important;
-    padding: 8px !important;
+    min-width: 148px !important;
+    padding: 10px !important;
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 12px !important;
@@ -73,15 +73,15 @@ export default HeaderMenuItem
 
   .ed-menu-item,
   .ed-sub-menu__title {
-    height: 34px;
+    height: 38px;
     margin: 2px 0;
-    padding: 0 12px !important;
+    padding: 0 14px !important;
     border-radius: 8px;
     color: #334155;
     font-family: var(--crest-font-sans);
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 34px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 38px;
     background: transparent;
   }
 

@@ -61,7 +61,7 @@ const typeOptions = [
   { label: '全局', value: 'overview' },
   { label: '数据源', value: 'datasource' },
   { label: '数据集', value: 'dataset' },
-  { label: '仪表板/大屏', value: 'dv' }
+  { label: '仪表盘/大屏', value: 'dv' }
 ]
 
 const layoutOptions = [
@@ -77,7 +77,7 @@ const typeLabelMap: Record<string, string> = {
   dataset: '数据集',
   chart_field: '图表字段',
   chart: '图表',
-  dv: '仪表板/大屏'
+  dv: '仪表盘/大屏'
 }
 
 const typeLevelMap: Record<string, number> = {

@@ -7,14 +7,13 @@ import { useRouter } from 'vue-router_2'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
+import userImg from '@/assets/svg/user-img.svg'
 import { shortcutOption } from './ShortcutOption'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import { storeApi } from '@/api/visualization/dataVisualization'
 import { useCache } from '@/hooks/web/useCache'
-import { useUserStoreWithOut } from '@/store/modules/user'
 import { useAppStoreWithOut } from '@/store/modules/app'
 import { useEmbedded } from '@/store/modules/embedded'
-const userStore = useUserStoreWithOut()
 const { resolve } = useRouter()
 const { t } = useI18n()
 const interactiveStore = interactiveStoreWithOut()
@@ -32,7 +31,6 @@ defineProps({
     default: false
   }
 })
-const desktop = wsCache.get('app.desktop')
 const panelKeyword = ref()
 const activeName = ref('store')
 const activeCommand = ref('all_types')
@@ -119,6 +117,7 @@ const openDataset = id => {
   window.open(routeUrl.href, openType)
 }
 const formatterTime = (_, _column, cellValue) => {
+  if (!cellValue) return '-'
   return dayjs(new Date(cellValue)).format('YYYY-MM-DD HH:mm:ss')
 }
 const formatterRelativeTime = cellValue => {
@@ -144,9 +143,9 @@ const getAssetCode = row => {
   return id ? String(id) : '-'
 }
 
-const getUserInitial = value => {
-  const name = value || userStore.getName || ''
-  return name ? String(name).trim().charAt(0).toUpperCase() : '-'
+const formatOwner = value => {
+  if (value === undefined || value === null || value === '') return '-'
+  return String(value).trim() || '-'
 }
 
 const loadTableData = () => {
@@ -420,13 +419,11 @@ const getEmptyDesc = (): string => {
                   <span class="tag-dot" />
                   {{ typeMap[scope.row[item.field]] }}
                 </span>
-                <span v-else-if="desktop && item.field && item.field.endsWith('tor')" class="owner-cell">
-                  <span class="owner-avatar">{{ getUserInitial(userStore.getName) }}</span>
-                  <span>{{ userStore.getName }}</span>
-                </span>
                 <span v-else-if="item.field && item.field.endsWith('tor')" class="owner-cell">
-                  <span class="owner-avatar">{{ getUserInitial(scope.row[item.field]) }}</span>
-                  <span>{{ scope.row[item.field] }}</span>
+                  <span class="owner-avatar">
+                    <Icon name="user-img"><userImg class="svg-icon" /></Icon>
+                  </span>
+                  <span>{{ formatOwner(scope.row[item.field]) }}</span>
                 </span>
                 <span v-else>{{ scope.row[item.field] }}</span>
               </span>
@@ -819,10 +816,13 @@ const getEmptyDesc = (): string => {
   width: 22px;
   height: 22px;
   color: #1d4ed8;
-  font-size: 10.5px;
-  font-weight: 600;
   background: linear-gradient(135deg, #dbeafe, #bfdbfe);
   border-radius: 50%;
+
+  .svg-icon {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 .time-cell {

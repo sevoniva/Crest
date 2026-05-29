@@ -15,8 +15,8 @@ const dialogVisible = ref(false)
 const current = reactive<any>({})
 
 const typeMap = {
-  dashboard: '仪表板',
-  panel: '仪表板',
+  dashboard: '仪表盘',
+  panel: '仪表盘',
   dataV: '数据大屏',
   screen: '数据大屏'
 }
@@ -95,7 +95,7 @@ onMounted(loadTable)
     <div class="table-wrap">
       <div class="toolbar">
         <el-select v-model="type" clearable placeholder="全部类型" @change="loadTable">
-          <el-option label="仪表板" value="dashboard" />
+          <el-option label="仪表盘" value="dashboard" />
           <el-option label="数据大屏" value="dataV" />
         </el-select>
         <el-input v-model="keyword" clearable placeholder="搜索名称" @change="loadTable" />

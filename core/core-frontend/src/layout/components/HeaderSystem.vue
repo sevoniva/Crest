@@ -22,7 +22,7 @@ const backToMain = () => {
 
 <template>
   <el-header class="header-flex system-header">
-    <img class="logo" :src="crestLogo" alt="Crest" />
+    <img class="logo" :src="crestLogo" alt="Crest" @click="backToMain" />
     <el-divider direction="vertical" />
     <span class="system">{{ title || t('commons.system_setting') }}</span>
     <div class="operate-setting">
@@ -47,6 +47,7 @@ const backToMain = () => {
     width: 188px;
     height: 44px;
     object-fit: contain;
+    cursor: pointer;
   }
 
   .ed-divider {

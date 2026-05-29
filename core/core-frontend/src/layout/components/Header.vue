@@ -131,14 +131,14 @@ onMounted(() => {
   :deep(.ed-menu--horizontal > .ed-menu-item),
   :deep(.ed-menu--horizontal > .ed-sub-menu .ed-sub-menu__title) {
     height: 60px;
-    padding: 0 18px;
+    padding: 0 22px;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     font-family: var(--crest-font-sans);
-    font-size: 14px;
-    font-weight: 500;
-    color: #64748b;
+    font-size: 15px;
+    font-weight: 600;
+    color: #475569;
     background: transparent !important;
     border-bottom: none;
     transition: color 0.15s ease;
@@ -153,7 +153,7 @@ onMounted(() => {
   :deep(.ed-menu--horizontal > .ed-menu-item.is-active),
   :deep(.ed-menu--horizontal > .ed-sub-menu.is-active .ed-sub-menu__title) {
     position: relative;
-    font-weight: 600;
+    font-weight: 700;
     color: #0f172a !important;
     background: transparent !important;
     border-bottom: none;
@@ -162,9 +162,9 @@ onMounted(() => {
   :deep(.ed-menu--horizontal > .ed-menu-item.is-active::after),
   :deep(.ed-menu--horizontal > .ed-sub-menu.is-active .ed-sub-menu__title::after) {
     position: absolute;
-    right: 18px;
+    right: 22px;
     bottom: -1px;
-    left: 18px;
+    left: 22px;
     height: 2px;
     content: '';
     background: #3b82f6;
@@ -208,7 +208,7 @@ onMounted(() => {
   flex: 0 0 188px;
   width: 188px;
   height: 44px;
-  margin-right: 46px;
+  margin-right: 54px;
   object-fit: contain;
   cursor: pointer;
 }
