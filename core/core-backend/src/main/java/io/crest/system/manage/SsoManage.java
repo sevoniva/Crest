@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 public class SsoManage {
 
     private static final String KEY_PREFIX = "sso.";
-    private static final String DEFAULT_PROVIDER_NAME = "企业单点登录";
+    private static final String DEFAULT_PROVIDER_NAME = "统一身份认证";
     private static final String DEFAULT_SCOPE = "openid profile email";
     private static final String DEFAULT_USER_ID_ATTRIBUTE = "sub";
     private static final String DEFAULT_ACCOUNT_ATTRIBUTE = "preferred_username";
@@ -65,7 +65,7 @@ public class SsoManage {
         SsoStatusVO vo = new SsoStatusVO();
         vo.setEnabled(Boolean.TRUE.equals(config.getEnabled()));
         vo.setProviderName(config.getProviderName());
-        vo.setLoginButtonText("使用 " + config.getProviderName() + " 登录");
+        vo.setLoginButtonText("单点登录");
         vo.setAllowLocalLogin(Boolean.TRUE.equals(config.getAllowLocalLogin()));
         return vo;
     }

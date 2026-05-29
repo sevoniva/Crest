@@ -154,6 +154,7 @@ core/core-backend/src/main/resources/db/migration
 | `V1.2__demo_retail_dashboard.sql` | 创建 `crest_demo_retail` 零售经营演示库，写入演示数据源、数据集、图表和大屏 |
 | `V1.3__demo_engineering_efficiency.sql` | 写入研发效能主题数据、指标视图、图表和大屏 |
 | `V1.4__sso_integration.sql` | 增加单点登录配置、菜单和用户认证来源字段 |
+| `V1.5__sanitize_user_display_names.sql` | 清理异常用户展示名并更新单点登录默认展示名称 |
 
 迁移规则：
 

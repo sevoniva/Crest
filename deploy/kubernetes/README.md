@@ -226,7 +226,7 @@ kubectl -n crest-internal describe pod -l app.kubernetes.io/name=crest
 - `/v3/api-docs` 返回 200；
 - `/v3/api-docs/5-relation` 返回 200；
 - 使用 `CREST_INITIAL_PASSWORD` 配置的初始管理员密码可以登录；
-- `de_standalone_version` 最新迁移成功，包含 `1.4:sso integration`；
+- `de_standalone_version` 最新迁移成功，包含 `1.5:sanitize user display names`；
 - 初始状态包含零售经营和研发效能演示数据源、数据集、图表和数据大屏；
 - 工作台、数据源、数据集、仪表盘、数据大屏、数据血缘、系统设置和导出中心能打开；
 - 应用日志没有持续的 `WARN`、`ERROR` 或 `Exception`。

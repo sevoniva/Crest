@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Component("crestUserManage")
 public class CrestUserManage {
@@ -36,6 +37,8 @@ public class CrestUserManage {
 
     private static final String INITIAL_PASSWORD_PROPERTY = "crest.user.initial-password";
     private static final String LEGACY_ADMIN_PASSWORD_HASH = "21232f297a57a5a743894a0e4a801fc3";
+    private static final Pattern ACCOUNT_PATTERN = Pattern.compile("^[A-Za-z0-9._@-]{1,64}$");
+    private static final Pattern UNSAFE_DISPLAY_NAME_PATTERN = Pattern.compile("[<>\\p{Cntrl}]");
 
     @Resource
     private JdbcTemplate jdbcTemplate;
@@ -347,8 +350,18 @@ public class CrestUserManage {
         if (StringUtils.isBlank(account)) {
             DEException.throwException("账号不能为空");
         }
+        if (!ACCOUNT_PATTERN.matcher(account.trim()).matches()) {
+            DEException.throwException("账号只支持 64 位以内的字母、数字、点、下划线、横线和 @");
+        }
         if (StringUtils.isBlank(name)) {
             DEException.throwException("姓名不能为空");
+        }
+        String displayName = name.trim();
+        if (displayName.length() > 64) {
+            DEException.throwException("姓名不能超过 64 个字符");
+        }
+        if (UNSAFE_DISPLAY_NAME_PATTERN.matcher(displayName).find()) {
+            DEException.throwException("姓名不能包含 HTML 标签或控制字符");
         }
     }
 

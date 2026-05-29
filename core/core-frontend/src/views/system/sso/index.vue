@@ -7,7 +7,7 @@ const loading = ref(false)
 const saving = ref(false)
 const form = reactive<any>({
   enabled: false,
-  providerName: '企业单点登录',
+  providerName: '统一身份认证',
   clientId: '',
   clientSecret: '',
   authorizationEndpoint: '',
@@ -43,7 +43,7 @@ const save = async () => {
   saving.value = true
   try {
     await saveSsoConfigApi(form)
-    ElMessage.success('单点登录配置已保存')
+    ElMessage.success('配置已保存')
     await loadConfig()
   } finally {
     saving.value = false
@@ -69,9 +69,9 @@ onMounted(loadConfig)
     <div class="setting-panel">
       <div class="panel-head">
         <div>
-          <div class="setting-title">OIDC / OAuth2 登录</div>
+          <div class="setting-title">OIDC / OAuth2</div>
           <div class="setting-desc">
-            使用 Authorization Code 模式接入企业身份提供方，用户信息以 UserInfo 端点为准。
+            通过授权码模式接入企业身份提供方，用户属性以 UserInfo 响应为准。
           </div>
         </div>
         <el-switch v-model="form.enabled" active-text="启用" inactive-text="停用" />
@@ -91,7 +91,7 @@ onMounted(loadConfig)
               type="password"
               show-password
               maxlength="256"
-              :placeholder="form.secretConfigured ? '已保存，留空则不修改' : '请输入客户端密钥'"
+              :placeholder="form.secretConfigured ? '已保存，留空表示不变更' : '请输入客户端密钥'"
             />
           </el-form-item>
           <el-form-item label="Scope" required>
@@ -115,9 +115,9 @@ onMounted(loadConfig)
           <div class="callback-row">
             <el-input
               v-model.trim="form.redirectUri"
-              placeholder="留空时使用下方当前部署回调地址"
+              placeholder="留空时按当前访问地址生成"
             />
-            <el-button @click="copyCallback">复制当前回调</el-button>
+            <el-button @click="copyCallback">复制回调地址</el-button>
           </div>
           <div class="form-tip">{{ form.callbackUrl }}</div>
         </el-form-item>
@@ -141,22 +141,22 @@ onMounted(loadConfig)
         <div class="switch-grid">
           <div class="switch-item">
             <div>
-              <div class="switch-title">自动创建用户</div>
-              <div class="switch-desc">身份提供方返回的新账号可自动进入系统。</div>
+              <div class="switch-title">自动创建账号</div>
+              <div class="switch-desc">未匹配的外部用户将创建为普通账号。</div>
             </div>
             <el-switch v-model="form.autoCreateUser" />
           </div>
           <div class="switch-item">
             <div>
-              <div class="switch-title">允许本地账号登录</div>
-              <div class="switch-desc">关闭后普通登录页只保留单点登录入口。</div>
+              <div class="switch-title">保留本地登录</div>
+              <div class="switch-desc">关闭后登录页仅保留单点登录入口。</div>
             </div>
             <el-switch v-model="form.allowLocalLogin" />
           </div>
           <div class="switch-item">
             <div>
-              <div class="switch-title">要求 HTTPS</div>
-              <div class="switch-desc">生产环境建议开启，本地 localhost 调试不受影响。</div>
+              <div class="switch-title">强制 HTTPS</div>
+              <div class="switch-desc">开启后非本地端点必须使用 HTTPS。</div>
             </div>
             <el-switch v-model="form.requireHttps" />
           </div>

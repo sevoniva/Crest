@@ -50,8 +50,8 @@ const state = reactive({
 })
 const ssoStatus = reactive({
   enabled: false,
-  providerName: '企业单点登录',
-  loginButtonText: '使用 企业单点登录 登录',
+  providerName: '统一身份认证',
+  loginButtonText: '单点登录',
   allowLocalLogin: true
 })
 
@@ -62,7 +62,11 @@ const rules = reactive<FormRules>({
 
 const activeName = ref('simple')
 const showLocalLogin = computed(() => {
-  return !ssoStatus.enabled || ssoStatus.allowLocalLogin || router.currentRoute.value.path === '/admin-login'
+  return (
+    !ssoStatus.enabled ||
+    ssoStatus.allowLocalLogin ||
+    router.currentRoute.value.path === '/admin-login'
+  )
 })
 
 const getCurLocation = () => {
@@ -334,21 +338,6 @@ onMounted(async () => {
               {{ slogan || t('system.available_to_everyone') }}
             </div>
             <div class="login-form border-radius-12">
-              <div v-if="ssoStatus.enabled" class="sso-login-block">
-                <div v-if="!showLocalLogin" class="login-form-title">
-                  <span>{{ ssoStatus.providerName }}</span>
-                </div>
-                <el-button
-                  type="primary"
-                  class="sso-submit"
-                  size="default"
-                  :disabled="duringLogin"
-                  @click="handleSsoLogin"
-                >
-                  {{ ssoStatus.loginButtonText }}
-                </el-button>
-                <el-divider v-if="showLocalLogin">本地账号</el-divider>
-              </div>
               <div
                 class="default-login-tabs"
                 v-if="showLocalLogin && (activeName === 'simple' || activeName === 'ldap')"
@@ -392,6 +381,30 @@ onMounted(async () => {
                     <span>{{ demoTips }}</span>
                   </div>
                 </div>
+              </div>
+              <div
+                v-if="ssoStatus.enabled"
+                :class="['sso-login-block', { 'only-sso': !showLocalLogin }]"
+              >
+                <el-divider v-if="showLocalLogin" class="sso-divider">或</el-divider>
+                <div v-if="!showLocalLogin" class="login-form-title">
+                  <span>单点登录</span>
+                </div>
+                <el-button
+                  :type="showLocalLogin ? 'default' : 'primary'"
+                  class="sso-submit"
+                  size="default"
+                  :disabled="duringLogin"
+                  @click="handleSsoLogin"
+                >
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path
+                      d="M10 2.5 4.75 4.55v4.2c0 3.25 2.1 6.35 5.25 7.4 3.15-1.05 5.25-4.15 5.25-7.4v-4.2L10 2.5Z"
+                    />
+                    <path d="m7.75 10.05 1.45 1.45 3.15-3.35" />
+                  </svg>
+                  <span>单点登录</span>
+                </el-button>
               </div>
             </div>
 
@@ -531,7 +544,7 @@ onMounted(async () => {
       margin-bottom: 24px;
     }
     .login-form-title {
-      margin-top: 20px;
+      margin-top: 0;
       color: #1f2329;
       font-family: var(--de-custom_font, 'PingFang');
       font-size: 20px;
@@ -541,11 +554,50 @@ onMounted(async () => {
     }
 
     .sso-login-block {
+      margin-top: 18px;
+
+      &.only-sso {
+        margin-top: 0;
+
+        .sso-submit {
+          margin-top: 24px;
+          color: #ffffff;
+
+          svg {
+            stroke: #ffffff;
+          }
+        }
+      }
+
+      .sso-divider {
+        margin: 20px 0 16px;
+      }
+
       .sso-submit {
         width: 100%;
         height: 40px;
         line-height: 40px;
-        margin-top: 20px;
+        color: #0f172a;
+        border-color: #dbe4f0;
+        background: #ffffff;
+        font-weight: 500;
+
+        svg {
+          width: 16px;
+          height: 16px;
+          margin-right: 8px;
+          stroke: #3b82f6;
+          stroke-width: 1.8;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+
+        &:hover,
+        &:focus {
+          color: #3b82f6;
+          border-color: #3b82f6;
+          background: #f8fbff;
+        }
       }
     }
   }
@@ -562,7 +614,7 @@ onMounted(async () => {
 
   .login-btn {
     position: relative;
-    margin-bottom: 120px;
+    margin-bottom: 0;
     .submit {
       width: 100%;
       height: 40px;
