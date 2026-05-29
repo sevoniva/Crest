@@ -69,5 +69,9 @@ declare global {
     parse<T>(text: JSONString<T>): T
   }
 
-  type EditorTheme = 'plain' | 'dark' | 'light'
+  type EditorTheme = string
+
+  interface Date {
+    format?: (format?: string) => string
+  }
 }

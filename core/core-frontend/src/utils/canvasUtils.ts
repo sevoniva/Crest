@@ -427,7 +427,7 @@ export function initCanvasDataPrepare(dvId, params, callBack) {
     }
   }
   attachInfo['resourceTable'] = params.resourceTable ? params.resourceTable : 'core'
-  method(dvId, busiFlagCustom, attachInfo).then(res => {
+  ;(method as any)(dvId, busiFlagCustom, attachInfo).then(res => {
     const canvasInfo = res.data as any
     const watermarkInfo = {
       ...canvasInfo.watermarkInfo,
@@ -977,7 +977,10 @@ export async function decompressionPre(params, callBack) {
       const deTemplateDataTemp = response.data
       const sourceComponentData = JSON.parse(deTemplateDataTemp['componentData']) as any[]
       const appData = deTemplateDataTemp['appData']
-      const sourceCanvasStyle = JSON.parse(deTemplateDataTemp['canvasStyleData'])
+      const sourceCanvasStyle = JSON.parse(deTemplateDataTemp['canvasStyleData']) as Record<
+        string,
+        any
+      >
       sourceComponentData.forEach(componentItem => {
         // 2 为基础版本 此处需要增加仪表板矩阵密度
         if (

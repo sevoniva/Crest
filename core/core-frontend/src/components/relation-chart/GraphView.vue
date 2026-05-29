@@ -653,8 +653,8 @@ const renderChart = async () => {
           if (params.dataType === 'edge') {
             return params.data?.label || '资源依赖'
           }
-          const data = params.data || {}
-          const meta = typeMeta[data.type] || {}
+          const data = (params.data || {}) as Record<string, any>
+          const meta = typeMeta[data.type] || typeMeta.dataset
           const subType = data.subType ? `<br/>类型：${data.subType}` : ''
           const description = data.description
             ? `<br/><span style="color:#646a73">${escapeHtml(String(data.description)).replace(

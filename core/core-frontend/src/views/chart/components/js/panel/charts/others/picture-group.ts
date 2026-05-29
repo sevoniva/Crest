@@ -12,6 +12,7 @@ export class PictureGroupView extends AbstractChartView {
     'border-style': ['all'],
     threshold: ['tableThreshold']
   }
+  selectorSpec: EditorSelectorSpec = {}
   axis: AxisType[] = ['xAxis', 'yAxis', 'filter']
   axisConfig: AxisConfig = {
     xAxis: {

@@ -275,7 +275,7 @@ export const filterFreeFolder = (list, flagText) => {
     }
   }
 }
-export const nameTrim = (target: {}, msg = '名称字段长度1-64个字符') => {
+export const nameTrim = (target: Record<string, any>, msg = '名称字段长度1-64个字符') => {
   if (target.name) {
     target.name = target.name.trim()
     if (target.name.length < 1 || target.name.length > 64) {

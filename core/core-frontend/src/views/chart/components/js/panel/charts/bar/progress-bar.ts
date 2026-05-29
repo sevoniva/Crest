@@ -200,7 +200,7 @@ export class ProgressBar extends G2PlotChartView<BarOptions, G2Progress> {
       barWidthRatio = 1
     }
     if (barWidthRatio) {
-      options.barWidthRatio = barWidthRatio
+      ;(options as Record<string, any>).barWidthRatio = barWidthRatio
     }
 
     return options
@@ -303,8 +303,9 @@ export class ProgressBar extends G2PlotChartView<BarOptions, G2Progress> {
       if (rotate < -75) {
         textBaseline = 'bottom'
       }
-      baseOption.yAxis.label.style.textBaseline = textBaseline
-      baseOption.yAxis.label.style.textAlign = textAlign
+      const labelStyle = baseOption.yAxis.label.style as Record<string, any>
+      labelStyle.textBaseline = textBaseline
+      labelStyle.textAlign = textAlign
     }
 
     /*if (baseOption.yAxis.position === 'left') {

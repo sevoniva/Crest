@@ -994,11 +994,11 @@ const modifyAlpha = isBorder => {
   return `rgba(${r}, ${g}, ${b}, ${!backgroundColorSelect || isBorder ? 0.01 : a})`
 }
 
-const titleIconStyle = computed(() => {
+const titleIconStyle = computed<CSSProperties>(() => {
   const bgColor = modifyAlpha(false)
   const borderColor = modifyAlpha(true)
   // 不显示标题时，图标的样式
-  const style = {
+  const style: CSSProperties = {
     position: 'absolute',
     border: `1px solid ${borderColor}`,
     'background-color': bgColor,

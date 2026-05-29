@@ -58,16 +58,14 @@ const currentTypeList = computed(() => {
     return dstypes
   }
   const index = typeList.findIndex(ele => props.currentType === ele)
-  return (
-    [
-      {
-        name: nameMap[props.currentType],
-        dbList: databaseList.value[index].filter(ele =>
-          ele.name.toLowerCase().includes(props.filterText.trim())
-        )
-      }
-    ] || []
-  )
+  return [
+    {
+      name: nameMap[props.currentType],
+      dbList: databaseList.value[index].filter(ele =>
+        ele.name.toLowerCase().includes(props.filterText.trim())
+      )
+    }
+  ]
 })
 const getDatasourceTypes = () => {
   const arr = [[], [], [], [], []]

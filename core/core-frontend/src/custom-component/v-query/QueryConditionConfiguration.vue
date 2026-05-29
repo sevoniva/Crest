@@ -511,20 +511,20 @@ const setTreeDefault = () => {
   }
 }
 
-const setTreeDefaultBatch = ele => {
-  if (!!ele.checkedFields.length) {
+const setTreeDefaultBatch = component => {
+  if (!!component.checkedFields.length) {
     let tableId = ''
     fields.value.forEach(ele => {
       if (
-        ele.checkedFields.includes(ele.componentId) &&
-        ele.checkedFieldsMap[ele.componentId] &&
+        component.checkedFields.includes(ele.componentId) &&
+        component.checkedFieldsMap[ele.componentId] &&
         !tableId
       ) {
         tableId = datasetFieldList.value.find(itx => itx.id === ele.componentId)?.tableId
       }
     })
-    if (tableId && !ele.treeDatasetId) {
-      ele.treeDatasetId = tableId
+    if (tableId && !component.treeDatasetId) {
+      component.treeDatasetId = tableId
     }
   }
 }
@@ -675,9 +675,9 @@ const duplicateRemoval = arr => {
 }
 
 const setParameters = field => {
-  const fieldArr = Object.values(curComponent.value.checkedFieldsMap).filter(ele => !!ele)
+  const fieldArr = Object.values(curComponent.value.checkedFieldsMap).filter(ele => !!ele) as any[]
   curComponent.value.parameters = duplicateRemoval(
-    Object.values(field?.fields || {})
+    (Object.values(field?.fields || {}) as any[])
       .flat()
       .filter(ele => fieldArr.includes(ele.id) && !!ele.variableName)
       .concat(curComponent.value.parameters.filter(ele => fieldArr.includes(ele.id)))
@@ -1718,7 +1718,7 @@ const init = (queryId: string) => {
         ele.activelist = 'dimensionList'
         ele.fields.parameterList = p.filter(
           itx => itx.datasetGroupId === ele.id && !itx.params?.length
-        )
+        ) as any
         ele.hasParameter = !!ele.fields.parameterList.length
         ele.fields.dimensionList = (ele.fields.dimensionList || []).filter(
           itx => !itx.params?.length
@@ -2493,17 +2493,17 @@ defineExpose({
                 <div
                   :class="
                     element.id === activeCondition &&
-                    relationshipChartIndex === index + 1 &&
+                    relationshipChartIndex === Number(index) + 1 &&
                     'active'
                   "
                   class="list-item_primary list-tree_primary"
                   :style="{
-                    top: 40 * (index + 1) + 'px',
-                    paddingLeft: 32 + 16 * (index + 1) + 'px'
+                    top: 40 * (Number(index) + 1) + 'px',
+                    paddingLeft: 32 + 16 * (Number(index) + 1) + 'px'
                   }"
                   v-for="(itx, index) in element.treeFieldList.slice(1)"
                   :key="itx.field"
-                  @click.stop="notCurrentEle(element, index + 1)"
+                  @click.stop="notCurrentEle(element, Number(index) + 1)"
                 >
                   {{ itx.name }}
                 </div>

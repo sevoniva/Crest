@@ -176,6 +176,22 @@ declare interface ChartBasicStyle {
    */
   lineSmooth: boolean
   /**
+   * 双轴图左轴线宽
+   */
+  leftLineWidth?: number
+  /**
+   * 双轴图左轴折点形状
+   */
+  leftLineSymbol?: string
+  /**
+   * 双轴图左轴折点大小
+   */
+  leftLineSymbolSize?: number
+  /**
+   * 双轴图左轴平滑折线
+   */
+  leftLineSmooth?: boolean
+  /**
    * 自适应
    */
   barDefault: boolean
@@ -426,8 +442,8 @@ declare interface ChartTableHeaderAttr {
    * 表头对齐方式
    */
   tableHeaderAlign: 'left' | 'center' | 'right' | 'custom'
-  tableHeaderCornerAlign: 'left' | 'center' | 'right'
-  tableHeaderColAlign: 'left' | 'center' | 'right'
+  tableHeaderCornerAlign: 'left' | 'center' | 'right' | 'custom'
+  tableHeaderColAlign: 'left' | 'center' | 'right' | 'custom'
   /**
    * 显示序号
    */

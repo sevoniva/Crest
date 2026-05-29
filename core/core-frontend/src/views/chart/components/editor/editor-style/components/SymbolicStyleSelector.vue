@@ -110,8 +110,8 @@ const customSymbolicMapSizeRange = computed(() => {
 })
 const mapCustomRangeValidate = prop => {
   const { mapSymbolSizeMax = '0', mapSymbolSizeMin = '1' } = state.basicStyleForm
-  let max = parseInt(mapSymbolSizeMax)
-  let min = parseInt(mapSymbolSizeMin)
+  let max = parseInt(String(mapSymbolSizeMax))
+  let min = parseInt(String(mapSymbolSizeMin))
   state.basicStyleForm.mapSymbolSizeMin = Math.max(min, 0)
   state.basicStyleForm.mapSymbolSizeMax = Math.max(max, 1)
   if (max < min) {

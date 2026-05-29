@@ -1988,10 +1988,7 @@ const getChartElements = chart => {
     document.getElementById('shape-id-' + chart.id)
   )
 }
-export function configPlotTooltipEvent<O extends PickOptions, P extends Plot<O>>(
-  chart: Chart,
-  plot: P
-) {
+export function configPlotTooltipEvent(chart: Chart, plot: any) {
   const { tooltip } = parseJson(chart.customAttr)
   if (!tooltip.show) {
     ChartCarouselTooltip.destroyByContainer(chart.container)

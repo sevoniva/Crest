@@ -738,7 +738,7 @@ export class TablePivot extends S2ChartView<PivotSheet> {
     }
     return theme
   }
-  private configSortParams(chart: Chart, newData: []) {
+  private configSortParams(chart: Chart, newData: Record<string, any>[]) {
     // 行列分开处理，先行后列，样式设置中汇总总计排序的优先级最高，剩下的按照字段的排序优先级设置进行排序
     const { xAxis: rowFields, xAxisExt: columnFields, yAxis: valueFields } = chart
     const [r, c, v] = [rowFields, columnFields, valueFields].map(arr =>

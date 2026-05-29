@@ -35,6 +35,7 @@ interface AppearanceState {
   showDemoTips?: boolean
   demoTipsContent?: string
   community: boolean
+  siteTitle?: string
   fontList: Array<{ name: string; id: string; isDefault: boolean }>
 }
 const { wsCache } = useCache()
@@ -262,7 +263,7 @@ export const useAppearanceStore = defineStore('appearanceStore', {
         }
         return
       }
-      const data: AppearanceState = { loaded: false, community: true }
+      const data: AppearanceState = { loaded: false, community: true, fontList: [] }
       let isCommunity = false
       resData.forEach(item => {
         data[item.pkey] = item.pval

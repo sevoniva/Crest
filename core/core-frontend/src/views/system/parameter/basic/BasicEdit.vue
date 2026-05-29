@@ -42,7 +42,8 @@ const state = reactive({
   form: reactive({
     dsIntervalTime: '30',
     dsExecuteTime: 'minute',
-    frontTimeOut: '30'
+    frontTimeOut: '30',
+    thresholdLimit: 10000
   }),
   settingList: [],
   orgOptions: [],

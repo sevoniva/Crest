@@ -43,6 +43,7 @@ const pathD = computed(() => {
     height.value - 2.5
   } L2.5,2.5`
 })
+const pathLength = computed(() => Math.max((width.value + height.value - 10) * 2, 0))
 
 const border_style = computed(() => {
   return {
@@ -105,7 +106,7 @@ onMounted(mergeColor)
       >
         <animate
           attributeName="stroke-dasharray"
-          :values="`0,${length};${length},0`"
+          :values="`0,${pathLength};${pathLength},0`"
           :dur="`${dur}s`"
           repeatCount="indefinite"
           calcMode="linear"

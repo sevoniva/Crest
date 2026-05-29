@@ -589,7 +589,10 @@ const canvasChange = () => {
                     effect="dark"
                     :hide-timeout="0"
                   >
-                    <span :class="'dropdownMore-' + index" @click="onClick(transformIndex(index))">
+                    <span
+                      :class="'dropdownMore-' + index"
+                      @click="onClick($event, transformIndex(index))"
+                    >
                       <el-icon class="component-base">
                         <Icon name="dv-more"><dvMore class="svg-icon opt-icon" /></Icon>
                       </el-icon>

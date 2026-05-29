@@ -86,7 +86,7 @@ import { customMergeColor } from '@/custom-component/de-decoration/component_det
 
 interface Props {
   color?: string[]
-  curStyle: object
+  curStyle: { width: number; height: number }
   scale: number
 }
 

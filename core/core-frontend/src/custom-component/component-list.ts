@@ -271,7 +271,7 @@ export const commonAttr = {
 }
 
 // 编辑器左侧组件列表
-const list = [
+const list: any[] = [
   {
     component: 'Group',
     name: t('visualization.view_group'),

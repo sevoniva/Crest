@@ -457,8 +457,8 @@ watch(
         <div class="setting-label" v-if="dynamicTime">{{ t('template_manage.preview') }}</div>
         <div :class="dynamicTime ? 'setting-value' : 'w100'">
           <component
-            :config="timeRange"
-            :timeGranularityMultiple="timeGranularityMultiple"
+            :config="timeRange as any"
+            :timeGranularityMultiple="timeGranularityMultiple as any"
             ref="inputCom"
             :is="filterTypeCom"
           ></component>

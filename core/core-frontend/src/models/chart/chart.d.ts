@@ -44,7 +44,7 @@ declare interface Chart {
   extBubble?: Axis[]
   extLabel?: Axis[]
   extTooltip?: Axis[]
-  customFilter: {}
+  customFilter: Record<string, any>
   senior: CustomSenior
   customAttr: CustomAttr
   customAttrMobile: CustomAttr
@@ -99,24 +99,24 @@ declare interface BaseFormatter {
   /**
    * 格式化类型：auto,value,percent
    */
-  type: string
+  type?: string
   /**
    * 单位换算
    */
-  unitLanguage: string
-  unit: number
+  unitLanguage?: string
+  unit?: number
   /**
    * 单位后缀
    */
-  suffix: string
+  suffix?: string
   /**
    * 保留小数位数
    */
-  decimalCount: number
+  decimalCount?: number
   /**
    * 千分符
    */
-  thousandSeparator: boolean
+  thousandSeparator?: boolean
   /**
    * 显示总出占比
    */
@@ -126,7 +126,7 @@ declare interface BaseFormatter {
 /**
  * 多系列格式化属性
  */
-declare interface SeriesFormatter extends Axis {
+declare interface SeriesFormatter extends Partial<Axis> {
   /**
    * 是否显示
    */
@@ -142,11 +142,11 @@ declare interface SeriesFormatter extends Axis {
   /**
    * 序列id
    */
-  seriesId: string
+  seriesId?: string
   /**
    * 轴类型
    */
-  axisType: string
+  axisType?: string
   /**
    * 显示极值
    */

@@ -79,9 +79,9 @@ const desktop = wsCache.get('app.desktop')
 onUnmounted(() => {
   clearInterval(timer)
 })
-const handleClick = (tab?: { paneName?: string }) => {
+const handleClick = (tab?: { paneName?: string | number }, _ev?: Event) => {
   if (tab) {
-    activeName.value = tab.paneName
+    activeName.value = String(tab.paneName)
   }
   if (activeName.value === 'ALL') {
     description.value = t('data_export.no_file')

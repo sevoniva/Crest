@@ -14,16 +14,16 @@
 </template>
 
 <script lang="ts" setup>
-import { toRefs } from 'vue'
+import { PropType, toRefs } from 'vue'
 import { useEmitt } from '@/hooks/web/useEmitt'
 
 const props = defineProps({
   fields: {
-    type: Array,
+    type: Array as PropType<Array<Record<string, any>>>,
     default: () => []
   },
   element: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     default: null
   }
 })

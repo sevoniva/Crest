@@ -2,7 +2,17 @@
 import { getCanvasStyle, getShapeItemStyle } from '@/utils/style'
 import ComponentWrapper from './ComponentWrapper.vue'
 import { changeStyleWithScale } from '@/utils/translate'
-import { computed, nextTick, ref, toRefs, watch, onBeforeUnmount, onMounted, reactive } from 'vue'
+import {
+  computed,
+  nextTick,
+  PropType,
+  ref,
+  toRefs,
+  watch,
+  onBeforeUnmount,
+  onMounted,
+  reactive
+} from 'vue'
 import { changeRefComponentsSizeWithScalePoint } from '@/utils/changeComponentsSizeWithScale'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
@@ -33,19 +43,19 @@ const isDesktopFlag = isDesktop()
 const { t } = useI18n()
 const props = defineProps({
   canvasStyleData: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   componentData: {
-    type: Object,
+    type: Object as PropType<any[] | Record<string, any>>,
     required: true
   },
   canvasViewInfo: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   dvInfo: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   canvasId: {
@@ -178,8 +188,8 @@ const baseComponentData = computed(() =>
       (!ele?.dashboardHidden || (ele?.dashboardHidden && isMobile()))
   )
 )
-const canvasStyle = computed(() => {
-  let style = {}
+const canvasStyle = computed<Record<string, any>>(() => {
+  let style: Record<string, any> = {}
   if (isMainCanvas(canvasId.value) && !isDashboard()) {
     style['overflowY'] = 'hidden !important'
   }
@@ -221,10 +231,11 @@ const getDownloadStatusMainHeightV2 = () => {
   let maxBottomPosition = 0
 
   children.forEach(child => {
+    const childElement = child as HTMLElement
     // 获取style中的top值
-    const styleTop = child.style?.top || 0
+    const styleTop = childElement.style?.top || '0'
     // 获取style中的height
-    const styleHeight = child.style?.height || 0
+    const styleHeight = childElement.style?.height || '0'
 
     // 转换为数字
     const top = parseFloat(styleTop) || 0
@@ -251,7 +262,8 @@ const getDownloadStatusMainHeight = () => {
   let maxHeight = 0
 
   children.forEach(child => {
-    const height = (child.offsetHeight || 0) + (child.offsetTop || 0)
+    const childElement = child as HTMLElement
+    const height = (childElement.offsetHeight || 0) + (childElement.offsetTop || 0)
     if (height > maxHeight) {
       maxHeight = height
     }

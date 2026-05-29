@@ -341,7 +341,7 @@ export const createExtremumPoint = (chart, ev) => {
               'rgba(' + r + ',' + g + ',' + b + ',' + a + ')'
             pointElement.style.display = 'table'
             // 显示箭头
-            const childNode = pointElement.childNodes[1]
+            const childNode = pointElement.childNodes[1] as HTMLElement
             // 最值在数据点下方显示
             const translateYValue = Math.ceil(point.y + Math.abs(Math.floor(top)) + 6)
             // 最值dom高度超过50%时，最值dom向下

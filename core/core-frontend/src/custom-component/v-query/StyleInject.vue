@@ -67,7 +67,7 @@ provide('$custom-style-filter', props.customStyle)
 
 <template>
   <component
-    :config="config"
+    :config="config as any"
     :is-config="false"
     :is="filterTypeCom(config.displayType)"
   ></component>

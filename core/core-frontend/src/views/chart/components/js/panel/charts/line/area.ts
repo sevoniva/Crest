@@ -336,7 +336,7 @@ export class StackArea extends Area {
     const layout = []
     if (!labelAttr.fullDisplay) {
       const tmpOptions = super.configLabel(chart, options)
-      layout.push(...tmpOptions.label.layout)
+      layout.push(...(((tmpOptions.label as Record<string, any>)?.layout || []) as any[]))
     } else {
       layout.push({ type: 'limit-in-plot' })
     }

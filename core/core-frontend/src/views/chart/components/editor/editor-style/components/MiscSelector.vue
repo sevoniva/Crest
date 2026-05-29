@@ -761,7 +761,7 @@ onMounted(() => {
       <div style="display: flex; flex-direction: row; justify-content: space-between">
         <label class="custom-form-item-label" :class="'custom-form-item-label--' + themes">
           {{ t('chart.axis_value') }}
-          <el-tooltip class="item" :effect="toolTip" placement="top">
+          <el-tooltip class="item" :effect="themes" placement="top">
             <template #content
               ><span>{{ t('chart.axis_tip') }}</span></template
             >

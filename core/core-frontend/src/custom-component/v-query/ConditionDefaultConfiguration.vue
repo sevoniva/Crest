@@ -685,7 +685,12 @@ defineExpose({
         }}</el-checkbox>
       </div>
       <div :class="dynamicTime ? 'setting-value' : 'w100'">
-        <component :config="curComponent" isConfig ref="inputCom" :is="filterTypeCom"></component>
+        <component
+          :config="curComponent as any"
+          isConfig
+          ref="inputCom"
+          :is="filterTypeCom"
+        ></component>
       </div>
     </div>
   </div>

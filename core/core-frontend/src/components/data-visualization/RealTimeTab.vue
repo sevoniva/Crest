@@ -7,7 +7,7 @@ import { snapshotStoreWithOut } from '@/store/modules/data-visualization/snapsho
 import { storeToRefs } from 'pinia'
 import { ElIcon, ElMessage, ElRow } from 'element-plus-secondary'
 import Icon from '../icon-custom/src/Icon.vue'
-import { nextTick, ref, toRefs } from 'vue'
+import { nextTick, PropType, ref, toRefs } from 'vue'
 import draggable from 'vuedraggable'
 import { composeStoreWithOut } from '@/store/modules/data-visualization/compose'
 import RealTimeGroup from '@/components/data-visualization/RealTimeGroup.vue'
@@ -29,8 +29,14 @@ const props = defineProps({
     required: false,
     default: 'main'
   },
-  componentData: [],
-  tabElement: {}
+  componentData: {
+    type: Array as PropType<Array<Record<string, any>>>,
+    default: () => []
+  },
+  tabElement: {
+    type: Object as PropType<Record<string, any>>,
+    default: () => ({})
+  }
 })
 
 const { componentData, tabElement } = toRefs(props)

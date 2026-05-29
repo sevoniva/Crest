@@ -8,13 +8,13 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, reactive, ref, toRefs } from 'vue'
+import { onBeforeUnmount, PropType, reactive, ref, toRefs } from 'vue'
 import CodeMirror from '@/views/visualized/data/dataset/form/SqlCodeEditor.vue'
 const myCm = ref(null)
 const mirror = ref(null)
 const props = defineProps({
-  linkJumpInfoArray: Array,
-  linkJumpInfo: Object
+  linkJumpInfoArray: Array as PropType<Array<Record<string, any>>>,
+  linkJumpInfo: Object as PropType<Record<string, any>>
 })
 
 const { linkJumpInfo } = toRefs(props)

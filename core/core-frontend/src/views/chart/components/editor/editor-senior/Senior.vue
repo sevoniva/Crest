@@ -60,15 +60,15 @@ const props = defineProps({
     required: true
   },
   quotaData: {
-    type: Array,
+    type: Array as PropType<Array<Record<string, any>>>,
     required: true
   },
   quotaExtData: {
-    type: Array,
+    type: Array as PropType<Array<Record<string, any>>>,
     required: true
   },
   fieldsData: {
-    type: Array,
+    type: Array as PropType<Array<Record<string, any>>>,
     required: true
   },
   themes: {

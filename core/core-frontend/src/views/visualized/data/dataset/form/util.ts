@@ -135,6 +135,7 @@ interface Node {
   unionType: UnionType
   unionFields: UnionField[]
   info: string
+  noteName?: string
   sqlVariableDetails: string
   currentDsFields: Field[]
   children?: Node[]

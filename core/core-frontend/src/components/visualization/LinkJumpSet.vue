@@ -671,7 +671,7 @@ const selectSourceTips = t('visualization.select_target_resource')
 
 const targetSource = t('visualization.target_dashboard_dataV')
 
-const state = reactive({
+const state = reactive<any>({
   curDataVWeight: 0,
   activeCollapse: 'view',
   loading: false,
@@ -823,7 +823,7 @@ const init = viewItem => {
   }
   const request = { busiFlag: 'dashboard-dataV' } as BusiTreeRequest
   // 获取可关联的仪表板
-  queryTreeApi(request).then(rsp => {
+  queryTreeApi(request).then((rsp: any) => {
     if (rsp && rsp[0]?.id === '0') {
       state.panelList = rsp[0].children
     } else {
@@ -961,7 +961,7 @@ const codeMirrorContentSet = content => {
 
 // 获取当前图表字段 关联仪表板的图表信息列表
 const getPanelViewList = dvId => {
-  viewTableDetailList(dvId).then(rsp => {
+  viewTableDetailList(dvId).then((rsp: any) => {
     state.viewIdFieldArrayMap = {}
     state.currentLinkPanelViewArray = rsp.data.visualizationViewTables
     if (state.currentLinkPanelViewArray) {
@@ -981,7 +981,7 @@ const getPanelViewList = dvId => {
       })
     }
     // 增加过滤组件匹配
-    JSON.parse(rsp.data.bashComponentData).forEach(componentItem => {
+    ;(JSON.parse(rsp.data.bashComponentData) as any[]).forEach(componentItem => {
       if (componentItem.component === 'VQuery' && componentItem.propValue instanceof Array) {
         componentItem.propValue.forEach(filterItem => {
           state.currentLinkPanelViewArray.push({

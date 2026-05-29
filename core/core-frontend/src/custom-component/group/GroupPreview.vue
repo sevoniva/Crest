@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, toRefs } from 'vue'
+import { PropType, ref, toRefs } from 'vue'
 import ComponentWrapper from '@/components/data-visualization/canvas/ComponentWrapper.vue'
 import { toPercent } from '@/utils/translate'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
@@ -9,11 +9,11 @@ const userViewEnlargeRef = ref(null)
 
 const props = defineProps({
   propValue: {
-    type: Array,
+    type: Array as PropType<Array<Record<string, any>>>,
     default: () => []
   },
   element: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     default() {
       return {
         propValue: null
@@ -26,7 +26,7 @@ const props = defineProps({
     default: 'canvas'
   },
   dvInfo: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   // 仪表板刷新计时器
@@ -41,7 +41,7 @@ const props = defineProps({
     default: 1
   },
   canvasViewInfo: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   // 字体

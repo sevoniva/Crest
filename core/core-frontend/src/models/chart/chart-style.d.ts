@@ -156,7 +156,7 @@ declare interface ChartAxisStyle {
   /**
    * 是否显示轴线标题名称
    */
-  nameShow: boolean
+  nameShow?: boolean
   /**
    * 轴线标题名称
    */

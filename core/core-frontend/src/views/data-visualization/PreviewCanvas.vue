@@ -74,7 +74,7 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
   let jumpParam
   // 获取外部跳转参数
   if (jumpInfoParam) {
-    jumpParam = JSON.parse(Base64.decode(decodeURIComponent(jumpInfoParam)))
+    jumpParam = JSON.parse(Base64.decode(decodeURIComponent(String(jumpInfoParam))))
     const jumpRequestParam = {
       sourceDvId: jumpParam.sourceDvId,
       sourceViewId: jumpParam.sourceViewId,
@@ -113,7 +113,7 @@ const loadCanvasDataAsync = async (dvId, dvType, ignoreParams = false) => {
   if (attachParamsEncode || hasTicketArgs) {
     try {
       if (!!attachParamsEncode) {
-        attachParam = JSON.parse(Base64.decode(decodeURIComponent(attachParamsEncode)))
+        attachParam = JSON.parse(Base64.decode(decodeURIComponent(String(attachParamsEncode))))
       }
       if (hasTicketArgs) {
         attachParam = Object.assign({}, attachParam, argsObject)

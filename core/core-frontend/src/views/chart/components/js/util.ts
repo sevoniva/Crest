@@ -924,7 +924,7 @@ export function getStackColor<O extends PickOptions = Options>(chart: Chart, opt
     const seriesSet = new Set()
     data?.forEach(d => d.category !== null && seriesSet.add(d.category))
     const tmp = [...seriesSet]
-    const values = options.meta?.category?.values
+    const values = (options as Record<string, any>).meta?.category?.values
     if (values?.length) {
       tmp.sort((a, b) => values.indexOf(a) - values.indexOf(b))
     }

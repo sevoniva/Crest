@@ -25,7 +25,6 @@ import { ElForm, ElMessage, ElMessageBox } from 'element-plus-secondary'
 import Cron from '@/components/cron/src/Cron.vue'
 import { ComponentPublicInstance } from 'vue'
 import { iconFieldMap } from '@/components/icon-group/field-list'
-import { boolean } from 'mathjs'
 const { t } = useI18n()
 const prop = defineProps({
   form: {
@@ -57,11 +56,11 @@ const prop = defineProps({
     type: Number
   },
   isSupportSetKey: {
-    type: boolean,
+    type: Boolean,
     required: true
   },
   pluginDs: {
-    type: [],
+    type: Array,
     required: true
   },
   pluginIndex: {
@@ -69,7 +68,7 @@ const prop = defineProps({
     required: true
   },
   isPlugin: {
-    type: boolean,
+    type: Boolean,
     required: true
   }
 })
@@ -503,7 +502,7 @@ const deleteItem = (item, idx) => {
   form.value.apiConfiguration.splice(form.value.apiConfiguration.indexOf(item), 1)
   cancelItem(idx)
 }
-const cancelItem = (index: number) => {
+const cancelItem = (index: number | string) => {
   state.itemRef[index].hide()
 }
 const submitForm = () => {

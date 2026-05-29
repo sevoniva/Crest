@@ -25,7 +25,6 @@ import { cloneDeep, debounce } from 'lodash-es'
 import { uploadFile } from '@/api/datasource'
 import { useEmitt } from '@/hooks/web/useEmitt'
 import { iconFieldMap } from '@/components/icon-group/field-list'
-import { boolean } from 'mathjs'
 
 export interface Param {
   editType: number
@@ -71,7 +70,7 @@ const props = defineProps({
     type: Object
   },
   isSupportSetKey: {
-    type: boolean,
+    type: Boolean,
     required: true
   }
 })
@@ -282,7 +281,7 @@ const saveExcelDs = (params, successCb, finallyCb) => {
     return
   }
 
-  let table = {}
+  let table: Record<string, any> = {}
   if (params) {
     param.value.name = params.name
   }

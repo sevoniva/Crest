@@ -61,7 +61,7 @@ export const filterEnumMapSync = async componentData => {
   }
 }
 
-export function filterParamsOptions(params, paramsOption) {
+export function filterParamsOptions(params, paramsOption: string[]) {
   // 如果 params 为空，直接返回 null
   if (!params || (Array.isArray(params) && params.length === 0)) {
     return null
@@ -71,8 +71,8 @@ export function filterParamsOptions(params, paramsOption) {
     return null
   }
   // 创建 paramsOption 集合和前缀集合用于快速查找
-  const optionSet = new Set(paramsOption)
-  const prefixSet = new Set()
+  const optionSet = new Set<string>(paramsOption)
+  const prefixSet = new Set<string>()
   // 收集所有可能的父级前缀
   paramsOption.forEach(option => {
     if (option.includes('-de-')) {
@@ -86,7 +86,7 @@ export function filterParamsOptions(params, paramsOption) {
   })
 
   // 检查一个值是否在 paramsOption 中存在（考虑层级关系）
-  function checkValueExists(value) {
+  function checkValueExists(value: string) {
     // 直接存在
     if (optionSet.has(value)) {
       return true

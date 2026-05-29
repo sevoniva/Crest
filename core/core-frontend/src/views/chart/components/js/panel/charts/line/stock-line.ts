@@ -8,7 +8,6 @@ import { LINE_EDITOR_PROPERTY_INNER } from '@/views/chart/components/js/panel/ch
 import { useI18n } from '@/hooks/web/useI18n'
 import { valueFormatter } from '@/views/chart/components/js/formatter'
 import type { Options } from '@antv/g2plot/esm'
-import { MixOptions } from '@antv/g2plot'
 
 const { t } = useI18n()
 const DEFAULT_DATA = []

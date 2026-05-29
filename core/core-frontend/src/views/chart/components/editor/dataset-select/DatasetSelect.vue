@@ -69,7 +69,7 @@ const initDataset = () => {
   loadingDatasetTree.value = true
   const method = props.sourceType === 'datasource' ? getDatasourceList : getDatasetTree
   const params = props.sourceType === 'datasource' ? null : {}
-  method(params)
+  ;(method as any)(params)
     .then(res => {
       sortTypeChange((res as unknown as Tree[]) || [])
     })

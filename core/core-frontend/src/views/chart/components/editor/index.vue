@@ -1935,7 +1935,9 @@ const drop = (ev: MouseEvent, type = 'xAxis') => {
     const obj = cloneDeep(arr[i])
     state.moveId = obj.id as unknown as number
     view.value[type] ??= []
-    const targetId = ev.srcElement.offsetParent?.querySelector('.node-id_private')?.dataset?.id
+    const targetId = (ev.srcElement as HTMLElement).offsetParent?.querySelector<HTMLElement>(
+      '.node-id_private'
+    )?.dataset?.id
     const index = view.value[type].findIndex(ele => ele.id === targetId && ele.id !== obj.id)
     let newDraggableIndex
     if (index !== -1) {

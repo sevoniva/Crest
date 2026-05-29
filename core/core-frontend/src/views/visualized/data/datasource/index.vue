@@ -971,7 +971,7 @@ const editDatasource = (editType?: number) => {
   if (nodeInfo.type.startsWith('Excel')) {
     nodeInfo.editType = editType
   }
-  return getById(nodeInfo.id).then(res => {
+  return getById(Number(nodeInfo.id)).then(res => {
     let arr = pluginDs.value.filter(ele => {
       return ele.type == res.data.type
     })

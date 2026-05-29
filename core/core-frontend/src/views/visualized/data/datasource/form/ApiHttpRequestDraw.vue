@@ -76,7 +76,11 @@ let apiItem = reactive<ApiItem>({
   status: '',
   name: '',
   type: 'table',
+  appToken: '',
+  tableId: '',
+  viewId: '',
   url: '',
+  copy: false,
   method: 'GET',
   request: {
     changeId: '',

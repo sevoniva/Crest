@@ -231,7 +231,7 @@ defineExpose({
       </div>
     </el-form-item>
     <el-form-item :label="t('template_manage.preview')">
-      <DynamicTime style="width: 100%" :config="curComponent" isConfig></DynamicTime>
+      <DynamicTime style="width: 100%" :config="curComponent as any" isConfig></DynamicTime>
     </el-form-item>
   </el-form>
 </template>

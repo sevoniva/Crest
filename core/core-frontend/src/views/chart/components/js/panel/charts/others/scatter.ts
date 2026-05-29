@@ -281,7 +281,7 @@ export class Scatter extends G2PlotChartView<ScatterOptions, G2Scatter> {
     } else {
       size = DEFAULT_LEGEND_STYLE.size
     }
-    optionTmp.legend.marker.style = style => {
+    ;((optionTmp.legend as Record<string, any>).marker as Record<string, any>).style = style => {
       return {
         r: size,
         fill: style.fill

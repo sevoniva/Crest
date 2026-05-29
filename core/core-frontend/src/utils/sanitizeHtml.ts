@@ -1,6 +1,6 @@
-import xss from 'xss'
+import { FilterXSS } from 'xss'
 
-const safeHtmlFilter = new xss.FilterXSS({
+const safeHtmlFilter = new FilterXSS({
   css: false,
   whiteList: {
     b: [],

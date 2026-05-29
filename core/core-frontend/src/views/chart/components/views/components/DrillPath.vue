@@ -1,5 +1,5 @@
 <script lang="tsx" setup>
-import { computed } from 'vue'
+import { computed, PropType } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { ArrowRight } from '@element-plus/icons-vue'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
@@ -9,7 +9,7 @@ const { t } = useI18n()
 
 const props = defineProps({
   drillFilters: {
-    type: Array,
+    type: Array as PropType<Array<Record<string, any>>>,
     default: () => []
   },
   themeStyle: {

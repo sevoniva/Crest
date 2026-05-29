@@ -12,7 +12,7 @@ const closeHandler = () => {
 const { t } = useI18n()
 const emits = defineEmits(['selectConfirm'])
 
-const state = reactive({
+const state = reactive<any>({
   panelList: [],
   dvSelectProps: {
     label: 'name',
@@ -38,7 +38,7 @@ const init = param => {
 
 const loadRTree = dvType => {
   const request = { busiFlag: dvType, resourceTable: 'core' }
-  queryTreeApi(request).then(rsp => {
+  queryTreeApi(request).then((rsp: any) => {
     if (rsp && rsp[0]?.id === '0') {
       state.panelList = rsp[0].children
     } else {

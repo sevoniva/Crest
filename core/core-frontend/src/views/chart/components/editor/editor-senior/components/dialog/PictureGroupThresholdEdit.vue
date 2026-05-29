@@ -25,7 +25,7 @@ const props = defineProps({
     }
   },
   threshold: {
-    type: Array,
+    type: Array as PropType<TableThreshold[]>,
     required: true
   }
 })
@@ -201,7 +201,7 @@ const valueOptions = [
   }
 ]
 
-const state = reactive({
+const state = reactive<any>({
   thresholdArr: [] as TableThreshold[],
   fields: [],
   thresholdObj: {

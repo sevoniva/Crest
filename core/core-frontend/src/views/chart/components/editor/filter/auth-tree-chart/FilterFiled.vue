@@ -242,7 +242,7 @@ const confirmTimeSelect = () => {
     relativeToCurrent
   } = item.value.dynamicTimeSetting
   if (arbitraryTime) {
-    item.value.dynamicTimeSetting.arbitraryTime =
+    ;(item.value.dynamicTimeSetting as any).arbitraryTime =
       formatDate(new Date(arbitraryTime).toLocaleDateString()) +
       ' ' +
       new Date(arbitraryTime).toLocaleTimeString()
