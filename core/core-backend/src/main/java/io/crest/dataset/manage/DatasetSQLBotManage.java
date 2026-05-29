@@ -89,9 +89,9 @@ public class DatasetSQLBotManage {
     @Value("${crest.sqlbot.encrypt:false}")
     private boolean encryptEnabled;
 
-    @Value("${crest.sqlbot.aes-key:y5txe1mRmS_JpOrUzFzHEu-kIQn3lf7l}")
+    @Value("${crest.sqlbot.aes-key:}")
     private String aesKey;
-    @Value("${crest.sqlbot.aes-iv:sqlbot_em_aes_iv}")
+    @Value("${crest.sqlbot.aes-iv:}")
     private String aesIv;
     @Value("${crest.sqlbot.log:false}")
     private boolean sqlbotApiLog;
@@ -103,6 +103,9 @@ public class DatasetSQLBotManage {
     private ExtChartViewMapper extChartViewMapper;
 
     private String aesEncrypt(String text) {
+        if (StringUtils.isBlank(aesKey) || StringUtils.isBlank(aesIv)) {
+            throw new IllegalStateException("crest.sqlbot.aes-key and crest.sqlbot.aes-iv are required when crest.sqlbot.encrypt is enabled");
+        }
         String iv = aesIv;
         int len = iv.length();
         if (len > 16) {

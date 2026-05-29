@@ -23,7 +23,7 @@ import static io.crest.constant.AuthResourceEnum.TASK;
  * @date 2023/11/20 10:14
  **/
 @Tag(name = "同步管理:任务管理")
-@ApiSupport(order = 888, author = "fit2cloud-someone")
+@ApiSupport(order = 888, author = "Crest")
 @DeApiPath(value = "/sync/task", rt = TASK)
 public interface TaskApi {
 

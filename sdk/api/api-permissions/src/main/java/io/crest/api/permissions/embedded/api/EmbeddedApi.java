@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 @Tag(name = "嵌入式")
-@ApiSupport(order = 883, author = "fit2cloud-someone")
+@ApiSupport(order = 883, author = "Crest")
 public interface EmbeddedApi {
 
     @Operation(summary = "查询")

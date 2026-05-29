@@ -23,7 +23,7 @@ import java.util.List;
 import static io.crest.constant.AuthResourceEnum.ORG;
 
 @Tag(name = "组织")
-@ApiSupport(order = 886, author = "fit2cloud-someone")
+@ApiSupport(order = 886, author = "Crest")
 @DeApiPath(value = "/org", rt = ORG)
 public interface OrgApi {
 

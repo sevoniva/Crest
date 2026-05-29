@@ -27,7 +27,7 @@ import static io.crest.constant.AuthResourceEnum.USER;
 
 
 @Tag(name = "用户")
-@ApiSupport(order = 888, author = "fit2cloud-someone")
+@ApiSupport(order = 888, author = "Crest")
 @DeApiPath(value = "/user", rt = USER)
 public interface UserApi {
 

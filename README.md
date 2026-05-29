@@ -1,56 +1,275 @@
 # Crest
 
-Crest 是一款开源 BI 工具，面向私有化部署和企业内部数据分析场景。它提供数据源接入、数据集建模、仪表板、数据大屏、分享、导出、系统管理和字段级数据血缘能力，并内置 OceanBase Oracle 模式数据源支持。
+Crest 是面向私有化部署的开源 BI 平台，覆盖数据源接入、数据集建模、仪表盘、数据大屏、分享、导出、系统管理和字段级数据血缘。当前封版版本为 `v1.3.0`。
 
-当前封版版本：`v1.3.0`。
+Crest 基于 DataEase 2.10.22 开源版本继续开发，并合入 2.10.23 相关安全加固和依赖升级。仓库保留上游版权和 GPLv3 许可声明，品牌、部署脚本、演示资源、OceanBase Oracle 数据源、数据血缘和研发效能分析能力按 Crest 当前产品边界维护。
 
-## 项目来源与许可
+## 项目定位
 
-Crest 是 [DataEase](https://github.com/dataease/dataease) 2.10.22 的 GPLv3 派生项目。原项目版权归 [FIT2CLOUD 飞致云](https://fit2cloud.com/) 及其贡献者所有。
+Crest 适合放在企业内网或专有云环境中，用于内部经营分析、研发效能分析、数据资产查看和报表共享。项目关注 BI 主链路，不包含模板市场、SQLBot、消息中心、独立移动端入口、地图类图表运行时、外部插件市场、帮助中心和关于页等非当前运行范围的能力。
 
-本仓库保留原项目的 [LICENSE](./LICENSE) 文件，并继续按 GNU General Public License version 3 (GPLv3) 发布。使用、分发或继续开发本仓库代码时，请遵守 GPLv3：
+当前主功能：
 
-- 保留原版权声明和许可证声明；
+| 模块 | 说明 |
+| --- | --- |
+| 工作台 | 展示当前用户资源概览、收藏资源、最近使用资源和快捷创建入口 |
+| 数据源 | 管理 MySQL、OceanBase Oracle 等连接；生产环境建议使用只读账号 |
+| 数据集 | 基于数据源建模，支持字段管理、计算字段、预览和缓存同步 |
+| 仪表盘 | 通过图表、筛选、联动、跳转和分享形成业务看板 |
+| 数据大屏 | 面向展示墙、驾驶舱和主题分析场景的可视化页面 |
+| 分享 | 为仪表盘和数据大屏生成访问链接，可配置密码、有效期和 ticket |
+| 导出中心 | 查看导出任务状态并下载导出文件 |
+| 数据血缘 | 展示数据源、表、字段、数据集、图表和展示资源之间的字段级依赖 |
+| 系统管理 | 管理用户、系统参数、站点设置和字体 |
+
+## 许可
+
+Crest 按 GNU General Public License version 3 (GPLv3) 发布。使用、修改、部署或再分发时请遵守以下要求：
+
+- 保留原项目版权声明和许可证声明；
 - 保留无担保声明；
 - 随源码或分发物提供 GPLv3 许可证副本；
 - 说明项目来源于 DataEase；
 - 派生版本继续按 GPLv3 发布。
 
-## 功能
+上游项目信息：
 
-Crest 当前包含这些核心模块：
+- DataEase: <https://github.com/dataease/dataease>
+- FIT2CLOUD 飞致云: <https://fit2cloud.com/>
 
-- 工作台：最近使用资源、常用入口和运行概览；
-- 数据源：管理 MySQL、OceanBase Oracle 等数据连接；
-- 数据集：基于数据源建模，支持字段、计算字段、预览和缓存同步；
-- 仪表板：制作业务看板，支持图表、筛选、联动、跳转和分享；
-- 数据大屏：制作大屏展示页面；
-- 分享：为仪表板和数据大屏生成公开访问链接，可设置密码、有效期和 ticket；
-- 数据导出中心：查看导出任务状态和下载结果；
-- 数据血缘：查看数据源、表、字段、数据集、图表、仪表板和大屏之间的上下游关系；
-- 系统管理：管理用户、基础权限、系统参数和字体。
+## 架构概览
 
-产品边界以 BI 分析主链路为核心：数据接入、建模、可视化、分享、导出、权限和血缘分析。模板市场、帮助中心、关于页、SQLBot、消息中心、独立移动端入口、地图类图表和外部插件入口不属于当前 Crest 的运行范围。
-
-## 接口文档
-
-服务启动后可以直接访问接口文档：
+Crest 采用前后端分离开发、后端统一打包部署的结构。
 
 ```text
-http://<host>:8100/doc.html
+浏览器
+  -> Vue 3 / Vite 前端静态资源
+  -> Spring Boot 后端接口
+  -> Crest 元数据库 MySQL
+  -> 外部业务数据源
 ```
 
-OpenAPI 原始描述地址：
+核心目录：
+
+| 目录 | 作用 |
+| --- | --- |
+| `core/core-backend` | Spring Boot 后端、接口实现、Flyway 迁移、最终 JAR 打包入口 |
+| `core/core-frontend` | Vue 3.3、Vite、TypeScript、Element Plus、Pinia 和 vxe-table 前端工程 |
+| `sdk/api` | 对内 API、DTO、VO 和接口契约 |
+| `sdk/common` | 公共模型、认证、工具类和 Spring 配置 |
+| `sdk/extensions/extensions-datasource` | JDBC 数据源扩展定义 |
+| `drivers` | 随仓库分发的 JDBC 驱动，当前包含 OceanBase Connector/J |
+| `installer` | 单机 Docker 安装脚本、控制脚本和离线包制作脚本 |
+| `deploy/kubernetes` | Kubernetes 部署清单，支持内置 MySQL 和外部 MySQL |
+| `docs` | 数据血缘、研发效能大屏和开发说明 |
+
+运行时只需要 Crest 应用容器和 MySQL。应用启动时由 Flyway 执行数据库迁移，初始化必要表结构、管理员账号、系统参数、演示数据源、演示数据集、演示图表和演示大屏。
+
+## 默认端口和账号
+
+| 项目 | 默认值 |
+| --- | --- |
+| Web 端口 | `8100` |
+| 默认管理员账号 | `admin` |
+| 单机安装初始密码 | 安装脚本随机生成，并在安装完成后输出 |
+| Kubernetes 初始密码 | `CREST_INITIAL_PASSWORD` Secret 中配置 |
+| 本地源码运行初始密码 | 需要显式设置 `CREST_INITIAL_PASSWORD` 环境变量 |
+
+安装完成后请立即修改管理员密码。不要在生产环境使用公开示例密码。
+
+## 快速安装
+
+单机 Docker 安装入口位于 `installer`：
+
+```bash
+cd installer
+bash install.sh
+```
+
+安装脚本会完成以下工作：
+
+1. 读取 `install.conf`；
+2. 生成 MySQL 密码、AES Key、AES IV 和管理员初始密码；
+3. 创建 `/opt/crest` 运行目录；
+4. 安装或复用 Docker 和 Docker Compose；
+5. 加载离线镜像目录 `images/` 中的镜像，或从镜像仓库拉取；
+6. 创建 `crest.service`；
+7. 启动 MySQL 和 Crest。
+
+常用配置项：
+
+| 配置项 | 说明 |
+| --- | --- |
+| `DE_BASE` | 安装基目录，默认 `/opt`，实际运行目录为 `/opt/crest` |
+| `DE_PORT` | Web 端口，默认 `8100` |
+| `DE_APP_IMAGE` | Crest 应用镜像，默认 `ghcr.io/sevoniva/crest:v1.3.0` |
+| `DE_MYSQL_IMAGE` | MySQL 镜像，默认 `mysql:8.4.5` |
+| `DE_MYSQL_PASSWORD` | MySQL root 密码，留空时自动生成 |
+| `DE_AES_KEY` / `DE_AES_IV` | 加密参数，留空时自动生成；升级已有环境时不要修改 |
+| `DE_INITIAL_PASSWORD` | 管理员初始密码，留空时自动生成 |
+| `DE_ORIGIN_LIST` | 允许访问来源，生产环境应改成实际域名 |
+
+安装后使用：
+
+```bash
+crestctl status
+crestctl start
+crestctl stop
+crestctl restart
+crestctl clear-logs
+```
+
+升级前请备份元数据库和 `/opt/crest` 目录。已有环境只替换应用镜像时，可在运行目录执行：
+
+```bash
+docker-compose up -d --no-deps crest
+```
+
+## 离线包
+
+离线包制作脚本：
+
+```bash
+cd installer
+bash make-offline-package.sh v1.3.0 linux-amd64
+bash make-offline-package.sh v1.3.0 linux-arm64
+```
+
+正式包名：
 
 ```text
-http://<host>:8100/v3/api-docs
+crest-offline-v1.3.0-linux-amd64.tar.gz
+crest-offline-v1.3.0-linux-arm64.tar.gz
 ```
 
-接口分组按当前功能模块维护，包括可视化管理、图表管理、数据集管理、数据源管理、数据血缘、导出中心、系统管理、权限管理和同步管理。数据血缘接口位于 `数据血缘` 分组，覆盖全局血缘、数据源血缘、数据集血缘、仪表板/大屏血缘和资源下拉查询。
+包内包含安装脚本、配置模板、Docker Compose 文件、正式说明文档和 `images/` 镜像归档。离线服务器解压后直接执行：
 
-生产环境建议通过网关限制接口文档访问范围，避免把内部接口结构暴露到公网。
+```bash
+tar -zxf crest-offline-v1.3.0-linux-amd64.tar.gz
+cd crest-offline-v1.3.0-linux-amd64
+bash install.sh
+```
 
-## OceanBase Oracle
+离线包产物属于发布物，不提交到源码仓库。源码仓库只保留制作脚本和说明。
+
+## Kubernetes 部署
+
+Kubernetes 清单位于 `deploy/kubernetes`：
+
+- `deploy/kubernetes/internal-mysql`：同时安装 Crest 和 MySQL StatefulSet；
+- `deploy/kubernetes/external-mysql`：只安装 Crest，连接外部 MySQL。
+
+部署前必须替换 Secret 中的占位值：
+
+```text
+CREST_DB_PASSWORD
+MYSQL_ROOT_PASSWORD
+CREST_AES_KEY
+CREST_AES_IV
+CREST_INITIAL_PASSWORD
+```
+
+内置 MySQL 快速验证：
+
+```bash
+kubectl apply -k deploy/kubernetes/internal-mysql
+kubectl -n crest-internal rollout status statefulset/crest-mysql --timeout=180s
+kubectl -n crest-internal rollout status deployment/crest --timeout=300s
+kubectl -n crest-internal port-forward svc/crest 18100:8100
+```
+
+访问地址：
+
+```text
+http://127.0.0.1:18100/index.html
+```
+
+详细说明见 [deploy/kubernetes/README.md](./deploy/kubernetes/README.md)。
+
+## Docker 镜像
+
+默认镜像：
+
+```text
+ghcr.io/sevoniva/crest:v1.3.0
+ghcr.io/sevoniva/crest:main
+```
+
+本地构建：
+
+```bash
+mvn -s .mvn/settings.xml -pl :core-backend -am clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
+docker build -t ghcr.io/sevoniva/crest:local .
+```
+
+镜像使用 Alpine 作为最终基础镜像，内置 jlink 裁剪后的 Java 21 runtime，以非 root 用户 `10001:10001` 运行。
+
+GitHub Actions 发布入口：
+
+```text
+.github/workflows/docker-publish.yml
+```
+
+## 本地开发
+
+推荐工具链：
+
+| 工具 | 版本 |
+| --- | --- |
+| JDK | 21 |
+| Maven | 3.9 或兼容版本 |
+| Node.js | 22 |
+| pnpm | 11 |
+| MySQL | 8.0 或兼容版本 |
+| Docker | 20.10+，多架构镜像需要 Buildx |
+
+前端构建：
+
+```bash
+cd core/core-frontend
+pnpm install --frozen-lockfile
+pnpm run build:base
+```
+
+后端打包：
+
+```bash
+mvn -s .mvn/settings.xml -pl :core-backend -am clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
+```
+
+源码方式启动后端前，需要准备 MySQL，并设置必要环境变量：
+
+```bash
+export CREST_DB_HOST=127.0.0.1
+export CREST_DB_PORT=3306
+export CREST_DB_NAME=crest
+export CREST_DB_USERNAME=root
+export CREST_DB_PASSWORD='<mysql-password>'
+export CREST_AES_KEY='<32-character-aes-key>'
+export CREST_AES_IV='<16-character-aes-iv>'
+export CREST_INITIAL_PASSWORD='<admin-initial-password>'
+./run.sh start
+```
+
+前端开发模式：
+
+```bash
+cd core/core-frontend
+pnpm dev
+```
+
+常用验证：
+
+```bash
+cd core/core-frontend
+pnpm run build:lite:check
+```
+
+涉及后端、数据库迁移、数据血缘、数据集缓存、导出或部署脚本时，需要结合实际服务做接口和安装回归。
+
+开发约定见 [docs/development.md](./docs/development.md)。
+
+## OceanBase Oracle 数据源
 
 Crest 内置 `obOracle` 数据源类型，使用 OceanBase Connector/J：
 
@@ -58,7 +277,7 @@ Crest 内置 `obOracle` 数据源类型，使用 OceanBase Connector/J：
 drivers/oceanbase-client-2.4.17.jar
 ```
 
-配置项说明：
+配置项：
 
 | 配置项 | 说明 |
 | --- | --- |
@@ -69,11 +288,11 @@ drivers/oceanbase-client-2.4.17.jar
 | Password | 租户用户密码 |
 | JDBC 参数 | 追加到 JDBC URL 的查询参数；危险 JNDI、反序列化和外部协议参数会被拦截 |
 
-生产环境建议单独创建查询账号，只授予报表需要的 `SELECT` 权限。不要使用 DBA、DDL 或 DML 权限账号接入报表系统。
+生产环境建议创建报表只读账号，只授予需要的 `SELECT` 权限。
 
 ## 数据集缓存
 
-OceanBase Oracle 数据集支持结果缓存。Crest 会按数据集建模规则生成查询 SQL，从源库读取结果并写入内部缓存表。缓存就绪后，数据预览和仪表板可以读取内部缓存，减少对业务库的直接查询压力。
+OceanBase Oracle 数据集支持结果缓存。Crest 会按数据集建模规则生成查询 SQL，从源库读取结果并写入内部缓存表。缓存就绪后，数据预览和仪表盘可以读取内部缓存，减少对业务库的直接查询压力。
 
 当前规则：
 
@@ -96,204 +315,94 @@ OceanBase Oracle 数据集支持结果缓存。Crest 会按数据集建模规则
 
 ## 数据血缘
 
-数据血缘菜单位于主导航的“数据大屏”之后。它读取 Crest 已保存的元数据，形成字段级链路：
+数据血缘读取 Crest 已保存的元数据，形成字段级链路：
 
 ```text
-数据源 -> 物理表 -> 物理字段 -> 数据集字段 -> 数据集 -> 图表字段 -> 图表 -> 仪表板/大屏
+数据源 -> 物理表 -> 物理字段 -> 数据集字段 -> 数据集 -> 图表字段 -> 图表 -> 仪表盘/大屏
 ```
 
-常用方式：
+使用场景：
 
-- 全局：查看整体资源依赖；
-- 数据源：从数据源查看进入 Crest 后形成的字段链路；
-- 数据集：反查数据集上游表字段，并查看下游图表和展示资源；
-- 仪表板/大屏：从展示资源反查图表、数据集和源字段；
-- 表字段：先选物理表，再选字段，查看该字段上下游。
+- 字段口径排查；
+- 报表影响分析；
+- 数据源或数据集下线前检查；
+- 展示资源反查上游来源；
+- 演示环境验证完整数据链路。
 
-这个功能适合字段口径排查、报表影响分析、数据源下线评估和数据集设计前检查。说明见 [docs/data-lineage.md](./docs/data-lineage.md)。
+数据血缘不会在打开页面时扫描业务库，只读取 Crest 元数据库中已经保存的数据源、数据集、字段、图表和展示资源配置。说明见 [docs/data-lineage.md](./docs/data-lineage.md)。
 
-`v1.3.0` 起，新安装环境会内置一套零售经营演示库、数据源、数据集和数据大屏。它用于展示建模、可视化和字段级血缘的完整链路。接入自己的业务数据后，血缘会继续基于已保存的数据源、数据集和图表元数据自动生成关系图。
+## 内置演示资源
 
-## 本地开发
+新安装环境会自动初始化两组演示资源：
 
-推荐工具链：
+| 资源 | 用途 |
+| --- | --- |
+| 零售经营演示库 `crest_demo_retail` | 展示数据源、数据集、图表、大屏和字段血缘的完整链路 |
+| 研发效能分析资源 | 展示研发经营、需求流动、人力容量、工程活动和质量风险等主题大屏 |
 
-- JDK 21；
-- Maven 3.9 或兼容版本；
-- Node.js 22；
-- pnpm 11；
-- MySQL 8 或兼容数据库。
+数据库迁移脚本：
 
-前端构建：
+| 脚本 | 内容 |
+| --- | --- |
+| `V1.1__initial_schema.sql` | 创建运行所需表结构、默认管理员、基础菜单、系统参数、内置驱动和主题配置 |
+| `V1.2__demo_retail_dashboard.sql` | 创建零售经营演示库和对应的演示资源 |
+| `V1.3__demo_engineering_efficiency.sql` | 创建研发效能主题数据、指标视图、图表和数据大屏 |
+
+演示数据保持环境无关，不写入本地 IP、个人账号、压测数据、外部库连接串或临时资源。应用启动时会根据当前元数据库连接信息同步演示数据源地址。
+
+研发效能大屏口径见 [docs/engineering-efficiency-dashboard-solution.md](./docs/engineering-efficiency-dashboard-solution.md)。
+
+## 接口文档
+
+服务启动后访问：
+
+```text
+http://<host>:8100/doc.html
+http://<host>:8100/v3/api-docs
+```
+
+接口按当前运行模块分组，包括可视化管理、图表管理、数据集管理、数据源管理、数据血缘、导出中心、系统管理、权限管理和同步管理。生产环境建议通过网关限制接口文档访问范围。
+
+## 公开仓库边界
+
+可以提交：
+
+- 源码、配置模板、迁移脚本、公开演示数据、部署清单、构建脚本和文档；
+- 可以公开再分发的驱动文件；
+- 复现问题所需的脱敏样例。
+
+不要提交：
+
+- `.env`、本地数据库密码、访问 token、私钥、证书和账号清单；
+- `node_modules`、Maven `target`、前端 `dist`、静态打包目录和运行日志；
+- 本地离线包、镜像导出包、压测报告、浏览器测试输出和临时验证目录；
+- 含真实客户、供应商、员工或内网地址的数据文件。
+
+提交前可以预览被忽略文件：
 
 ```bash
-cd core/core-frontend
-pnpm install --frozen-lockfile
-pnpm run build:base
+git status --short --ignored
+git clean -fdXn
 ```
 
-后端打包：
+## 文档索引
 
-```bash
-mvn -s .mvn/settings.xml -pl :core-backend -am clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
-```
+| 文档 | 内容 |
+| --- | --- |
+| [docs/development.md](./docs/development.md) | 仓库结构、开发工具链、构建命令、迁移规则和提交前检查 |
+| [docs/data-lineage.md](./docs/data-lineage.md) | 字段级数据血缘的入口、口径、接口和边界 |
+| [docs/engineering-efficiency-dashboard-solution.md](./docs/engineering-efficiency-dashboard-solution.md) | 研发效能大屏体系、指标口径、数据来源和治理要求 |
+| [installer/README.md](./installer/README.md) | 单机安装、离线包制作、升级、备份和故障排查 |
+| [deploy/kubernetes/README.md](./deploy/kubernetes/README.md) | Kubernetes 部署、Secret 配置、验证和运维说明 |
+| [core/core-frontend/README.md](./core/core-frontend/README.md) | 前端工程结构、构建命令、品牌资源和页面约定 |
+| [SECURITY.md](./SECURITY.md) | 安全报告、公开仓库检查和部署加固建议 |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | 贡献流程、分支、提交、测试和文档要求 |
 
-本地启动：
+## 版本与变更
 
-```bash
-./run.sh start
-```
+当前版本：`v1.3.0`。
 
-默认服务端口为 `8100`。如需连接自己的数据库，请按实际环境调整 `spring.datasource.*`。
-
-前端开发模式：
-
-```bash
-cd core/core-frontend
-pnpm dev
-```
-
-提交前建议执行：
-
-```bash
-cd core/core-frontend
-pnpm run build:lite:check
-```
-
-后端涉及数据库、数据集、血缘或导出时，需要结合实际服务做接口回归。
-
-## 镜像
-
-本地构建主镜像：
-
-```bash
-mvn -s .mvn/settings.xml -pl :core-backend -am clean package -Pstandalone -DskipTests -Dmaven.test.skip=true
-docker build -t crest:local .
-```
-
-GitHub Actions 发布入口：
-
-```text
-.github/workflows/docker-publish.yml
-```
-
-默认镜像：
-
-```text
-ghcr.io/sevoniva/crest:v1.3.0
-ghcr.io/sevoniva/crest:main
-```
-
-## 部署
-
-安装入口：
-
-```text
-installer/install.sh
-```
-
-基础配置文件：
-
-```text
-installer/install.conf
-```
-
-默认安装会启动 Crest 和 MySQL：
-
-```bash
-cd installer
-bash install.sh
-```
-
-安装完成后会输出访问地址、用户名和初始密码。默认账号为：
-
-```text
-用户名：admin
-初始密码：以安装完成后的终端输出为准
-```
-
-生产环境上线前建议完成这些检查：
-
-- 如需固定初始凭据，在安装前设置 `DE_MYSQL_PASSWORD` 和 `DE_INITIAL_PASSWORD`；
-- 使用 HTTPS 或网关反向代理；
-- 调整 `DE_ORIGIN_LIST` 为实际访问域名；
-- 首次登录后修改管理员密码；
-- 使用最小权限账号接入业务数据源；
-- 确认镜像来自 `ghcr.io/sevoniva/crest`；
-- 备份数据库和运行目录后再升级。
-
-已有环境升级时，建议先备份数据库和安装目录，再只替换 Crest 服务镜像：
-
-```bash
-docker-compose up -d --no-deps crest
-```
-
-新安装默认运行目录为 `/opt/crest`，服务名为 `crest`，控制命令为 `crestctl`。
-
-## Kubernetes
-
-Kubernetes 清单位于：
-
-```text
-deploy/kubernetes
-```
-
-当前提供两种部署方式：
-
-- `deploy/kubernetes/internal-mysql`：同时安装 Crest 和 MySQL；
-- `deploy/kubernetes/external-mysql`：只安装 Crest，连接外部 MySQL。
-
-两种方式共用同一个应用 Deployment，差异主要是 `crest-env` ConfigMap 中的数据库地址、端口、库名和 JDBC 参数。部署说明见 [deploy/kubernetes/README.md](./deploy/kubernetes/README.md)。
-
-数据库初始化由后端 Flyway 迁移负责，脚本位于：
-
-```text
-core/core-backend/src/main/resources/db/migration
-```
-
-当前初始状态包含：
-
-- 默认管理员账号 `admin`，初始密码由部署配置或安装脚本生成；
-- 内置零售经营演示库 `crest_demo_retail`；
-- 内置演示数据源 `Crest 演示零售经营库`；
-- 内置演示数据集、图表和数据大屏，用于展示产品主链路；
-- 内置研发效能分析资源，用于验证需求流动、人力容量、工程活动和质量风险等场景；
-- 最近使用、收藏、导出任务和数据源任务日志为空；
-- 不写入本地测试、压测或外部环境信息。
-
-安装脚本里的 MySQL `init.sql` 只负责创建数据库。当前迁移基线由后端 Flyway 执行：
-
-- `V1.1__initial_schema.sql`：创建 Crest 运行所需的表结构、默认管理员、基础菜单、系统参数、内置驱动和主题配置；
-- `V1.2__demo_retail_dashboard.sql`：创建零售经营演示库和对应的演示资源；
-- `V1.3__demo_engineering_efficiency.sql`：创建研发效能主题数据、指标视图、图表和数据大屏。
-
-后续数据库结构变化应继续添加新的迁移脚本，不直接修改已发布基线。
-
-## 目录结构
-
-```text
-core/core-backend                     后端服务
-core/core-frontend                    前端工程
-drivers                               JDBC 驱动
-docs/data-lineage.md                  数据血缘说明
-docs/development.md                   开发说明
-installer                             安装脚本
-installer/crest                       Docker 部署模板
-.github/workflows/docker-publish.yml  GHCR 镜像发布 workflow
-```
-
-## 维护约定
-
-- 不提交 `node_modules`、`target`、`dist`、运行日志、本地压测报告和临时文件；
-- 不把本地账号、数据库地址、访问 token、测试报告提交到仓库；
-- 不引入非公开或不可控依赖源；
-- 镜像统一使用 `ghcr.io/sevoniva/crest` 命名空间；
-- 前端依赖以 `core/core-frontend/pnpm-lock.yaml` 为准；
-- 后端依赖应来自公开 Maven 坐标、本仓库源码或明确可再分发的文件；
-- OceanBase Oracle 相关功能需要回归直连、OBProxy/ODP、表字段读取、字段备注和数据预览；
-- 缓存同步相关功能需要回归全量同步、增量同步、字段结构变化和数据集删除；
-- 数据血缘相关功能需要回归全局、数据源、数据集、仪表板/大屏、表字段筛选和删除影响检查；
-- 涉及部署、镜像、默认账号或功能边界的内容，需要同步更新 README 和相关文档。
+变更记录见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ## License
 
@@ -301,8 +410,6 @@ installer/crest                       Docker 部署模板
 
 Copyright (c) 2014-2026 [FIT2CLOUD 飞致云](https://fit2cloud.com/), All rights reserved.
 
-Licensed under The GNU General Public License version 3 (GPLv3)  (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
-
-<https://www.gnu.org/licenses/gpl-3.0.html>
+Licensed under The GNU General Public License version 3 (GPLv3) (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at <https://www.gnu.org/licenses/gpl-3.0.html>.
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.

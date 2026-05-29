@@ -201,9 +201,17 @@ public class DataSourceManage {
 
     public void encryptDsConfig() {
         coreDatasourceMapper.selectList(null).forEach(dataSource -> {
+            if (!validConfiguration(dataSource.getConfiguration())) {
+                return;
+            }
             coreDatasourceMapper.updateById(dataSource);
         });
     }
+
+    private boolean validConfiguration(String configuration) {
+        return StringUtils.isNotBlank(configuration) && configuration.trim().startsWith("{");
+    }
+
     public CoreDatasource getCoreDatasource(Long id) {
         if (id == -1L) {
             return engineManage.getDeEngine();

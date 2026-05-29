@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Tag(name = "阈值告警")
-@ApiSupport(order = 888, author = "fit2cloud-someone")
+@ApiSupport(order = 888, author = "Crest")
 public interface ThresholdApi {
 
     @Operation(summary = "保存")

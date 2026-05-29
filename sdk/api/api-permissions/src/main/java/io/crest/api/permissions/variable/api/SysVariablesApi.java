@@ -21,7 +21,7 @@ import static io.crest.constant.AuthResourceEnum.SYSTEM;
 
 @Hidden
 @Tag(name = "系统变量")
-@ApiSupport(order = 881, author = "fit2cloud-someone")
+@ApiSupport(order = 881, author = "Crest")
 @DeApiPath(value = "/sysVariable", rt = SYSTEM)
 public interface SysVariablesApi {
 

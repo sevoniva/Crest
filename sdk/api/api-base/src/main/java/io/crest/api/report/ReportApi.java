@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 
 @Tag(name = "定时报告")
-@ApiSupport(order = 888, author = "fit2cloud-someone")
+@ApiSupport(order = 888, author = "Crest")
 public interface ReportApi {
 
     @Operation(summary = "查询报告列表")

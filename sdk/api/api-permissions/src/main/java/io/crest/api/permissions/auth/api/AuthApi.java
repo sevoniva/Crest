@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 
 @Tag(name = "权限管理")
-@ApiSupport(order = 885, author = "fit2cloud-someone")
+@ApiSupport(order = 885, author = "Crest")
 public interface AuthApi {
 
     @Operation(summary = "查询资源树")

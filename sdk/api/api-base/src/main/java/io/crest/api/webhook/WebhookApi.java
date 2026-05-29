@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 
 @Tag(name = "Webhook 管理")
-@ApiSupport(order = 888, author = "fit2cloud-someone")
+@ApiSupport(order = 888, author = "Crest")
 public interface WebhookApi {
 
     @Operation(summary = "查询列表")
