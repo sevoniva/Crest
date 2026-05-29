@@ -14,6 +14,12 @@ export interface Item {
   value: string
   description: string
   type: string
+  originName?: string
+  nameType?: string
+  contentType?: string
+  enable?: boolean
+  required?: boolean
+  uuid?: string
 }
 const props = defineProps({
   keyPlaceholder: propTypes.string.def(''),
@@ -21,6 +27,7 @@ const props = defineProps({
   description: propTypes.string.def(''),
   type: propTypes.string.def(''),
   isReadOnly: propTypes.bool.def(false),
+  needMock: propTypes.bool.def(false),
   parameters: {
     type: Array as PropType<Item[]>,
     default: () => []
@@ -191,7 +198,7 @@ const timeFunLists = [
                     v-model="element.type"
                     :disabled="isReadOnly"
                     class="kv-type"
-                    @change="typeChange(item)"
+                    @change="typeChange(element)"
                   >
                     <el-option value="text" />
                     <el-option value="json" />
@@ -238,7 +245,7 @@ const timeFunLists = [
               >
                 <el-option
                   v-for="item in timeFunLists"
-                  :key="item.originName"
+                  :key="item.value"
                   :label="item.label"
                   :value="item.value"
                 />
@@ -250,7 +257,7 @@ const timeFunLists = [
               >
                 <el-option
                   v-for="item in pageParams"
-                  :key="item.originName"
+                  :key="item.value"
                   :label="item.label"
                   :value="item.value"
                 />

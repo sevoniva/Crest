@@ -30,6 +30,7 @@ declare interface ChartStyle {
     color: string
     alpha: string
   }
+  [key: string]: any
 }
 
 /**

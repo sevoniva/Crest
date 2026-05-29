@@ -64,7 +64,7 @@ import EmptyBackground from '@/components/empty-background/src/EmptyBackground.v
 import DeResourceGroupOpt from '@/views/common/DeResourceGroupOpt.vue'
 import DatasetDetail from './DatasetDetail.vue'
 import { guid } from '@/views/visualized/data/dataset/form/util'
-import { save } from '@/api/visualization/dataVisualization'
+import { save as saveVisualization } from '@/api/visualization/dataVisualization'
 import { cloneDeep } from 'lodash-es'
 import { fieldType } from '@/utils/attr'
 import { useAppStoreWithOut } from '@/store/modules/app'
@@ -108,9 +108,9 @@ const rootManage = ref(false)
 const showExport = ref(false)
 const rowAuth = ref()
 const exportDatasetLoading = ref(false)
-const limit = ref(t('data_set.ten_wan'))
-const exportForm = ref({})
-const table = ref({})
+const limit = ref<any>(t('data_set.ten_wan'))
+const exportForm = ref<any>({})
+const table = ref<any>({})
 const exportFormRef = ref()
 const exportFormRules = {
   name: [
@@ -190,7 +190,7 @@ const resourceCreate = (pid, name) => {
     canvasViewInfo: {},
     ...bashResourceInfo
   }
-  save(canvasInfo).then(() => {
+  saveVisualization(canvasInfo as any).then(() => {
     const baseUrl = curCanvasType.value === 'dataV' ? '#/dvCanvas?dvId=' : '#/dashboard?resourceId='
     window.open(baseUrl + newResourceId, openType)
   })
@@ -365,7 +365,7 @@ const handleNodeClick = (data: BusiTreeNode) => {
     return
   }
   barInfoApi(data.id).then(res => {
-    const nodeData = res as unknown as Node[]
+    const nodeData = res as any
     Object.assign(nodeInfo, nodeData)
     nodeInfo.weight = data.weight
     nodeInfo.ext = data.ext || 0
@@ -391,7 +391,7 @@ const closeExport = () => {
   showExport.value = false
 }
 
-const save = ({ logic, items, errorMessage }) => {
+const save = ({ logic, items, errorMessage }: any) => {
   table.value.id = nodeInfo.id
   table.value.row = 100000
   table.value.filename = exportForm.value.name
@@ -470,7 +470,7 @@ const openMessageLoading = cb => {
     icon: h(RefreshLeft),
     showClose: true,
     customClass
-  })
+  } as any)
 }
 
 const editorDataset = () => {

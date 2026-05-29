@@ -78,15 +78,31 @@ import { useI18n } from '@/hooks/web/useI18n'
 const { t } = useI18n()
 const emits = defineEmits(['onTextChange'])
 
+interface TitleForm {
+  show?: boolean
+  fontSize?: number
+  color?: string
+  hPosition?: string
+  vPosition?: string
+  isItalic?: boolean
+  isBolder?: boolean
+  modifyName?: string
+}
+
+interface FontSizeOption {
+  name: string
+  value: number
+}
+
 const state = reactive({
-  titleForm: {},
-  fontSize: [],
+  titleForm: {} as TitleForm,
+  fontSize: [] as FontSizeOption[],
   isSetting: false,
   predefineColors: COLOR_PANEL
 })
 
-const changeTitleStyle = modifyName => {
-  state.titleForm['modifyName'] = modifyName
+const changeTitleStyle = (modifyName: string) => {
+  state.titleForm.modifyName = modifyName
   emits('onTextChange', state.titleForm)
 }
 </script>

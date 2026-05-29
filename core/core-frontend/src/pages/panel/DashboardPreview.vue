@@ -17,7 +17,7 @@ const { wsCache } = useCache()
 const interactiveStore = interactiveStoreWithOut()
 const embeddedStore = useEmbedded()
 const dashboardPreview = ref(null)
-const embeddedParamsDiv = inject('embeddedParams') as object
+const embeddedParamsDiv = inject('embeddedParams') as Record<string, any>
 
 const embeddedParams = embeddedParamsDiv?.dvId ? embeddedParamsDiv : embeddedStore
 const { t } = useI18n()

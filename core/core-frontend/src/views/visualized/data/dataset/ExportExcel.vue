@@ -24,6 +24,12 @@ import { useLinkStoreWithOut } from '@/store/modules/link'
 import { useAppStoreWithOut } from '@/store/modules/app'
 
 const { t } = useI18n()
+type ExportTask = {
+  id: string
+  exportStatus?: string
+  exportFromName?: string
+  [key: string]: any
+}
 const state = reactive({
   paginationConfig: {
     currentPage: 1,
@@ -31,13 +37,13 @@ const state = reactive({
     total: 0
   }
 })
-const tableData = ref([])
+const tableData = ref<ExportTask[]>([])
 const drawerLoading = ref(false)
 const drawer = ref(false)
 const msgDialogVisible = ref(false)
 const msg = ref('')
 const activeName = ref('ALL')
-const multipleSelection = ref([])
+const multipleSelection = ref<ExportTask[]>([])
 const description = ref(t('data_set.no_tasks_yet'))
 const tabList = ref([
   {
@@ -61,7 +67,7 @@ const tabList = ref([
     name: 'ALL'
   }
 ])
-let timer
+let timer: ReturnType<typeof setInterval> | undefined
 const handleClose = () => {
   drawer.value = false
   clearInterval(timer)
@@ -73,7 +79,7 @@ const desktop = wsCache.get('app.desktop')
 onUnmounted(() => {
   clearInterval(timer)
 })
-const handleClick = tab => {
+const handleClick = (tab?: { paneName?: string }) => {
   if (tab) {
     activeName.value = tab.paneName
   }
@@ -114,7 +120,7 @@ const handleClick = tab => {
     })
 }
 
-const init = params => {
+const init = (params?: { activeName?: string }) => {
   drawer.value = true
   if (params && params.activeName !== undefined) {
     activeName.value = params.activeName
@@ -156,7 +162,7 @@ const linkStore = useLinkStoreWithOut()
 const appStore = useAppStoreWithOut()
 const isDataEaseBi = computed(() => appStore.getIsDataEaseBi)
 
-const taskExportTopicCall = task => {
+const taskExportTopicCall = (task: string) => {
   if (!linkStore.getLinkToken && !isDataEaseBi.value && !appStore.getIsIframe) {
     if (JSON.parse(task).exportStatus === 'SUCCESS') {
       openMessageLoading(
@@ -176,7 +182,7 @@ const taskExportTopicCall = task => {
   }
 }
 
-const openMessageLoading = (text, type = 'success', cb) => {
+const openMessageLoading = (text: string, type = 'success', cb?: () => void) => {
   // success error loading
   const customClass = `de-message-${type || 'success'} de-message-export`
   ElMessage({
@@ -196,7 +202,7 @@ const openMessageLoading = (text, type = 'success', cb) => {
           size: 'small',
           class: 'btn-text',
           onClick: () => {
-            cb()
+            cb?.()
           }
         },
         t('data_export.export_center')
@@ -206,7 +212,7 @@ const openMessageLoading = (text, type = 'success', cb) => {
     type,
     showClose: true,
     customClass
-  })
+  } as any)
 }
 
 const callbackExportError = () => {
@@ -275,7 +281,7 @@ const deleteField = item => {
     })
 }
 
-const handleSelectionChange = val => {
+const handleSelectionChange = (val: ExportTask[]) => {
   multipleSelection.value = val
 }
 

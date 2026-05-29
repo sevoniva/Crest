@@ -87,8 +87,11 @@ const {
 } = storeToRefs(dvMainStore)
 const router = useRouter()
 let componentNameEdit = ref(false)
-let inputComponentName = ref({ id: null, name: null })
-let componentNameInput = ref(null)
+let inputComponentName = ref<{ id: string | number | null; name: string | null }>({
+  id: null,
+  name: null
+})
+let componentNameInput = ref<any>(null)
 
 const { t } = useI18n()
 const loading = ref(false)
@@ -152,7 +155,7 @@ const closeEditComponentName = () => {
   }
   view.value.title = inputComponentName.value.name
   if (view.value.type === 'VQuery') {
-    view.value.customStyle.component.title = inputComponentName.value.name
+    ;(view.value.customStyle as any).component.title = inputComponentName.value.name
   }
   if (curComponent.value) {
     curComponent.value.label = inputComponentName.value.name
@@ -216,7 +219,7 @@ const itemFormRules = reactive<FormRules>({
   ]
 })
 
-const state = reactive({
+const state = reactive<any>({
   extData: '',
   moveId: -1,
   dimension: [],
@@ -281,8 +284,9 @@ const getFields = (id, chartId, type) => {
     fieldLoading.value = true
     getFieldByDQ(id, chartId, { type: type })
       .then(res => {
-        state.dimension = (res.dimensionList as unknown as Field[]) || []
-        state.quota = (res.quotaList as unknown as Field[]) || []
+        const fieldRes = res as any
+        state.dimension = (fieldRes.dimensionList as unknown as Field[]) || []
+        state.quota = (fieldRes.quotaList as unknown as Field[]) || []
         state.dimensionData = JSON.parse(JSON.stringify(state.dimension))
         state.quotaData = JSON.parse(JSON.stringify(state.quota))
 

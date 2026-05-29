@@ -183,6 +183,21 @@ declare interface Axis extends ChartViewField {
    * 是否隐藏
    */
   hide: boolean
+  dateStyle?: string
+  datePattern?: string
+  chartType?: string
+  compareCalc?: {
+    type?: string
+    resultData?: string
+    field?: string | number | null
+    custom?: Record<string, any> | null
+  }
+  logic?: string | null
+  filter?: any[]
+  filterType?: string | null
+  index?: number | null
+  busiType?: string | null
+  chartId?: string | number | null
 }
 declare interface ChartViewField {
   /**
@@ -209,6 +224,33 @@ declare interface ChartViewField {
    * 分组类型
    */
   groupType: 'q' | 'd'
+  datasourceId?: string | number
+  datasetTableId?: string | number
+  datasetGroupId?: string | number
+  chartId?: string | number | null
+  originName?: string
+  dbFieldName?: string | null
+  description?: string | null
+  type?: string
+  precision?: number | null
+  scale?: number | null
+  deExtractType?: number
+  extField?: number
+  checked?: boolean
+  columnIndex?: number | null
+  lastSyncTime?: number | string | null
+  dateFormat?: string | null
+  dateFormatType?: string | null
+  fieldShortName?: string
+  summary?: string | null
+  sort?: string
+  dateStyle?: string
+  datePattern?: string
+  formatterCfg?: BaseFormatter | Record<string, any> | null
+  filter?: any[]
+  customSort?: string[] | null
+  busiType?: string | null
+  [key: string]: any
 }
 
 declare interface Filter {

@@ -46,6 +46,7 @@ declare interface ChartAttr {
    * 指标名称
    */
   indicatorName: ChartIndicatorNameStyle
+  [key: string]: any
 }
 /**
  * 基础样式设置

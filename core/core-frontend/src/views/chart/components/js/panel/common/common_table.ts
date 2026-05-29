@@ -74,9 +74,9 @@ export function getCustomTheme(chart: Chart): S2Theme {
     DEFAULT_TABLE_HEADER.tableHeaderBgColor,
     DEFAULT_BASIC_STYLE.alpha
   )
-  const headerAlign = DEFAULT_TABLE_HEADER.tableHeaderAlign
+  const headerAlign = DEFAULT_TABLE_HEADER.tableHeaderAlign as any
   const itemColor = hexColorToRGBA(DEFAULT_TABLE_CELL.tableItemBgColor, DEFAULT_BASIC_STYLE.alpha)
-  const itemAlign = DEFAULT_TABLE_CELL.tableItemAlign
+  const itemAlign = DEFAULT_TABLE_CELL.tableItemAlign as any
   const borderColor = hexColorToRGBA(
     DEFAULT_BASIC_STYLE.tableBorderColor,
     DEFAULT_BASIC_STYLE.alpha
@@ -1750,8 +1750,10 @@ export function configHeaderInteraction(chart: Chart, option: S2Options) {
         const parent = document.getElementById(chart.container)
         if (parent?.childNodes?.length) {
           const child = Array.from(parent.childNodes)
-            .filter(node => node.nodeType === Node.ELEMENT_NODE)
-            .find(node => node.classList.contains('antv-s2-tooltip-container'))
+            .filter(node => node.nodeType === globalThis.Node.ELEMENT_NODE)
+            .find((node): node is HTMLElement =>
+              (node as HTMLElement).classList.contains('antv-s2-tooltip-container')
+            )
           if (child) {
             const left = child.offsetLeft + child.clientWidth
             if (left > parent.offsetWidth) {

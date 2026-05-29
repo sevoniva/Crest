@@ -23,6 +23,7 @@ export interface Field {
   checked: boolean
   primaryKey: boolean
   children?: Array<{}>
+  deExtractType?: number
 }
 
 export interface ApiItem {
@@ -91,6 +92,11 @@ let apiItem = reactive<ApiItem>({
       verification: '',
       username: '',
       password: ''
+    },
+    page: {
+      pageType: 'empty',
+      requestData: [],
+      responseData: []
     }
   },
   fields: [],
@@ -112,7 +118,7 @@ const columns = shallowRef([])
 const valueList = shallowRef([])
 const tableData = shallowRef([])
 const apiItemBasicInfo = ref<FormInstance>()
-const pluginApiItemBasicInfo = ref<FormInstance>()
+const pluginApiItemBasicInfo = ref<any>()
 const isSupportSetKey = ref(false)
 const isNumber = (rule, value, callback) => {
   if (!value) {
@@ -254,8 +260,6 @@ const showApiData = () => {
           console.warn(error?.message)
         })
       loading.value = false
-    } else {
-      return false
     }
   })
 }

@@ -35,6 +35,7 @@ import ExcelRemoteDetail from '@/views/visualized/data/datasource/form/ExcelRemo
 interface Node {
   name: string
   id: string
+  pid?: string
   type: DsType
 }
 
@@ -47,7 +48,7 @@ interface Form {
   id?: string
   description: string
   type: string
-  copy: boolean
+  copy?: boolean
   configuration?: Configuration
   apiConfiguration?: ApiConfiguration[]
   paramsConfiguration?: ApiConfiguration[]
@@ -250,20 +251,20 @@ const next = () => {
   setNextStep()
 }
 
-const complete = (params, successCb, finallyCb) => {
+const complete = (params?: { id?: any; name?: any; pid?: any } | null, successCb?, finallyCb?) => {
   excel?.value?.saveExcelDs(
     params,
     () => {
-      pid.value = params.pid
-      successCb()
+      pid.value = params?.pid
+      successCb?.()
     },
     finallyCb
   )
   excelRemote?.value?.saveExcelDs(
     params,
     () => {
-      pid.value = params.pid
-      successCb()
+      pid.value = params?.pid
+      successCb?.()
     },
     finallyCb
   )
@@ -294,7 +295,15 @@ const continueCreating = () => {
   init(null, pid.value)
 }
 
-const handleShowFinishPage = ({ id, name, pid: pidVal }) => {
+const handleShowFinishPage = ({
+  id,
+  name,
+  pid: pidVal
+}: {
+  id: string
+  name: string
+  pid?: string
+}) => {
   isShowFinishPage()
     .then(res => {
       if (editDs.value || !res.data) {
@@ -351,13 +360,7 @@ const handleSubmit = param => {
 }
 
 const validateDS = () => {
-  const request = JSON.parse(JSON.stringify(form)) as unknown as Omit<
-    Form,
-    'configuration' | 'apiConfiguration'
-  > & {
-    configuration: string
-    apiConfiguration: string
-  }
+  const request = JSON.parse(JSON.stringify(form)) as any
   if (currentDsType.value.includes('API')) {
     if (form.apiConfiguration.length === 0) {
       ElMessage.error(t('data_source.add_data_table'))
@@ -395,7 +398,7 @@ const validateDS = () => {
 const doValidateDs = request => {
   dsLoading.value = true
   if (currentDsType.value === 'ExcelRemote') {
-    let excelRequest = JSON.parse(JSON.stringify(form2.configuration))
+    let excelRequest = JSON.parse(JSON.stringify(form2.configuration)) as any
     excelRequest.datasourceId = form2.id || 0
     excelRequest.editType = form2.editType
     excelRequest.userName = Base64.encode(excelRequest.userName)
@@ -467,13 +470,7 @@ const typeTitle = computed(() => {
 
 const saveDS = () => {
   isUpdate = false
-  const request = JSON.parse(JSON.stringify(form)) as unknown as Omit<
-    Form,
-    'configuration' | 'apiConfiguration'
-  > & {
-    configuration: string
-    apiConfiguration: string
-  }
+  const request = JSON.parse(JSON.stringify(form)) as any
 
   if (currentDsType.value === 'Excel') {
     excel.value.uploadStatus(false)
@@ -662,7 +659,7 @@ watch(
   { deep: true }
 )
 
-const init = (nodeInfo: Form | Param, id?: string, res?: object, supportSetKey: boolean) => {
+const init = (nodeInfo: Form | Param | null, id?: string, res?: object, supportSetKey = false) => {
   isPlugin.value = nodeInfo?.isPlugin
   pluginIndex.value = isPlugin.value ? nodeInfo?.staticMap?.index : null
   isSupportSetKey.value = supportSetKey

@@ -676,7 +676,7 @@ const handleMouseDownOnShape = e => {
         isFirst = false
       }
       // 修改当前组件样式
-      dvMainStore.setShapeStyle(pos, areaData.value.components, 'move')
+      dvMainStore.setShapeStyle(pos as any, areaData.value.components, 'move')
       // 等更新完当前组件的样式并绘制到屏幕后再判断是否需要吸附
       // GroupArea是分组视括组件 不需要进行吸附
       // 如果不使用 nextTick，吸附后将无法移动
@@ -860,7 +860,12 @@ const handleMouseDownOnPoint = (point, e) => {
     }
     calculateRadioComponentPositionAndSize(point, style, symmetricPoint)
 
-    dvMainStore.setShapeStyle(style, areaData.value.components, 'resize', baseGroupComponentsRadio)
+    dvMainStore.setShapeStyle(
+      style as any,
+      areaData.value.components,
+      'resize',
+      baseGroupComponentsRadio
+    )
     // 矩阵逻辑 如果当前是仪表板（矩阵模式）则要进行矩阵重排
     dashboardActive.value && emit('onResizing', moveEvent)
     element.value['resizing'] = true
@@ -1004,7 +1009,10 @@ const settingAttribute = () => {
 }
 
 const tabMoveInCheck = async () => {
-  const curNode = document.querySelector('#' + domId.value)
+  const curNode = document.querySelector('#' + domId.value) as HTMLElement
+  if (!curNode) {
+    return
+  }
   const width = curNode.offsetWidth
   const height = curNode.offsetHeight
   const left = curNode.offsetLeft
@@ -1016,7 +1024,7 @@ const tabMoveInCheck = async () => {
     isTabMoveCheck.value &&
     !state.ignoreTabMoveComponent.includes(element.value.component)
   ) {
-    const nodes = Array.from(parentNode.value.childNodes) // 获取当前父节点下所有子节点
+    const nodes = Array.from(parentNode.value.childNodes) as HTMLElement[] // 获取当前父节点下所有子节点
     for (const item of nodes) {
       if (
         item.className !== undefined &&

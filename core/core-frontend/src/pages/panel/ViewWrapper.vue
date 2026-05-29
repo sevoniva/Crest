@@ -14,7 +14,7 @@ import exeRequest from '@/config/axios'
 const { wsCache } = useCache()
 const interactiveStore = interactiveStoreWithOut()
 const embeddedStore = useEmbedded()
-const embeddedParamsDiv = inject('embeddedParams') as object
+const embeddedParamsDiv = inject('embeddedParams') as Record<string, any>
 const config = ref()
 const viewInfo = ref()
 const userViewEnlargeRef = ref()
