@@ -49,6 +49,9 @@ public class WhitelistUtils {
             "/setting/authentication/status",
             "/sysParameter/ui",
             "/sysParameter/defaultLogin",
+            "/sso/public/status",
+            "/sso/login",
+            "/sso/callback",
             "/embedded/initIframe",
             "/sysParameter/i18nOptions",
             "/login/modifyInvalidPwd",
@@ -81,6 +84,7 @@ public class WhitelistUtils {
                 || Strings.CS.startsWithAny(requestURI, "/share/proxyInfo")
                 || Strings.CS.startsWithAny(requestURI, "/websocket")
                 || Strings.CS.startsWithAny(requestURI, "/oauth2/")
+                || Strings.CS.startsWithAny(requestURI, "/sso/token/")
                 || Strings.CS.startsWithAny(requestURI, "/mfa/qr/")
                 || Strings.CS.startsWithAny(requestURI, "/mfa/login")
                 || Strings.CS.startsWithAny(requestURI, "/typeface/download")

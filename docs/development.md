@@ -153,6 +153,7 @@ core/core-backend/src/main/resources/db/migration
 | `V1.1__initial_schema.sql` | 创建运行所需表结构、默认管理员、基础菜单、系统参数、内置驱动和主题配置 |
 | `V1.2__demo_retail_dashboard.sql` | 创建 `crest_demo_retail` 零售经营演示库，写入演示数据源、数据集、图表和大屏 |
 | `V1.3__demo_engineering_efficiency.sql` | 写入研发效能主题数据、指标视图、图表和大屏 |
+| `V1.4__sso_integration.sql` | 增加单点登录配置、菜单和用户认证来源字段 |
 
 迁移规则：
 
@@ -175,6 +176,7 @@ docker exec crest-mysql-local mysql -uroot -p'<mysql-root-password>' \
 - 只有一个默认管理员账号；
 - `core_opt_recent`、`core_export_task` 等运行残留为空；
 - 零售经营和研发效能演示资源存在；
+- `sso.` 配置项存在，默认不开启单点登录；
 - 演示数据源连接信息不含本地环境地址；
 - `/index.html`、`/doc.html`、`/v3/api-docs` 返回 200；
 - 数据血缘能从演示数据源追踪到字段、数据集、图表和大屏。

@@ -17,3 +17,7 @@ export const refreshApi = (time?: any) => request.get({ url: '/login/refresh', p
 export const uiLoadApi = () => request.get({ url: '/sysParameter/ui' })
 
 export const loginCategoryApi = () => request.get({ url: '/sysParameter/defaultLogin' })
+
+export const ssoStatusApi = () => request.get({ url: '/sso/public/status' })
+
+export const ssoTokenApi = (ticket: string) => request.get({ url: `/sso/token/${ticket}` })

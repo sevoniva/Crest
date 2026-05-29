@@ -18,8 +18,13 @@ const form = reactive<any>({
   email: '',
   phone: '',
   enable: true,
-  roleIds: [2]
+  roleIds: [2],
+  authType: 'LOCAL'
 })
+
+const isSsoUser = row => String(row?.authType || '').toUpperCase() === 'SSO'
+const authTypeLabel = row => (isSsoUser(row) ? '单点登录' : '本地账号')
+const authTypeTag = row => (isSsoUser(row) ? 'success' : 'info')
 
 const loadTable = async () => {
   loading.value = true
@@ -43,7 +48,8 @@ const resetForm = () => {
     email: '',
     phone: '',
     enable: true,
-    roleIds: [2]
+    roleIds: [2],
+    authType: 'LOCAL'
   })
   roleId.value = 2
 }
@@ -72,7 +78,7 @@ const save = async () => {
   }
   form.roleIds = [roleId.value]
   await request.post({ url: isEdit.value ? '/user/edit' : '/user/create', data: form })
-  ElMessage.success(isEdit.value ? '用户已更新' : '用户已创建，默认密码为 admin')
+  ElMessage.success(isEdit.value ? '用户已更新' : '用户已创建')
   dialogVisible.value = false
   await loadTable()
 }
@@ -84,7 +90,7 @@ const toggleEnable = async row => {
 }
 
 const resetPwd = async row => {
-  await ElMessageBox.confirm(`确认将「${row.name}」的密码重置为 admin？`, '重置密码', {
+  await ElMessageBox.confirm(`确认重置「${row.name}」的本地密码？`, '重置密码', {
     confirmButtonText: '重置',
     cancelButtonText: '取消',
     type: 'warning'
@@ -121,11 +127,16 @@ onMounted(loadTable)
         <el-button type="primary" @click="loadTable">查询</el-button>
         <el-button type="primary" @click="openCreate">新建用户</el-button>
       </div>
-      <el-table v-loading="loading" :data="tableData" max-height="calc(100vh - 300px)">
+        <el-table v-loading="loading" :data="tableData" max-height="calc(100vh - 300px)">
         <el-table-column prop="account" label="账号" min-width="140" />
         <el-table-column prop="name" label="姓名" min-width="140" />
         <el-table-column prop="email" label="邮箱" min-width="180" show-overflow-tooltip />
         <el-table-column prop="phone" label="电话" min-width="140" />
+        <el-table-column label="认证来源" width="120">
+          <template #default="{ row }">
+            <el-tag :type="authTypeTag(row)">{{ authTypeLabel(row) }}</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="row.enable ? 'success' : 'info'">{{
@@ -147,13 +158,22 @@ onMounted(loadTable)
             {{ row.createTime ? dayjs(Number(row.createTime)).format('YYYY-MM-DD HH:mm:ss') : '-' }}
           </template>
         </el-table-column>
+        <el-table-column label="最近登录" width="180">
+          <template #default="{ row }">
+            {{
+              row.lastLoginTime ? dayjs(Number(row.lastLoginTime)).format('YYYY-MM-DD HH:mm:ss') : '-'
+            }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="260" fixed="right">
           <template #default="{ row }">
             <el-button text type="primary" @click="openEdit(row)">编辑</el-button>
             <el-button text type="primary" @click="toggleEnable(row)">{{
               row.enable ? '停用' : '启用'
             }}</el-button>
-            <el-button text type="primary" @click="resetPwd(row)">重置密码</el-button>
+            <el-button v-if="!isSsoUser(row)" text type="primary" @click="resetPwd(row)"
+              >重置密码</el-button
+            >
             <el-button v-if="String(row.id) !== '1'" text type="danger" @click="remove(row)"
               >删除</el-button
             >
@@ -176,9 +196,12 @@ onMounted(loadTable)
         <el-form-item label="账号" required>
           <el-input
             v-model.trim="form.account"
-            :disabled="isEdit && String(form.id) === '1'"
+            :disabled="isEdit && (String(form.id) === '1' || isSsoUser(form))"
             maxlength="64"
           />
+        </el-form-item>
+        <el-form-item v-if="isEdit" label="认证来源">
+          <el-tag :type="authTypeTag(form)">{{ authTypeLabel(form) }}</el-tag>
         </el-form-item>
         <el-form-item label="姓名" required>
           <el-input v-model.trim="form.name" maxlength="64" />

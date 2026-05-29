@@ -10,6 +10,8 @@ public class CacheConstant {
         public static final String USER_BUSI_PERS_INTERACTIVE_CACHE = "de_v2_user_busi_pers_interactive";
         public static final String USER_COMMUNITY_LANGUAGE = "de_v2_user_community_language";
         public static final String Symmetric_Key = "de_ds_symmetricKey";
+        public static final String SSO_STATE_CACHE = "crest_sso_state";
+        public static final String SSO_TICKET_CACHE = "crest_sso_ticket";
     }
 
     public static class RoleCacheConstant {

@@ -12,6 +12,7 @@ import io.crest.api.permissions.user.vo.UserGridVO;
 import io.crest.api.permissions.user.vo.UserGridRoleItem;
 import io.crest.exception.DEException;
 import io.crest.substitute.permissions.user.model.CrestUser;
+import io.crest.substitute.permissions.user.model.SsoUserProfile;
 import io.crest.utils.IDUtils;
 import io.crest.utils.Md5Utils;
 import jakarta.annotation.PostConstruct;
@@ -29,6 +30,9 @@ import java.util.List;
 
 @Component("crestUserManage")
 public class CrestUserManage {
+
+    public static final String AUTH_TYPE_LOCAL = "LOCAL";
+    public static final String AUTH_TYPE_SSO = "SSO";
 
     private static final String INITIAL_PASSWORD_PROPERTY = "crest.user.initial-password";
     private static final String LEGACY_ADMIN_PASSWORD_HASH = "21232f297a57a5a743894a0e4a801fc3";
@@ -51,6 +55,10 @@ public class CrestUserManage {
         user.setEnable(rs.getBoolean("enable"));
         user.setAdmin(rs.getBoolean("is_admin"));
         user.setOrigin(rs.getInt("origin"));
+        user.setAuthType(rs.getString("auth_type"));
+        user.setExternalId(rs.getString("external_id"));
+        long lastLoginTime = rs.getLong("last_login_time");
+        user.setLastLoginTime(rs.wasNull() ? null : lastLoginTime);
         user.setCreateTime(rs.getLong("create_time"));
         user.setUpdateTime(rs.getLong("update_time"));
         return user;
@@ -87,6 +95,15 @@ public class CrestUserManage {
         return users.isEmpty() ? null : users.get(0);
     }
 
+    public CrestUser queryByExternalId(String authType, String externalId) {
+        List<CrestUser> users = jdbcTemplate.query("""
+                SELECT * FROM crest_user
+                WHERE auth_type = ? AND external_id = ?
+                LIMIT 1
+                """, rowMapper, authType, externalId);
+        return users.isEmpty() ? null : users.get(0);
+    }
+
     public String secretByUid(Long uid) {
         CrestUser user = queryById(uid);
         return user == null ? null : user.getPasswordHash();
@@ -99,6 +116,56 @@ public class CrestUserManage {
     public boolean isAdmin(Long uid) {
         CrestUser user = queryById(uid);
         return user != null && Boolean.TRUE.equals(user.getAdmin());
+    }
+
+    @Transactional
+    public CrestUser createOrUpdateSsoUser(SsoUserProfile profile, boolean autoCreateUser) {
+        if (profile == null || StringUtils.isBlank(profile.getExternalId())) {
+            DEException.throwException("单点登录用户唯一标识不能为空");
+        }
+        validate(profile.getAccount(), StringUtils.defaultIfBlank(profile.getName(), profile.getAccount()));
+        String account = profile.getAccount().trim();
+        String name = StringUtils.defaultIfBlank(profile.getName(), account).trim();
+        String email = StringUtils.trimToNull(profile.getEmail());
+        long now = System.currentTimeMillis();
+
+        CrestUser user = queryByExternalId(AUTH_TYPE_SSO, profile.getExternalId());
+        if (user == null) {
+            user = queryByAccount(account);
+        }
+        if (user == null) {
+            if (!autoCreateUser) {
+                DEException.throwException("用户不存在，且未启用自动创建用户");
+            }
+            long id = IDUtils.snowID();
+            jdbcTemplate.update("""
+                    INSERT INTO crest_user(id, account, name, email, phone_prefix, phone, password_hash, enable, is_admin,
+                        origin, auth_type, external_id, last_login_time, create_time, update_time)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, id, account, name, email, null, null, Md5Utils.md5(IDUtils.randomID(32)),
+                    true, false, 2, AUTH_TYPE_SSO, profile.getExternalId(), now, now, now);
+            return queryById(id);
+        }
+        if (Boolean.FALSE.equals(user.getEnable())) {
+            DEException.throwException("用户已停用");
+        }
+        CrestUser sameAccount = queryByAccount(account);
+        if (sameAccount != null && !sameAccount.getId().equals(user.getId())) {
+            DEException.throwException("单点登录账号已被其他用户占用");
+        }
+        jdbcTemplate.update("""
+                UPDATE crest_user
+                SET account = ?, name = ?, email = ?, auth_type = ?, external_id = ?, origin = ?, last_login_time = ?, update_time = ?
+                WHERE id = ?
+                """, account, name, email, AUTH_TYPE_SSO, profile.getExternalId(), 2, now, now, user.getId());
+        return queryById(user.getId());
+    }
+
+    @Transactional
+    public void markLoginSuccess(Long id) {
+        if (id == null) return;
+        long now = System.currentTimeMillis();
+        jdbcTemplate.update("UPDATE crest_user SET last_login_time = ?, update_time = ? WHERE id = ?", now, now, id);
     }
 
     public IPage<UserGridVO> pager(int goPage, int pageSize, UserGridRequest request) {
@@ -144,11 +211,13 @@ public class CrestUserManage {
         long id = IDUtils.snowID();
         long now = System.currentTimeMillis();
         jdbcTemplate.update("""
-                INSERT INTO crest_user(id, account, name, email, phone_prefix, phone, password_hash, enable, is_admin, origin, create_time, update_time)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO crest_user(id, account, name, email, phone_prefix, phone, password_hash, enable, is_admin,
+                    origin, auth_type, external_id, create_time, update_time)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, id, creator.getAccount().trim(), creator.getName().trim(), creator.getEmail(),
                 creator.getPhonePrefix(), creator.getPhone(), Md5Utils.md5(initialPassword()),
-                creator.getEnable() == null || creator.getEnable(), hasAdminRole(creator.getRoleIds()), 0, now, now);
+                creator.getEnable() == null || creator.getEnable(), hasAdminRole(creator.getRoleIds()),
+                0, AUTH_TYPE_LOCAL, null, now, now);
         return id;
     }
 
@@ -159,6 +228,9 @@ public class CrestUserManage {
             DEException.throwException("用户不存在");
         }
         validate(editor.getAccount(), editor.getName());
+        if (AUTH_TYPE_SSO.equalsIgnoreCase(user.getAuthType()) && !Strings.CS.equals(user.getAccount(), editor.getAccount().trim())) {
+            DEException.throwException("单点登录用户账号由身份提供方维护");
+        }
         CrestUser sameAccount = queryByAccount(editor.getAccount());
         if (sameAccount != null && !sameAccount.getId().equals(editor.getId())) {
             DEException.throwException("账号已存在");
@@ -191,6 +263,13 @@ public class CrestUserManage {
 
     @Transactional
     public void resetPwd(Long id) {
+        CrestUser user = queryById(id);
+        if (user == null) {
+            DEException.throwException("用户不存在");
+        }
+        if (AUTH_TYPE_SSO.equalsIgnoreCase(user.getAuthType())) {
+            DEException.throwException("单点登录用户不支持重置本地密码");
+        }
         jdbcTemplate.update("UPDATE crest_user SET password_hash = ?, update_time = ? WHERE id = ?",
                 Md5Utils.md5(initialPassword()), System.currentTimeMillis(), id);
     }
@@ -198,6 +277,12 @@ public class CrestUserManage {
     @Transactional
     public void modifyPwd(Long id, String oldPwd, String newPwd) {
         CrestUser user = queryById(id);
+        if (user == null) {
+            DEException.throwException("用户不存在");
+        }
+        if (AUTH_TYPE_SSO.equalsIgnoreCase(user.getAuthType())) {
+            DEException.throwException("单点登录用户不支持修改本地密码");
+        }
         if (!passwordMatches(user, oldPwd)) {
             DEException.throwException("原密码不正确");
         }
@@ -219,7 +304,10 @@ public class CrestUserManage {
         vo.setPhone(user.getPhone());
         vo.setEnable(user.getEnable());
         vo.setOrigin(user.getOrigin());
-        vo.setModel("local");
+        vo.setAuthType(user.getAuthType());
+        vo.setExternalId(user.getExternalId());
+        vo.setLastLoginTime(user.getLastLoginTime());
+        vo.setModel(AUTH_TYPE_SSO.equalsIgnoreCase(user.getAuthType()) ? "sso" : "local");
         vo.setRoleIds(Boolean.TRUE.equals(user.getAdmin()) ? List.of("1") : List.of("2"));
         return vo;
     }
@@ -234,6 +322,9 @@ public class CrestUserManage {
         vo.setPhone(user.getPhone());
         vo.setEnable(user.getEnable());
         vo.setOrigin(user.getOrigin());
+        vo.setAuthType(user.getAuthType());
+        vo.setExternalId(user.getExternalId());
+        vo.setLastLoginTime(user.getLastLoginTime());
         vo.setCreateTime(user.getCreateTime());
         UserGridRoleItem role = new UserGridRoleItem();
         role.setId(Boolean.TRUE.equals(user.getAdmin()) ? 1L : 2L);

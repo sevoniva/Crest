@@ -2,7 +2,7 @@
 import { ref, reactive, onMounted, computed, nextTick } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { FormRules, FormInstance } from 'element-plus-secondary'
-import { loginApi, queryDekey } from '@/api/login'
+import { loginApi, queryDekey, ssoStatusApi, ssoTokenApi } from '@/api/login'
 import { useCache } from '@/hooks/web/useCache'
 import { useAppStoreWithOut } from '@/store/modules/app'
 import { CustomPassword } from '@/components/custom-password'
@@ -12,6 +12,7 @@ import { rsaEncryp } from '@/utils/encryption'
 import router from '@/router'
 import { ElMessage } from 'element-plus-secondary'
 import { logoutHandler } from '@/utils/logout'
+import { PATH_URL } from '@/config/axios/service'
 import DeImage from '@/assets/crest-login-hero.png'
 import crestLogo from '@/assets/img/crest-logo-horizontal-192h.png'
 import elementResizeDetectorMaker from 'element-resize-detector'
@@ -47,6 +48,12 @@ const state = reactive({
   },
   footContent: ''
 })
+const ssoStatus = reactive({
+  enabled: false,
+  providerName: '企业单点登录',
+  loginButtonText: '使用 企业单点登录 登录',
+  allowLocalLogin: true
+})
 
 const rules = reactive<FormRules>({
   username: [{ required: true, message: t('common.required'), trigger: 'blur' }],
@@ -54,6 +61,9 @@ const rules = reactive<FormRules>({
 })
 
 const activeName = ref('simple')
+const showLocalLogin = computed(() => {
+  return !ssoStatus.enabled || ssoStatus.allowLocalLogin || router.currentRoute.value.path === '/admin-login'
+})
 
 const getCurLocation = () => {
   let queryRedirectPath = '/workbranch/index'
@@ -103,7 +113,11 @@ const handleLogin = () => {
       const name = state.loginForm.username.trim()
       const pwd = state.loginForm.password
       await refreshDekey()
-      const param = { name: rsaEncryp(name), pwd: rsaEncryp(pwd) }
+      const param = {
+        name: rsaEncryp(name),
+        pwd: rsaEncryp(pwd),
+        emergency: router.currentRoute.value.path === '/admin-login'
+      }
       const isLdap = activeName.value === 'ldap'
       if (isLdap) {
         param['origin'] = 1
@@ -117,9 +131,7 @@ const handleLogin = () => {
             duringLogin.value = false
             return
           }
-          userStore.setToken(token)
-          userStore.setExp(exp)
-          userStore.setTime(Date.now())
+          saveLoginToken({ token, exp })
           router.push(getCurLocation())
         })
         .catch(() => {
@@ -127,6 +139,46 @@ const handleLogin = () => {
         })
     }
   })
+}
+const saveLoginToken = (data: any) => {
+  const { token, exp } = data || {}
+  userStore.setToken(token)
+  userStore.setExp(exp)
+  userStore.setTime(Date.now())
+}
+const loadSsoStatus = async () => {
+  try {
+    const res = await ssoStatusApi()
+    Object.assign(ssoStatus, res.data || {})
+  } catch {
+    Object.assign(ssoStatus, { enabled: false, allowLocalLogin: true })
+  }
+}
+const handleSsoLogin = () => {
+  cleanPlatformFlag()
+  const redirect = (router.currentRoute.value.query.redirect as string) || '/workbranch/index'
+  const apiBase = PATH_URL.startsWith('./') ? PATH_URL.substring(1) : PATH_URL
+  window.location.href = `${apiBase}/sso/login?redirect=${encodeURIComponent(redirect)}`
+}
+const consumeSsoTicket = async () => {
+  const query = router.currentRoute.value.query
+  if (query.ssoError) {
+    ElMessage.error(decodeURIComponent(query.ssoError as string))
+    return false
+  }
+  if (!query.ssoTicket) {
+    return false
+  }
+  duringLogin.value = true
+  try {
+    const res = await ssoTokenApi(query.ssoTicket as string)
+    saveLoginToken(res.data)
+    router.push(getCurLocation())
+    return true
+  } catch {
+    duringLogin.value = false
+    return false
+  }
 }
 const loadingText = ref('加载中...')
 const loginContainer = ref()
@@ -226,6 +278,10 @@ const handlerFail = () => {
 onMounted(async () => {
   loadArrearance()
   duringLogin.value = false
+  await loadSsoStatus()
+  if (await consumeSsoTicket()) {
+    return
+  }
   if (localStorage.getItem('DE-GATEWAY-FLAG')) {
     const msg = localStorage.getItem('DE-GATEWAY-FLAG')
     loginErrorMsg.value = decodeURIComponent(msg)
@@ -278,9 +334,24 @@ onMounted(async () => {
               {{ slogan || t('system.available_to_everyone') }}
             </div>
             <div class="login-form border-radius-12">
+              <div v-if="ssoStatus.enabled" class="sso-login-block">
+                <div v-if="!showLocalLogin" class="login-form-title">
+                  <span>{{ ssoStatus.providerName }}</span>
+                </div>
+                <el-button
+                  type="primary"
+                  class="sso-submit"
+                  size="default"
+                  :disabled="duringLogin"
+                  @click="handleSsoLogin"
+                >
+                  {{ ssoStatus.loginButtonText }}
+                </el-button>
+                <el-divider v-if="showLocalLogin">本地账号</el-divider>
+              </div>
               <div
                 class="default-login-tabs"
-                v-if="activeName === 'simple' || activeName === 'ldap'"
+                v-if="showLocalLogin && (activeName === 'simple' || activeName === 'ldap')"
               >
                 <div class="login-form-title">
                   <span>{{
@@ -467,6 +538,15 @@ onMounted(async () => {
       font-weight: 500;
       line-height: 28px;
       text-align: left;
+    }
+
+    .sso-login-block {
+      .sso-submit {
+        width: 100%;
+        height: 40px;
+        line-height: 40px;
+        margin-top: 20px;
+      }
     }
   }
 

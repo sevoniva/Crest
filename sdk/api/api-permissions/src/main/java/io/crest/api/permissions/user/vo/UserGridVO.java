@@ -34,4 +34,10 @@ public class UserGridVO {
     private String sysVariable;
     @Schema(description = "用户来源")
     private Integer origin;
+    @Schema(description = "认证类型")
+    private String authType;
+    @Schema(description = "外部身份ID")
+    private String externalId;
+    @Schema(description = "最近登录时间")
+    private Long lastLoginTime;
 }

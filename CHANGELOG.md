@@ -10,13 +10,14 @@
 - 基于 OceanBase Connector/J 的 OceanBase Oracle 模式数据源。
 - 内置零售经营演示库，包含数据源、数据集、图表和数据大屏。
 - 内置研发效能分析资源，包含研发经营、需求流动、人力容量、工程活动、质量风险等主题大屏。
+- 通用 OIDC / OAuth2 单点登录，包含配置页、登录入口、一次性 ticket 回调和用户来源标识。
 - 支持内置 MySQL 和外部 MySQL 的 Kubernetes 部署清单。
 - GHCR 镜像发布 workflow，以及基于 JDK 21 Alpine 构建阶段的精简运行镜像。
 - 按 Crest 当前模块分组的运行时 API 文档。
 
 ### 调整
 
-- 默认管理员密码为 `admin`。
+- 管理员初始密码由安装脚本或 `CREST_INITIAL_PASSWORD` 配置提供。
 - 产品品牌、导航、登录页和 API 文档统一使用 Crest 命名。
 - 移除可见导航和文档中的非当前产品入口。
 - 内置演示数据源在应用启动时根据当前元数据库连接自动同步，安装 SQL 不写入宿主机地址。
@@ -35,5 +36,6 @@
 - 升级前请备份元数据库和运行目录。
 - Flyway `V1.2__demo_retail_dashboard.sql` 会创建或重建 `crest_demo_retail` 演示库。
 - Flyway `V1.3__demo_engineering_efficiency.sql` 会写入研发效能主题表、指标视图、图表和大屏。
+- Flyway `V1.4__sso_integration.sql` 会新增单点登录配置、菜单和用户认证来源字段。
 - 本版本默认镜像为 `ghcr.io/sevoniva/crest:v1.3.0`。
 - Crest 基于 DataEase 2.10.22 开源版本继续开发，仍遵循 GPLv3。再分发时请保留上游版权和许可声明。

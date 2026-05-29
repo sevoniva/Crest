@@ -50,6 +50,15 @@ public class UserFormVO implements Serializable {
     @Schema(description = "用户来源")
     private Integer origin = 0;
 
+    @Schema(description = "认证类型")
+    private String authType;
+
+    @Schema(description = "外部身份ID")
+    private String externalId;
+
+    @Schema(description = "最近登录时间")
+    private Long lastLoginTime;
+
     @Schema(description = "系统变量")
     private List<SysVariableValueItem> variables;
 }

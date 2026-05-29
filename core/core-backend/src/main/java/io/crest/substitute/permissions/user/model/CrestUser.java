@@ -14,6 +14,9 @@ public class CrestUser {
     private Boolean enable;
     private Boolean admin;
     private Integer origin;
+    private String authType;
+    private String externalId;
+    private Long lastLoginTime;
     private Long createTime;
     private Long updateTime;
 }

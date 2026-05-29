@@ -19,4 +19,7 @@ public class PwdLoginDTO {
     @Hidden
     private Integer origin = 0;
 
+    @Hidden
+    private Boolean emergency = false;
+
 }
