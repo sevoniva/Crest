@@ -6,6 +6,7 @@ import Sidebar from './components/Sidebar.vue'
 import Menu from './components/Menu.vue'
 import Main from './components/Main.vue'
 import CollapseBar from './components/CollapseBar.vue'
+import DeResourceArrow from '@/views/common/DeResourceArrow.vue'
 import { ElContainer } from 'element-plus-secondary'
 import { useRoute } from 'vue-router_2'
 const route = useRoute()
@@ -14,8 +15,12 @@ const settingMenu = computed(() => route.path.includes('sys-setting'))
 const userCenterPage = computed(() => route.path.includes('/modify-pwd'))
 const adminSurface = computed(() => settingMenu.value || userCenterPage.value)
 const isCollapse = ref(false)
+const settingSideWidth = 248
 const setCollapse = () => {
   isCollapse.value = !isCollapse.value
+}
+const changeSettingSideStatus = (showSide: boolean) => {
+  isCollapse.value = !showSide
 }
 </script>
 
@@ -25,6 +30,7 @@ const setCollapse = () => {
     :class="{
       'is-with-sider': systemMenu || settingMenu,
       'is-admin-surface': adminSurface,
+      'is-setting-resource-sider': settingMenu,
       'is-user-center-surface': userCenterPage
     }"
   >
@@ -32,19 +38,39 @@ const setCollapse = () => {
     <Header v-else></Header>
     <el-container class="layout-container">
       <template v-if="systemMenu || settingMenu">
-        <Sidebar v-if="!isCollapse" class="layout-sidebar">
-          <div @click="setCollapse" v-if="systemMenu && !isCollapse" class="org-config-center">
-            {{ $t('toolbox.org_center') }}
-          </div>
-          <Menu :style="{ height: systemMenu ? 'calc(100% - 48px)' : '100%' }"></Menu>
-        </Sidebar>
-        <el-aside class="layout-sidebar layout-sidebar-collapse" v-else>
-          <Menu
-            :collapse="isCollapse"
-            :style="{ height: systemMenu ? 'calc(100% - 48px)' : '100%' }"
-          ></Menu>
-        </el-aside>
-        <CollapseBar @setCollapse="setCollapse" :isCollapse="isCollapse"></CollapseBar>
+        <template v-if="settingMenu">
+          <DeResourceArrow
+            class="setting-resource-arrow"
+            :style="{ left: (isCollapse ? 0 : settingSideWidth - 12) + 'px' }"
+            :isInside="isCollapse"
+            @change-side-tree-status="changeSettingSideStatus"
+          />
+          <Sidebar v-if="!isCollapse" class="layout-sidebar setting-resource-sidebar">
+            <div class="setting-resource-tree">
+              <div class="tree-header">
+                <div class="icon-methods">
+                  <span class="title">{{ $t('commons.system_setting') }}</span>
+                </div>
+              </div>
+              <Menu class="setting-resource-menu"></Menu>
+            </div>
+          </Sidebar>
+        </template>
+        <template v-else>
+          <Sidebar v-if="!isCollapse" class="layout-sidebar">
+            <div @click="setCollapse" v-if="systemMenu && !isCollapse" class="org-config-center">
+              {{ $t('toolbox.org_center') }}
+            </div>
+            <Menu :style="{ height: systemMenu ? 'calc(100% - 48px)' : '100%' }"></Menu>
+          </Sidebar>
+          <el-aside class="layout-sidebar layout-sidebar-collapse" v-else>
+            <Menu
+              :collapse="isCollapse"
+              :style="{ height: systemMenu ? 'calc(100% - 48px)' : '100%' }"
+            ></Menu>
+          </el-aside>
+          <CollapseBar @setCollapse="setCollapse" :isCollapse="isCollapse"></CollapseBar>
+        </template>
       </template>
 
       <Main class="layout-main" :class="{ 'with-sider': systemMenu || settingMenu }"></Main>
@@ -68,6 +94,7 @@ const setCollapse = () => {
   .layout-container {
     flex: 1;
     min-height: 0;
+    position: relative;
     background: #f8fafc;
 
     .layout-sidebar {
@@ -324,6 +351,91 @@ const setCollapse = () => {
       color: #ffffff;
       background: #0f172a;
       border-radius: 6px;
+    }
+  }
+
+  &.is-setting-resource-sider {
+    .layout-container {
+      .layout-sidebar {
+        height: calc(100vh - 60px);
+      }
+
+      .layout-main {
+        transition: padding 0.18s ease;
+      }
+    }
+
+    .setting-resource-sidebar {
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      z-index: 4;
+    }
+
+    .setting-resource-tree {
+      width: 100%;
+      height: 100%;
+      padding: 18px 12px 0;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      color: #0f172a;
+      font-family: var(--crest-font-sans);
+
+      .tree-header {
+        padding: 0 4px 14px;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .icon-methods {
+        min-height: 34px;
+        display: flex;
+        align-items: center;
+        color: #0f172a;
+
+        .title {
+          overflow: hidden;
+          color: #0f172a;
+          font-size: 16px;
+          font-weight: 700;
+          line-height: 24px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+    }
+
+    .setting-resource-menu {
+      flex: 1;
+      min-height: 0;
+      padding-top: 10px;
+
+      :deep(.ed-menu) {
+        min-height: auto;
+        padding: 0;
+      }
+
+      :deep(.ed-menu-item),
+      :deep(.ed-sub-menu__title) {
+        height: 36px;
+        margin: 0 0 4px;
+        padding: 0 12px !important;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      :deep(.ed-menu-item.is-active) {
+        box-shadow: inset 3px 0 0 var(--temp-active-color);
+      }
+    }
+
+    :deep(.setting-resource-arrow.arrow-side-tree-left) {
+      top: 44px;
+    }
+
+    :deep(.setting-resource-arrow.arrow-side-tree-right) {
+      top: 44px;
     }
   }
 }
