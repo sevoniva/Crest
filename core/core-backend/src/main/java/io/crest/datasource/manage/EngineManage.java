@@ -188,8 +188,8 @@ public class EngineManage {
         CoreDatasource datasource = coreDatasourceMapper.selectById(DEMO_RETAIL_DATASOURCE_ID);
         CoreDatasource demoDatasource = new CoreDatasource();
         demoDatasource.setId(DEMO_RETAIL_DATASOURCE_ID);
-        demoDatasource.setName("Crest 演示零售经营库");
-        demoDatasource.setDescription("连锁茶饮/零售演示数据源，含订单、商品、会员、门店、营销、库存、履约主题。");
+        demoDatasource.setName("Crest 综合演示数据仓库");
+        demoDatasource.setDescription("Crest 内置演示数据源，含零售经营与研发效能主题事实表、维表和指标视图。");
         demoDatasource.setType(engineType.mysql.name());
         demoDatasource.setPid(0L);
         demoDatasource.setEditType("0");

@@ -53,6 +53,7 @@ core/core-frontend/src/assets/fsSvg.html
 /extensions/
 .vite/
 .local/
+.crest-verify-*/
 .pnpm-store/
 .turbo/
 coverage/
