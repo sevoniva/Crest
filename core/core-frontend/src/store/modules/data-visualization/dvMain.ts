@@ -535,7 +535,7 @@ export const dvMainStore = defineStore('dataVisualization', {
               queryConditionSpacing: 16,
               queryConditionHeight: 32,
               labelColorBtn: '#ffffff',
-              btnColor: '#3370ff'
+              btnColor: '#3B82F6'
             }
           }
         }

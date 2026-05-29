@@ -1374,7 +1374,7 @@ const emits = defineEmits([
 .shadow-node {
   border: 1px dashed;
   border-color: var(--ed-color-primary);
-  background-color: rgba(51, 112, 255, 0.08);
+  background-color: rgba(59, 130, 246, 0.08);
   .ed-icon,
   .tableName {
     display: none;

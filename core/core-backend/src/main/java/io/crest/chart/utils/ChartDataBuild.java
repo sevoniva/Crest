@@ -1382,7 +1382,7 @@ public class ChartDataBuild {
         if (ObjectUtils.isNotEmpty(xAxis)) {
             fields.addAll(xAxis);
         }
-        if (Strings.CI.contains(view.getType(), "stack")) {
+        if (Strings.CI.contains(view.getType(), "stack") || Strings.CI.equals(view.getType(), "cumulative-flow")) {
             if (ObjectUtils.isNotEmpty(extStack)) {
                 fields.addAll(extStack);
             }

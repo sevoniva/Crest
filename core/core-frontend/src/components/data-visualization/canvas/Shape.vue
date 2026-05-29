@@ -1210,13 +1210,13 @@ onMounted(() => {
 }
 
 .shape-selected {
-  outline: 1px solid var(--ed-color-primary, #3370ff);
+  outline: 1px solid var(--ed-color-primary, #3B82F6);
 }
 
 .shape-edit {
   &:hover {
     cursor: move;
-    outline: 1px solid var(--ed-color-primary-99, rgba(51, 112, 255, 0.6));
+    outline: 1px solid var(--ed-color-primary-99, rgba(59, 130, 246, 0.6));
   }
 }
 

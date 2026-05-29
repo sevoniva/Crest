@@ -153,36 +153,47 @@ if (uid.value === '1') {
 }
 .is-light-top-info {
   .uname-span {
-    font-family: var(--de-custom_font, 'PingFang');
-    color: var(--ed-color-black) !important;
+    font-family: var(--crest-font-sans);
+    color: #0f172a !important;
   }
   &:hover {
-    background-color: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1)) !important;
+    background-color: #ffffff !important;
   }
 }
 .top-info-container {
-  height: 32px;
+  height: 40px;
   display: flex;
   align-items: center;
-  border-radius: 6px;
+  padding: 5px 10px 5px 5px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 999px;
   overflow: hidden;
   cursor: pointer;
+  transition:
+    background 0.14s ease,
+    border-color 0.14s ease;
   &:hover {
-    background-color: #1e2738;
+    background-color: #ffffff;
+    border-color: #e2e8f0;
   }
   .main-color {
-    background: var(--ed-color-primary);
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
+    color: #3b82f6;
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
     border-radius: 50%;
   }
   .uname-span {
-    font-family: var(--de-custom_font, 'PingFang');
+    margin-left: 9px;
+    font-family: var(--crest-font-sans);
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    color: #0f172a;
   }
   .ed-icon {
-    margin: 0 5px;
+    margin: 0 0 0 6px;
+    color: #64748b;
   }
 }
 .uinfo-container {

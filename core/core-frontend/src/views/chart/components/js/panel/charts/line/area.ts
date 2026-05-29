@@ -38,6 +38,45 @@ import { Group } from '@antv/g-canvas'
 
 const { t } = useI18n()
 const DEFAULT_DATA = []
+
+const isCumulativeFlowChart = (chart: Chart) => {
+  const customAttr: DeepPartial<ChartAttr> = parseJson(chart.customAttr)
+  return chart.type === 'cumulative-flow' || Boolean((customAttr.basicStyle as any)?.cumulativeFlow)
+}
+
+const getCumulativeFlowStageOrder = (chart: Chart, data: any[] = []) => {
+  const customSort = (chart.extStack?.[0] as any)?.customSort
+  if (Array.isArray(customSort) && customSort.length) {
+    return customSort
+  }
+
+  return data.reduce((stages, item) => {
+    if (item.category && !stages.includes(item.category)) {
+      stages.push(item.category)
+    }
+    return stages
+  }, [] as string[])
+}
+
+const getStageIndex = (stageOrder: string[], stage: string) => {
+  const index = stageOrder.indexOf(stage)
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index
+}
+
+const compareCumulativeFlowStage = (stageOrder: string[], left: string, right: string) => {
+  return getStageIndex(stageOrder, left) - getStageIndex(stageOrder, right)
+}
+
+const cumulativeFlowSort = (left, right, stageOrder: string[]) => {
+  const stageCompare =
+    compareCumulativeFlowStage(stageOrder, left.category, right.category) ||
+    `${left.category}`.localeCompare(`${right.category}`)
+  if (stageCompare !== 0) {
+    return stageCompare
+  }
+  return `${left.field}`.localeCompare(`${right.field}`)
+}
+
 export class Area extends G2PlotChartView<AreaOptions, G2Area> {
   properties = LINE_EDITOR_PROPERTY
   propertyInner = {
@@ -115,6 +154,10 @@ export class Area extends G2PlotChartView<AreaOptions, G2Area> {
     }
     // data
     const data = cloneDeep(chart.data.data)
+    if (isCumulativeFlowChart(chart)) {
+      const stageOrder = getCumulativeFlowStageOrder(chart, data)
+      data.sort((left, right) => cumulativeFlowSort(left, right, stageOrder))
+    }
 
     const initOptions: AreaOptions = {
       ...this.baseOptions,
@@ -368,6 +411,48 @@ export class StackArea extends Area {
   public setupSeriesColor(chart: ChartObj, data?: any[]): ChartBasicStyle['seriesColor'] {
     return setUpStackSeriesColor(chart, data)
   }
+  protected configBasicStyle(chart: Chart, options: AreaOptions): AreaOptions {
+    if (!isCumulativeFlowChart(chart)) {
+      return super.configBasicStyle(chart, options)
+    }
+
+    const customAttr: DeepPartial<ChartAttr> = parseJson(chart.customAttr)
+    const colors = customAttr.basicStyle?.colors || []
+    const alpha = customAttr.basicStyle?.alpha ?? 88
+    const stageOrder = getCumulativeFlowStageOrder(chart, options.data)
+    const firstStage = stageOrder[0]
+    const lastStage = stageOrder[stageOrder.length - 1]
+    const colorByStage = new Map<string, string>()
+    stageOrder.forEach((stage, index) => {
+      colorByStage.set(stage, colors[index] || colors[index % colors.length] || '#38bdf8')
+    })
+
+    return {
+      ...options,
+      smooth: true,
+      point: false,
+      line: {
+        style: ({ category }) => ({
+          stroke: hexColorToRGBA(colorByStage.get(category) || '#dff7ff', 92),
+          lineWidth: category === lastStage ? 2 : 1,
+          shadowBlur: category === lastStage ? 8 : 0,
+          shadowColor: category === lastStage ? 'rgba(102,217,194,.45)' : 'rgba(0,0,0,0)'
+        })
+      },
+      areaStyle: ({ category }) => {
+        const color = colorByStage.get(category) || '#38bdf8'
+        return {
+          fill: setGradientColor(hexColorToRGBA(color, alpha), true, 270, 0),
+          fillOpacity: 0.92,
+          stroke: hexColorToRGBA(color, 28),
+          lineWidth: 0.4,
+          shadowBlur: category === firstStage ? 10 : 0,
+          shadowColor: category === firstStage ? hexColorToRGBA(color, 16) : 'rgba(0,0,0,0)'
+        }
+      }
+    }
+  }
+
   protected configTooltip(chart: Chart, options: AreaOptions): AreaOptions {
     const customAttr: DeepPartial<ChartAttr> = parseJson(chart.customAttr)
     const tooltipAttr = customAttr.tooltip
@@ -377,7 +462,20 @@ export class StackArea extends Area {
         tooltip: false
       }
     }
+    const cumulativeFlow = isCumulativeFlowChart(chart)
+    const stageOrder = getCumulativeFlowStageOrder(chart, options.data)
     const tooltip = {
+      shared: cumulativeFlow,
+      showMarkers: !cumulativeFlow,
+      customItems: cumulativeFlow
+        ? items =>
+            items.sort((left, right) => {
+              return (
+                compareCumulativeFlowStage(stageOrder, left.name, right.name) ||
+                `${left.name}`.localeCompare(`${right.name}`)
+              )
+            })
+        : undefined,
       formatter: function (param: Datum) {
         const obj = {
           name: param.category,
@@ -392,8 +490,8 @@ export class StackArea extends Area {
     return { ...options, tooltip }
   }
 
-  constructor() {
-    super('area-stack')
+  constructor(name = 'area-stack') {
+    super(name)
     this.baseOptions = {
       ...this.baseOptions,
       isStack: true
@@ -401,5 +499,14 @@ export class StackArea extends Area {
     delete this.propertyInner.threshold
     this.properties = this.properties.filter(item => item !== 'threshold')
     this.axis.push('extStack')
+  }
+}
+
+/**
+ * 累积流图
+ */
+export class CumulativeFlow extends StackArea {
+  constructor() {
+    super('cumulative-flow')
   }
 }

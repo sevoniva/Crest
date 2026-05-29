@@ -447,7 +447,7 @@ const emits = defineEmits(['finish', 'handleShowFinishPage'])
       text-overflow: ellipsis;
       overflow: hidden;
       :deep(.highLight) {
-        color: var(--el-color-primary, #3370ff);
+        color: var(--el-color-primary, #3B82F6);
       }
     }
   }

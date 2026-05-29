@@ -86,7 +86,7 @@ defineExpose({
 
     .active,
     .more:hover {
-      background: var(--primary10, var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1)));
+      background: var(--primary10, var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1)));
       color: var(--primaryselect, #0c296e);
     }
 

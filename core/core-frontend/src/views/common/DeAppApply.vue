@@ -495,7 +495,7 @@ defineExpose({
     transform: translateY(-50%);
     height: 14px;
     width: 2px;
-    background: var(--ed-color-primary, #3370ff);
+    background: var(--ed-color-primary, #3B82F6);
   }
 }
 

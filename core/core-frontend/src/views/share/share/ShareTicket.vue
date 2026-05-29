@@ -329,7 +329,7 @@ onMounted(() => {
         align-items: center;
         justify-content: center;
         &:hover {
-          background-color: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+          background-color: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
           color: var(--ed-color-primary);
           cursor: pointer;
         }

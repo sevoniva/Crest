@@ -1,8 +1,4 @@
 <script lang="ts" setup>
-import icon_app_outlined from '@/assets/svg/icon_app_outlined.svg'
-import icon_dashboard_outlined from '@/assets/svg/icon_dashboard_outlined.svg'
-import icon_database_outlined from '@/assets/svg/icon_database_outlined.svg'
-import icon_operationAnalysis_outlined from '@/assets/svg/icon_operation-analysis_outlined.svg'
 import userImg from '@/assets/svg/user-img.svg'
 import { useI18n } from '@/hooks/web/useI18n'
 import { ref, shallowRef, computed } from 'vue'
@@ -26,24 +22,28 @@ const router = useRouter()
 const openType = wsCache.get('open-backend') === '1' ? '_self' : '_blank'
 const quickCreationList = shallowRef([
   {
-    icon: icon_dashboard_outlined,
+    icon: '/svg/icon_dashboard.svg',
     name: 'panel',
-    color: '#3370ff'
+    color: '#3B82F6',
+    code: 'DASHBOARD'
   },
   {
-    icon: icon_operationAnalysis_outlined,
+    icon: '/svg/icon_data-visualization.svg',
     name: 'screen',
-    color: '#00d6b9'
+    color: '#1FB6A6',
+    code: 'SCREEN'
   },
   {
-    icon: icon_app_outlined,
+    icon: '/svg/icon_dataset.svg',
     name: 'dataset',
-    color: '#16c0ff'
+    color: '#6E62E8',
+    code: 'DATASET'
   },
   {
-    icon: icon_database_outlined,
+    icon: '/svg/icon_database.svg',
     name: 'datasource',
-    color: '#7f3bf6'
+    color: '#F5A623',
+    code: 'SOURCE'
   }
 ])
 
@@ -101,46 +101,130 @@ const createDatasource = () => {
 }
 
 fillCardInfo()
+
+const getLeafTimes = item => {
+  const stack = [...(item?.treeNodes || [])]
+  const times: number[] = []
+  while (stack.length) {
+    const node = stack.pop()
+    if (node?.leaf) {
+      const time = Number(node.createTime || node.updateTime || node.lastEditTime || 0)
+      if (time) {
+        times.push(time)
+      }
+    }
+    if (node?.children?.length) {
+      node.children.forEach(child => stack.push(child))
+    }
+  }
+  return times
+}
+
+const getSparkValues = item => {
+  const values = new Array(7).fill(0)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const dayMs = 24 * 60 * 60 * 1000
+  const times = getLeafTimes(item)
+
+  times.forEach(time => {
+    const day = new Date(time)
+    day.setHours(0, 0, 0, 0)
+    const diff = Math.floor((today.getTime() - day.getTime()) / dayMs)
+    if (diff >= 0 && diff < 7) {
+      values[6 - diff] += 1
+    }
+  })
+
+  if (times.length) {
+    return values
+  }
+  return values.fill(Number(item?.leafNodeCount || 0))
+}
+
+const getSparkPoints = item => {
+  const values = getSparkValues(item)
+  const max = Math.max(...values)
+  const min = Math.min(...values)
+  const range = max - min || 1
+  return values
+    .map((value, index) => {
+      const x = (46 / 6) * index
+      const y = max === min ? (max ? 9 : 15) : 16 - ((value - min) / range) * 14
+      return `${x.toFixed(1)},${y.toFixed(1)}`
+    })
+    .join(' ')
+}
+
+const getSparkLastPoint = item => {
+  const point = getSparkPoints(item).split(' ').pop() || '46,9'
+  const [x, y] = point.split(',')
+  return { x, y }
+}
 </script>
 
 <template>
   <div class="workbranch" v-loading="requestStore.loadingMap[permissionStore.currentPath]">
     <div class="info-quick-creation">
-      <div class="user-info border-radius-12">
-        <el-icon class="main-color user-icon-container">
-          <Icon name="user-img"><userImg class="svg-icon" /></Icon>
-        </el-icon>
-        <div class="info">
-          <div class="name-role flex-align-center">
-            <span :title="userStore.getName" style="max-width: 200px" class="name ellipsis">{{
-              userStore.getName
-            }}</span>
-            <span class="role main-btn" />
+      <div class="user-info work-card">
+        <div class="profile-row">
+          <el-icon class="main-color user-icon-container">
+            <Icon name="user-img"><userImg class="svg-icon" /></Icon>
+          </el-icon>
+          <div class="info">
+            <div class="name-role flex-align-center">
+              <span :title="userStore.getName" class="name ellipsis">{{ userStore.getName }}</span>
+            </div>
+            <span v-if="userStore.getUid" class="id"> {{ `ID: ${userStore.getUid}` }} </span>
           </div>
-          <span v-if="userStore.getUid" class="id"> {{ `ID: ${userStore.getUid}` }} </span>
         </div>
         <div
-          class="item"
+          class="stat-item"
           :class="{ 'de-item-hidden': !item['menuAuth'] }"
           v-for="(item, index) in busiCountCardList"
           :key="index"
         >
-          <span class="name">
-            {{ t(`auth.${quickCreationList[index].name}`) }}
+          <span
+            class="stat-bar"
+            :style="{ backgroundColor: quickCreationList[index]?.color || '#3B82F6' }"
+          />
+          <span class="stat-meta">
+            <span class="name">
+              {{ t(`auth.${quickCreationList[index].name}`) }}
+            </span>
+            <span class="code">{{ quickCreationList[index]?.code }}</span>
           </span>
+          <svg class="sparkline" viewBox="0 0 46 18" aria-hidden="true">
+            <polyline
+              :points="getSparkPoints(item)"
+              fill="none"
+              :stroke="quickCreationList[index]?.color || '#3B82F6'"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              opacity="0.85"
+            />
+            <circle
+              :cx="getSparkLastPoint(item).x"
+              :cy="getSparkLastPoint(item).y"
+              r="2"
+              :fill="quickCreationList[index]?.color || '#3B82F6'"
+            />
+          </svg>
           <span class="num"> {{ item['menuAuth'] ? item['leafNodeCount'] : '*' }} </span>
         </div>
       </div>
 
-      <div class="quick-creation border-radius-12">
+      <div class="quick-creation work-card">
         <span class="label"> {{ t('work_branch.create_quickly') }} </span>
         <div class="item-creation">
           <div
             :key="ele.name"
-            class="item border-radius-12"
+            class="item"
             :class="{
               'quick-create-disabled': !ele['menuAuth'] || !ele['anyManage']
             }"
+            :style="{ '--accent': ele.color }"
             v-for="(ele, index) in quickCreationList"
             @click="quickCreate(index, ele['menuAuth'] && ele['anyManage'])"
           >
@@ -153,9 +237,9 @@ fillCardInfo()
             >
               <div class="empty-tooltip-container" />
             </el-tooltip>
-            <el-icon class="main-color" :style="{ backgroundColor: ele.color }">
-              <Icon><component class="svg-icon" :is="ele.icon"></component></Icon>
-            </el-icon>
+            <span class="quick-icon" :style="{ backgroundColor: ele.color }">
+              <img :src="ele.icon" :alt="t(`auth.${ele.name}`)" />
+            </span>
             <span class="name">
               {{ t(`auth.${ele.name}`) }}
             </span>
@@ -173,15 +257,19 @@ fillCardInfo()
 
 <style lang="less" scoped>
 .workbranch {
+  display: grid;
+  grid-template-columns: 336px minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
   width: 100vw;
-  height: calc(100vh - 56px);
-  background: #f5f6f7;
-  padding: 24px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  --workbranch-card-radius: 6px;
-  --workbranch-panel-height: 480px;
+  height: calc(100vh - 60px);
+  max-width: 1500px;
+  padding: 22px 26px;
+  margin: 0 auto;
+  overflow: hidden;
+  font-family: var(--crest-font-sans);
+  background: #f8fafc;
+  --workbranch-card-radius: 14px;
 
   .main-btn {
     display: inline-flex;
@@ -190,91 +278,150 @@ fillCardInfo()
     align-items: center;
   }
 
+  .work-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--workbranch-card-radius);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+
   .info-quick-creation {
-    width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 336px;
+    min-height: 0;
+
     .main-color {
-      background: var(--ed-color-primary);
-      width: 32px;
-      height: 32px;
+      color: #3b82f6;
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
     }
+
     .user-info {
-      padding: 24px 16px 16px 16px;
-      background: #fff;
-      border-radius: var(--workbranch-card-radius);
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      .user-icon-container {
-        width: 48px !important;
-        height: 48px !important;
+      flex-direction: column;
+      gap: 11px;
+      padding: 22px 24px 18px;
+
+      .profile-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 7px;
       }
+
+      .user-icon-container {
+        position: relative;
+        flex: none;
+        width: 52px !important;
+        height: 52px !important;
+
+        &::after {
+          position: absolute;
+          right: -2px;
+          bottom: -2px;
+          width: 14px;
+          height: 14px;
+          content: '';
+          background: #22c55e;
+          border: 2.5px solid #ffffff;
+          border-radius: 50%;
+        }
+      }
+
       .ed-icon {
-        font-size: 48px;
-        padding: 8px;
+        font-size: 22px;
+        padding: 0;
         border-radius: 50%;
       }
 
       .info {
-        margin: 0 0 24px 12px;
         display: flex;
-        align-items: center;
+        flex: 1;
+        align-items: flex-start;
         flex-wrap: wrap;
-        width: calc(100% - 60px);
-        height: 50px;
+        min-width: 0;
+
         .name-role {
-          margin-bottom: 4px;
-          color: #1f2329;
-          font-family: var(--de-custom_font, 'PingFang');
+          width: 100%;
+          margin-bottom: 3px;
+          color: #0f172a;
+          font-family: var(--crest-font-sans);
           font-style: normal;
+
           .name {
-            font-size: 16px;
-            font-weight: 500;
+            max-width: 210px;
+            font-size: 17px;
+            font-weight: 600;
             line-height: 24px;
           }
-
-          .role {
-            width: 55px;
-            display: inline-flex;
-            margin-left: 4px;
-            height: 20px;
-            padding: 0 6px;
-            align-items: center;
-            font-size: 12px;
-            color: var(--ed-color-primary-dark-2, #2b5fd9);
-            border-radius: 2px;
-          }
         }
+
         .id {
-          color: #646a73;
-          font-size: 14px;
-          font-weight: 400;
-          line-height: 22px;
           width: 200px;
+          color: #64748b;
+          font-family: var(--crest-font-mono);
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 18px;
         }
       }
 
-      .item {
-        font-family: var(--de-custom_font, 'PingFang');
-        font-style: normal;
+      .stat-item {
         display: flex;
-        flex-direction: column;
-        width: 109px;
-        height: 70px;
-        padding: 8px;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 0;
+        font-family: var(--crest-font-sans);
+        font-style: normal;
+
+        &:first-of-type {
+          padding-top: 16px;
+          border-top: 1px solid #f1f5f9;
+        }
+
+        .stat-bar {
+          flex: none;
+          width: 7px;
+          height: 24px;
+          border-radius: 2px;
+        }
+
+        .stat-meta {
+          display: flex;
+          flex: 1;
+          flex-direction: column;
+          min-width: 0;
+        }
 
         .name {
-          color: #646a73;
+          color: #64748b;
+          font-size: 12.5px;
           font-weight: 400;
-          line-height: 22px;
-          font-size: 14px;
+          line-height: 18px;
         }
+
+        .code {
+          color: #94a3b8;
+          font-family: var(--crest-font-mono);
+          font-size: 10.5px;
+          line-height: 16px;
+        }
+
+        .sparkline {
+          flex: none;
+          width: 46px;
+          height: 18px;
+        }
+
         .num {
-          margin-top: 4px;
-          color: #1f2329;
-          font-size: 20px;
-          font-weight: 500;
-          line-height: 28px;
-          letter-spacing: -0.2px;
+          min-width: 34px;
+          color: #0f172a;
+          font-size: 22px;
+          font-weight: 700;
+          line-height: 22px;
+          text-align: right;
+          font-variant-numeric: tabular-nums;
         }
       }
 
@@ -284,53 +431,97 @@ fillCardInfo()
     }
 
     .quick-creation {
-      border-radius: 6px;
-      background: #fff;
-      margin-top: 16px;
-      padding: 24px;
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+      padding: 18px 22px 22px;
 
       .label {
-        color: #1f2329;
+        color: #334155;
         font-feature-settings: 'clig' off, 'liga' off;
-        font-family: var(--de-custom_font, 'PingFang');
-        font-size: 16px;
+        font-family: var(--crest-font-sans);
+        font-size: 13.5px;
         font-style: normal;
-        font-weight: 500;
-        line-height: 24px;
+        font-weight: 600;
+        line-height: 20px;
       }
 
       .item-creation {
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        align-content: start;
+        flex: 1;
+        margin-top: 14px;
+
         .item {
-          padding: 12px;
-          width: 150px;
-          margin-top: 16px;
-          border-radius: 6px;
-          border: 1px solid #dee0e3;
+          position: relative;
           display: flex;
           align-items: center;
+          gap: 11px;
+          min-height: 64px;
+          padding: 12px 13px;
+          overflow: hidden;
           cursor: pointer;
-          &:hover {
-            box-shadow: 0px 6px 24px 0px rgba(31, 35, 41, 0.08);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          transition:
+            border-color 0.16s ease,
+            box-shadow 0.16s ease,
+            transform 0.16s ease;
+
+          &::after {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            content: '';
+            background: linear-gradient(135deg, var(--accent, #3b82f6) 0%, transparent 38%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
           }
 
-          .main-color {
-            font-size: 21.33px;
-            padding: 5.33px;
-            margin-right: 12px;
+          &:hover {
+            border-color: transparent;
+            box-shadow:
+              0 4px 14px -4px rgba(15, 23, 42, 0.1),
+              0 0 0 1.5px var(--accent, #3b82f6);
+            transform: translateY(-1px);
+          }
+
+          &:hover::after {
+            opacity: 0.08;
+          }
+
+          .quick-icon {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex: none;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
             border-radius: 8px;
-            color: #fff;
+
+            img {
+              width: 22px;
+              height: 22px;
+              object-fit: contain;
+            }
           }
 
           .name {
-            color: #1f2329;
-            font-family: var(--de-custom_font, 'PingFang');
-            font-size: 14px;
+            position: relative;
+            z-index: 1;
+            min-width: 0;
+            color: #0f172a;
+            font-family: var(--crest-font-sans);
+            font-size: 13.5px;
             font-style: normal;
-            font-weight: 400;
-            line-height: 22px;
+            font-weight: 600;
+            line-height: 20px;
           }
         }
 
@@ -349,7 +540,7 @@ fillCardInfo()
           .name {
             color: var(--ed-color-info-light-5) !important;
           }
-          .main-color {
+          .quick-icon {
             background-color: var(--ed-color-primary-light-8) !important;
             border-color: var(--ed-color-info-light-8) !important;
           }
@@ -374,8 +565,8 @@ fillCardInfo()
   }
 
   .workbranch-content {
-    width: calc(100% - 376px);
-    height: var(--workbranch-panel-height);
+    min-width: 0;
+    min-height: 0;
     overflow: hidden;
     border-radius: var(--workbranch-card-radius);
 

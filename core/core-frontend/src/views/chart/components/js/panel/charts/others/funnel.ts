@@ -209,7 +209,7 @@ export class Funnel extends G2PlotChartView<FunnelOptions, G2Funnel> {
     return chart
   }
 
-  constructor() {
-    super('funnel', [])
+  constructor(name = 'funnel') {
+    super(name, [])
   }
 }

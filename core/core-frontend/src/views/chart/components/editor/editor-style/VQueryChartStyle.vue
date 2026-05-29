@@ -256,7 +256,7 @@ const initParams = () => {
       nameboxSpacing: 8,
       queryConditionSpacing: 16,
       labelColorBtn: '#ffffff',
-      btnColor: '#3370ff'
+      btnColor: '#3B82F6'
     }
   }
 
@@ -939,16 +939,16 @@ const onPlaceholderChange = () => {
     }
     &.active {
       color: var(--ed-color-primary);
-      background-color: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+      background-color: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
       &:hover {
-        background-color: var(--ed-color-primary-33, #3370ff33);
+        background-color: var(--ed-color-primary-33, #3B82F633);
       }
     }
   }
 
   &.active {
     color: var(--ed-color-primary);
-    background-color: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+    background-color: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
   }
 
   &:hover {

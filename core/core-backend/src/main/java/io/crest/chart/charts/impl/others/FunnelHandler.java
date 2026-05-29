@@ -9,4 +9,10 @@ import org.springframework.stereotype.Component;
 public class FunnelHandler extends ExtQuotaChartHandler {
     @Getter
     private String type = "funnel";
+
+    @Override
+    public void init() {
+        chartHandlerManager.registerChartHandler(this.getRender(), this.getType(), this);
+        chartHandlerManager.registerChartHandler(this.getRender(), "stage-funnel", this);
+    }
 }

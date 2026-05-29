@@ -45,5 +45,5 @@ export function colorStringToHex(colorStr) {
 
 export function getCSSVariable(element = document.body, property = '--ed-color-primary') {
   const style = window.getComputedStyle(element)
-  return style.getPropertyValue(property) || '#3370FF'
+  return style.getPropertyValue(property) || '#3B82F6'
 }

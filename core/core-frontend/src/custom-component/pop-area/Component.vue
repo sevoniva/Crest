@@ -208,7 +208,7 @@ onBeforeUnmount(() => {
   left: 0;
 }
 .pop-area-active {
-  border: 1px dashed rgba(51, 112, 255, 1) !important;
+  border: 1px dashed rgba(59, 130, 246, 1) !important;
   background: #1d2331 !important;
 }
 .pop-content {

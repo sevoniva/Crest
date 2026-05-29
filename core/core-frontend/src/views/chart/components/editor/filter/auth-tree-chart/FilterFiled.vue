@@ -1112,9 +1112,9 @@ const emits = defineEmits(['update:item', 'del'])
           line-height: 26px;
           border-radius: 6px;
           padding: 0 4px;
-          color: var(--ed-color-primary, #3370ff);
+          color: var(--ed-color-primary, #3B82F6);
           &:hover {
-            background-color: var(--ed-color-primary-1a, #3370ff1a);
+            background-color: var(--ed-color-primary-1a, #3B82F61a);
           }
         }
       }

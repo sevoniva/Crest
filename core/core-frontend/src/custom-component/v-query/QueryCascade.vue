@@ -321,7 +321,7 @@ defineExpose({
     height: 62px;
     width: 852px;
     border-radius: 6px;
-    background: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+    background: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
     position: relative;
     padding: 9px 0 9px 40px;
     font-family: var(--de-custom_font, 'PingFang');
@@ -334,7 +334,7 @@ defineExpose({
       top: 10.6px;
       left: 16px;
       font-size: 14px;
-      color: var(--ed-color-primary, #3370ff);
+      color: var(--ed-color-primary, #3B82F6);
     }
 
     margin-bottom: 16px;

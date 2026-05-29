@@ -525,7 +525,7 @@ export class MultiScatter extends G2PlotChartView<ScatterOptions, G2Scatter> {
     )(chart, options, {}, this)
   }
 
-  private buildScatterDataContext(sourceData: Record<string, unknown>[]) {
+  protected buildScatterDataContext(sourceData: Record<string, unknown>[]) {
     const hasTimeX = sourceData.some(row => row.xLabel != null)
 
     const multiData = sourceData
@@ -574,7 +574,7 @@ export class MultiScatter extends G2PlotChartView<ScatterOptions, G2Scatter> {
     }
   }
 
-  constructor() {
-    super('multi-scatter', [])
+  constructor(name = 'multi-scatter') {
+    super(name, [])
   }
 }

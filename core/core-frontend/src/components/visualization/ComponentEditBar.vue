@@ -675,7 +675,7 @@ watch(
   font-size: 16px !important;
 }
 .bar-main-background {
-  background-color: var(--ed-color-primary, #3370ff);
+  background-color: var(--ed-color-primary, #3B82F6);
 }
 
 .bar-main-right {

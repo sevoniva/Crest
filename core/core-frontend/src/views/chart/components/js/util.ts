@@ -252,8 +252,10 @@ const distributionChartTypes = [
 const relationChartTypes = [
   'scatter',
   'multi-scatter',
+  'metric-matrix',
   'quadrant',
   'funnel',
+  'stage-funnel',
   'sankey',
   'circle-packing'
 ]

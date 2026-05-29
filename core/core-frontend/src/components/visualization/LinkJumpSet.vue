@@ -1301,8 +1301,8 @@ defineExpose({
 }
 
 .item-dimension:hover {
-  border: 1px solid var(--ed-color-primary, #3370ff);
-  background: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+  border: 1px solid var(--ed-color-primary, #3B82F6);
+  background: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
 }
 
 .item-quota {

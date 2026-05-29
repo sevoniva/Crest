@@ -261,11 +261,11 @@ onMounted(() => {
           min-width: 56px;
           height: 20px;
           border-radius: 2px;
-          background-color: var(--ed-color-primary-33, #3370ff33);
+          background-color: var(--ed-color-primary-33, #3B82F633);
           font-size: 12px;
           font-weight: 400;
           line-height: 20px;
-          color: var(--ed-color-primary, rgba(51, 112, 255, 1));
+          color: var(--ed-color-primary, rgba(59, 130, 246, 1));
           margin-left: 8px;
           padding: 0 4px;
         }

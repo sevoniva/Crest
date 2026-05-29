@@ -321,7 +321,7 @@ export const useAppearanceStore = defineStore('appearanceStore', {
             .toRGB()
         )
       } else if (document.documentElement.style.getPropertyValue('--ed-color-primary')) {
-        document.documentElement.style.setProperty('--ed-color-primary', '#3370FF')
+        document.documentElement.style.setProperty('--ed-color-primary', '#3B82F6')
         document.documentElement.style.removeProperty('--ed-color-primary-light-3')
         document.documentElement.style.removeProperty('--ed-color-primary-light-5')
         document.documentElement.style.removeProperty('--ed-color-primary-1a')

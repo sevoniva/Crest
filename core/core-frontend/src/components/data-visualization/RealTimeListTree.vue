@@ -734,7 +734,7 @@ const canvasChange = () => {
         }
       }
       .activated {
-        background-color: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1)) !important;
+        background-color: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1)) !important;
         :deep(.component-icon) {
           color: var(--ed-color-primary);
         }
@@ -841,7 +841,7 @@ const canvasChange = () => {
 }
 
 .activated {
-  background-color: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1)) !important;
+  background-color: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1)) !important;
   color: var(--ed-color-primary);
 }
 

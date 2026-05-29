@@ -29,6 +29,12 @@ public class StackAreaHandler extends YoyChartHandler {
     private String type = "area-stack";
 
     @Override
+    public void init() {
+        chartHandlerManager.registerChartHandler(this.getRender(), this.getType(), this);
+        chartHandlerManager.registerChartHandler(this.getRender(), "cumulative-flow", this);
+    }
+
+    @Override
     public AxisFormatResult formatAxis(ChartViewDTO view) {
         var result = super.formatAxis(view);
         var xAxis = result.getAxisMap().get(ChartAxis.xAxis);

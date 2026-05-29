@@ -1,18 +1,12 @@
 <script lang="ts" setup>
-import icon_collection_outlined from '@/assets/svg/icon_collection_outlined.svg'
-import visualStar from '@/assets/svg/visual-star.svg'
-import icon_searchOutline_outlined from '@/assets/svg/icon_search-outline_outlined.svg'
-import icon_app_outlined from '@/assets/svg/icon_app_outlined.svg'
-import icon_dashboard_outlined from '@/assets/svg/icon_dashboard_outlined.svg'
-import icon_database_outlined from '@/assets/svg/icon_database_outlined.svg'
-import icon_operationAnalysis_outlined from '@/assets/svg/icon_operation-analysis_outlined.svg'
-import icon_pc_outlined from '@/assets/svg/icon_pc_outlined.svg'
 import { useI18n } from '@/hooks/web/useI18n'
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import type { TabsPaneContext } from 'element-plus-secondary'
 import GridTable from '@/components/grid-table/src/GridTable.vue'
 import { useRouter } from 'vue-router_2'
 import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/zh-cn'
 import { shortcutOption } from './ShortcutOption'
 import { interactiveStoreWithOut } from '@/store/modules/interactive'
 import { storeApi } from '@/api/visualization/dataVisualization'
@@ -27,6 +21,8 @@ const interactiveStore = interactiveStoreWithOut()
 const { wsCache } = useCache()
 const appStore = useAppStoreWithOut()
 const embeddedStore = useEmbedded()
+dayjs.extend(relativeTime)
+dayjs.locale('zh-cn')
 
 import { cloneDeep } from 'lodash-es'
 const { push } = useRouter()
@@ -47,15 +43,24 @@ const state = reactive({
 })
 const busiDataMap = computed(() => interactiveStore.getData)
 const iconMap = {
-  panel: icon_dashboard_outlined,
-  panelMobile: icon_dashboard_outlined,
-  dashboard: icon_dashboard_outlined,
-  dashboardMobile: icon_dashboard_outlined,
-  dashboardMobileDisabled: icon_dashboard_outlined,
-  screen: icon_operationAnalysis_outlined,
-  dataV: icon_operationAnalysis_outlined,
-  dataset: icon_app_outlined,
-  datasource: icon_database_outlined
+  panel: '/svg/icon_dashboard.svg',
+  panelMobile: '/svg/icon_dashboard.svg',
+  dashboard: '/svg/icon_dashboard.svg',
+  dashboardMobile: '/svg/icon_dashboard.svg',
+  dashboardMobileDisabled: '/svg/icon_dashboard.svg',
+  screen: '/svg/icon_data-visualization.svg',
+  dataV: '/svg/icon_data-visualization.svg',
+  dataset: '/svg/icon_dataset.svg',
+  datasource: '/svg/icon_database.svg'
+}
+const typeColorMap = {
+  panel: '#3B82F6',
+  panelMobile: '#3B82F6',
+  dashboard: '#3B82F6',
+  screen: '#1FB6A6',
+  dataV: '#1FB6A6',
+  dataset: '#6E62E8',
+  datasource: '#F5A623'
 }
 
 const jumpActiveCheck = row => {
@@ -89,6 +94,10 @@ const getBusiListWithPermission = () => {
 const triggerFilterPanel = () => {
   loadTableData()
 }
+const selectType = item => {
+  activeCommand.value = item
+  loadTableData()
+}
 const openType = wsCache.get('open-backend') === '1' ? '_self' : '_blank'
 const preview = (row, disabled = false) => {
   if (!disabled) {
@@ -112,6 +121,10 @@ const openDataset = id => {
 const formatterTime = (_, _column, cellValue) => {
   return dayjs(new Date(cellValue)).format('YYYY-MM-DD HH:mm:ss')
 }
+const formatterRelativeTime = cellValue => {
+  if (!cellValue) return '-'
+  return dayjs(new Date(cellValue)).fromNow()
+}
 
 const typeMap = {
   screen: t('work_branch.big_data_screen'),
@@ -120,6 +133,20 @@ const typeMap = {
   panel: t('work_branch.dashboard'),
   dataset: t('work_branch.data_set'),
   datasource: t('work_branch.data_source')
+}
+
+const getTypeColor = type => {
+  return typeColorMap[type] || '#3B82F6'
+}
+
+const getAssetCode = row => {
+  const id = activeName.value === 'recent' ? row.id : row.resourceId
+  return id ? String(id) : '-'
+}
+
+const getUserInitial = value => {
+  const name = value || userStore.getName || ''
+  return name ? String(name).trim().charAt(0).toUpperCase() : '-'
 }
 
 const loadTableData = () => {
@@ -293,23 +320,25 @@ const getEmptyDesc = (): string => {
       </el-tab-pane>
     </el-tabs>
     <template v-if="busiAuthList.length">
-      <el-row v-if="activeName === 'recent' || activeName === 'store'">
-        <el-col :span="12">
-          <el-select
-            popper-class="menu-panel-select_popper"
-            class="select-type-list"
-            v-model="activeCommand"
-            @change="loadTableData"
+      <div v-if="activeName === 'recent' || activeName === 'store'" class="asset-toolbar">
+        <div class="type-chip-list">
+          <button
+            v-for="item in state.curTypeList"
+            :key="item"
+            type="button"
+            class="type-chip"
+            :class="{ active: activeCommand === item }"
+            @click="selectType(item)"
           >
-            <el-option
-              v-for="item in state.curTypeList"
-              :key="item"
-              :label="t(`auth.${item}`)"
-              :value="item"
+            <span
+              v-if="item !== 'all_types'"
+              class="type-dot"
+              :style="{ backgroundColor: getTypeColor(item) }"
             />
-          </el-select>
-        </el-col>
-        <el-col class="search" :span="12">
+            <span>{{ t(`auth.${item}`) }}</span>
+          </button>
+        </div>
+        <div class="search">
           <el-input
             v-model="panelKeyword"
             clearable
@@ -317,15 +346,19 @@ const getEmptyDesc = (): string => {
             :placeholder="t('work_branch.search_keyword')"
           >
             <template #prefix>
-              <el-icon>
-                <Icon name="icon_search-outline_outlined"
-                  ><icon_searchOutline_outlined class="svg-icon"
-                /></Icon>
-              </el-icon>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+                <path
+                  d="M16.5 16.5 21 21"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
             </template>
           </el-input>
-        </el-col>
-      </el-row>
+        </div>
+      </div>
       <div v-if="activeName === 'recent' || activeName === 'store'" class="panel-table">
         <GridTable
           :show-pagination="false"
@@ -338,50 +371,34 @@ const getEmptyDesc = (): string => {
         >
           <el-table-column key="name" width="280" prop="name" :label="t('common.name')">
             <template v-slot:default="scope">
-              <div class="name-content" :class="{ 'jump-active': jumpActiveCheck(scope.row) }">
-                <el-icon v-if="scope.row.extFlag" style="margin-right: 12px; font-size: 18px">
-                  <Icon
-                    ><component
-                      class="svg-icon"
-                      :is="
-                        iconMap[
-                          scope.row.type + 'Mobile' + (checkDisabled(scope.row) ? 'Disabled' : '')
-                        ]
-                      "
-                    ></component
-                  ></Icon>
-                </el-icon>
-                <el-icon
-                  v-else
-                  :class="`main-color color-${scope.row.type} custom-color${
-                    checkDisabled(scope.row) ? '-disabled' : ''
-                  }`"
+              <div class="name-content asset-name" :class="{ 'jump-active': jumpActiveCheck(scope.row) }">
+                <span
+                  class="asset-icon"
+                  :class="{ disabled: checkDisabled(scope.row) }"
+                  :style="{ backgroundColor: getTypeColor(scope.row.type) }"
                 >
-                  <Icon
-                    ><component class="svg-icon" :is="iconMap[scope.row.type]"></component
-                  ></Icon>
-                </el-icon>
-                <el-tooltip placement="top">
-                  <template #content>{{ scope.row.name }}</template>
-                  <span
-                    class="ellipsis"
-                    :class="{ 'color-disabled': checkDisabled(scope.row) }"
-                    style="max-width: 250px"
-                    >{{ scope.row.name }}</span
-                  >
-                </el-tooltip>
-                <el-icon
-                  v-if="activeName === 'recent' && ['screen', 'panel'].includes(scope.row.type)"
-                  class="custom-icon"
-                  @click.stop="executeStore(scope.row)"
-                  :style="{ color: scope.row.favorite ? '#FFC60A' : '#646A73' }"
-                >
-                  <icon
-                    ><component
-                      :is="scope.row.favorite ? visualStar : icon_collection_outlined"
-                    ></component
-                  ></icon>
-                </el-icon>
+                  <img
+                    :src="
+                      scope.row.extFlag
+                        ? iconMap[
+                            scope.row.type +
+                              'Mobile' +
+                              (checkDisabled(scope.row) ? 'Disabled' : '')
+                          ]
+                        : iconMap[scope.row.type]
+                    "
+                    :alt="typeMap[scope.row.type]"
+                  />
+                </span>
+                <span class="asset-title-wrap">
+                  <el-tooltip placement="top">
+                    <template #content>{{ scope.row.name }}</template>
+                    <span class="asset-title ellipsis" :class="{ 'color-disabled': checkDisabled(scope.row) }">
+                      {{ scope.row.name }}
+                    </span>
+                  </el-tooltip>
+                  <span class="asset-code">{{ getAssetCode(scope.row) }}</span>
+                </span>
               </div>
             </template>
           </el-table-column>
@@ -395,15 +412,22 @@ const getEmptyDesc = (): string => {
           >
             <template #default="scope">
               <span :class="{ 'jump-active': jumpActiveCheck(scope.row) }">
-                <span v-if="item.type && item.type === 'time'">{{
-                  formatterTime(null, null, scope.row[item.field])
-                }}</span>
-                <span v-else-if="item.field && item.field === 'type'">{{
-                  typeMap[scope.row[item.field]]
-                }}</span>
-                <span v-else-if="desktop && item.field && item.field.endsWith('tor')">{{
-                  userStore.getName
-                }}</span>
+                <span v-if="item.type && item.type === 'time'" class="time-cell">
+                  <span class="time-relative">{{ formatterRelativeTime(scope.row[item.field]) }}</span>
+                  <span class="time-full">{{ formatterTime(null, null, scope.row[item.field]) }}</span>
+                </span>
+                <span v-else-if="item.field && item.field === 'type'" class="asset-tag" :style="{ '--tag-color': getTypeColor(scope.row[item.field]) }">
+                  <span class="tag-dot" />
+                  {{ typeMap[scope.row[item.field]] }}
+                </span>
+                <span v-else-if="desktop && item.field && item.field.endsWith('tor')" class="owner-cell">
+                  <span class="owner-avatar">{{ getUserInitial(userStore.getName) }}</span>
+                  <span>{{ userStore.getName }}</span>
+                </span>
+                <span v-else-if="item.field && item.field.endsWith('tor')" class="owner-cell">
+                  <span class="owner-avatar">{{ getUserInitial(scope.row[item.field]) }}</span>
+                  <span>{{ scope.row[item.field] }}</span>
+                </span>
                 <span v-else>{{ scope.row[item.field] }}</span>
               </span>
             </template>
@@ -412,7 +436,7 @@ const getEmptyDesc = (): string => {
           <el-table-column width="100" fixed="right" key="_operation" :label="$t('common.operate')">
             <template #default="scope">
               <div
-                style="display: flex; flex-direction: row; align-items: center"
+                class="table-actions"
                 :class="{ 'opt-disabled': checkDisabled(scope.row) }"
               >
                 <template v-if="['dashboard', 'dataV', 'panel', 'screen'].includes(scope.row.type)">
@@ -422,26 +446,55 @@ const getEmptyDesc = (): string => {
                     :disabled="checkDisabled(scope.row)"
                     placement="top"
                   >
-                    <el-icon
-                      class="hover-icon hover-icon-in-table"
+                    <button
+                      type="button"
+                      class="opbtn"
                       @click.stop="preview(scope.row, checkDisabled(scope.row))"
                     >
-                      <Icon name="icon_pc_outlined"><icon_pc_outlined class="svg-icon" /></Icon>
-                    </el-icon>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path
+                          d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                        />
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7" />
+                      </svg>
+                    </button>
                   </el-tooltip>
                   <el-tooltip
-                    v-if="activeName === 'store'"
+                    v-if="
+                      activeName === 'store' ||
+                      (activeName === 'recent' && ['screen', 'panel'].includes(scope.row.type))
+                    "
                     effect="dark"
                     :disabled="checkDisabled(scope.row)"
-                    :content="t('work_branch.cancel_favorites')"
+                    :content="
+                      activeName === 'store'
+                        ? t('work_branch.cancel_favorites')
+                        : t('work_branch.my_collection')
+                    "
                     placement="top"
                   >
-                    <el-icon
-                      class="hover-icon hover-icon-in-table"
-                      @click.stop="executeCancelStore(scope.row)"
+                    <button
+                      type="button"
+                      class="opbtn"
+                      :class="{ favorited: activeName === 'store' || scope.row.favorite }"
+                      @click.stop="
+                        activeName === 'store'
+                          ? executeCancelStore(scope.row)
+                          : executeStore(scope.row)
+                      "
                     >
-                      <Icon name="icon_cancel_store"><visualStar class="svg-icon" /></Icon>
-                    </el-icon>
+                      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                          d="M12 3l2.7 5.6 6.3.9-4.6 4.4 1.1 6.1L12 17l-5.5 3 1.1-6.1L3 9.5l6.3-.9z"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.6"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </button>
                   </el-tooltip>
                 </template>
 
@@ -451,20 +504,31 @@ const getEmptyDesc = (): string => {
                     :content="t('work_branch.open_dataset')"
                     placement="top"
                   >
-                    <el-icon
-                      class="hover-icon hover-icon-in-table"
+                    <button
+                      type="button"
+                      class="opbtn"
                       @click.stop="
                         openDataset(activeName === 'recent' ? scope.row.id : scope.row.resourceId)
                       "
                     >
-                      <Icon name="icon_pc_outlined"><icon_pc_outlined class="svg-icon" /></Icon>
-                    </el-icon>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path
+                          d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                        />
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7" />
+                      </svg>
+                    </button>
                   </el-tooltip>
                 </template>
               </div>
             </template>
           </el-table-column>
         </GridTable>
+        <div class="table-footer">
+          <span>共 {{ state.tableData.length }} 项</span>
+        </div>
       </div>
     </template>
   </div>
@@ -477,89 +541,362 @@ const getEmptyDesc = (): string => {
 
 <style lang="less" scoped>
 .dashboard-type {
-  padding: 8px 24px 24px 24px;
-  background: #fff;
-  border-radius: 6px;
   height: 100%;
   min-height: 0;
+  padding: 18px 24px 0;
   margin-top: 0;
   overflow: hidden;
+  font-family: var(--crest-font-sans);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 
   :deep(.ed-loading-mask) {
     border-radius: inherit;
-  }
-
-  .select-type-list {
-    width: 120px;
-    :deep(.ed-input__wrapper) {
-      padding-left: 11px;
-      padding-right: 11px;
-    }
   }
 
   &.expand {
     height: calc(100% - 89px);
   }
 
-  .type-button {
-    background-color: #fff;
+  .dashboard-type-tabs {
+    position: relative;
+    margin-bottom: 0;
 
-    &:hover,
-    &:active,
-    &:focus {
-      border-color: var(--ed-color-primary);
-      background-color: #fff;
+    &::after {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 1px;
+      content: '';
+      background: #f1f5f9;
+    }
+
+    :deep(.ed-tabs__header) {
+      margin: 0;
+    }
+
+    :deep(.ed-tabs__nav-wrap::after) {
+      display: none;
+    }
+
+    :deep(.ed-tabs__active-bar) {
+      height: 2px;
+      background: #3b82f6;
+      border-radius: 2px 2px 0 0;
+    }
+
+    :deep(.ed-tabs__item) {
+      height: 34px;
+      padding: 0 26px 14px 0;
+      font-family: var(--crest-font-sans);
+      font-size: 14.5px;
+      font-weight: 500;
+      color: #64748b;
+    }
+
+    :deep(.ed-tabs__item.is-active) {
+      font-weight: 600;
+      color: #3b82f6;
     }
   }
 
-  .dashboard-type-tabs {
-    margin-bottom: 16px;
+  .asset-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 0;
+  }
+
+  .type-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .type-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 30px;
+    padding: 0 11px;
+    color: #334155;
+    font-family: var(--crest-font-sans);
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    transition:
+      color 0.14s ease,
+      background 0.14s ease,
+      border-color 0.14s ease;
+
+    &:hover {
+      border-color: #cbd5e1;
+    }
+
+    &.active {
+      color: #ffffff;
+      background: #3b82f6;
+      border-color: #3b82f6;
+    }
+  }
+
+  .type-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
   }
 
   .search {
+    flex: none;
     text-align: right;
+
     .ed-input {
       width: 240px;
+    }
+
+    :deep(.ed-input__wrapper) {
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 8px;
+      box-shadow: 0 0 0 1px #e2e8f0 inset;
+      transition:
+        box-shadow 0.14s ease,
+        background 0.14s ease;
+    }
+
+    :deep(.ed-input__wrapper.is-focus) {
+      box-shadow:
+        0 0 0 1px #3b82f6 inset,
+        0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    :deep(.ed-input__prefix) {
+      color: #64748b;
     }
   }
 
   .panel-table {
-    margin-top: 16px;
-    height: calc(100% - 110px);
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 90px);
+    min-height: 0;
 
-    :deep(.ed-table__row):hover {
+    :deep(.ed-table) {
+      --ed-table-header-bg-color: #ffffff;
+      --ed-table-tr-bg-color: #ffffff;
+      color: #334155;
+      font-family: var(--crest-font-sans);
+      font-size: 13.5px;
+    }
+
+    :deep(.ed-table__inner-wrapper::before) {
+      display: none;
+    }
+
+    :deep(.ed-table th.ed-table__cell) {
+      padding: 10px 0;
+      color: #94a3b8;
+      font-family: var(--crest-font-mono);
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0;
+      background: #ffffff;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    :deep(.ed-table td.ed-table__cell) {
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    :deep(.ed-table__row) {
       cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    :deep(.ed-table__row:hover > td.ed-table__cell) {
+      background: #fafbfc;
+    }
+
+    .workbranch-grid {
+      flex: 1;
+      min-height: 0;
     }
 
     .name-content {
       display: flex;
       align-items: center;
-      .custom-icon {
-        display: none;
-      }
-      &:hover .custom-icon {
-        cursor: pointer;
-        margin-left: 8px;
-        display: inherit !important;
-      }
-    }
-    .main-color {
-      font-size: 18px;
-      padding: 3px;
-      margin-right: 12px;
-      border-radius: 6px;
-      color: #fff;
-    }
-    .name-star {
-      font-size: 15px;
-      padding-left: 5px;
     }
   }
 }
+
+.asset-name {
+  min-width: 0;
+}
+
+.asset-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-right: 12px;
+  border-radius: 8px;
+
+  &.disabled {
+    background: #cbd5e1 !important;
+  }
+
+  img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+  }
+}
+
+.asset-title-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.asset-title {
+  max-width: 220px;
+  color: #0f172a;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.asset-code {
+  margin-top: 2px;
+  color: #94a3b8;
+  font-family: var(--crest-font-mono);
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.asset-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  color: var(--tag-color);
+  font-size: 11.5px;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--tag-color) 12%, white);
+  border-radius: 5px;
+}
+
+.tag-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--tag-color);
+  border-radius: 50%;
+}
+
+.owner-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #334155;
+  font-size: 13px;
+}
+
+.owner-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: #1d4ed8;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border-radius: 50%;
+}
+
+.time-cell {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.time-relative {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.time-full {
+  margin-top: 1px;
+  color: #94a3b8;
+  font-family: var(--crest-font-mono);
+  font-size: 11px;
+}
+
+.table-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.14s ease;
+}
+
+:deep(.ed-table__row:hover) .table-actions {
+  opacity: 1;
+}
+
+.opbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: #64748b;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  transition:
+    color 0.12s ease,
+    background 0.12s ease;
+
+  &:hover {
+    color: #3b82f6;
+    background: #f1f5f9;
+  }
+
+  &.favorited {
+    color: #f5a623;
+  }
+}
+
+.table-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 0 14px;
+  color: #64748b;
+  font-family: var(--crest-font-sans);
+  font-size: 12.5px;
+  border-top: 1px solid #f1f5f9;
+}
+
 .workbranch-grid :deep(.ed-empty) {
   padding: 80px 0 !important;
+
   .ed-empty__description {
-    margin-top: 0px;
+    margin-top: 0;
     line-height: 20px !important;
   }
 }
@@ -573,12 +910,8 @@ const getEmptyDesc = (): string => {
 }
 
 .opt-disabled {
-  opacity: 0.2;
   cursor: not-allowed;
-}
-
-.custom-color-disabled {
-  background: #bbbfc4 !important;
+  opacity: 0.2;
 }
 </style>
 <style lang="less">

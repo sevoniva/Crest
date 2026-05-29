@@ -123,7 +123,7 @@ const { t } = useI18n()
         font-size: 12px;
         color: var(--ed-color-primary-dark-2, #2b5fd9);
         border-radius: 2px;
-        background: var(--ed-color-primary-33, rgba(51, 112, 255, 0.2));
+        background: var(--ed-color-primary-33, rgba(59, 130, 246, 0.2));
       }
       .info-title {
         .ed-button {

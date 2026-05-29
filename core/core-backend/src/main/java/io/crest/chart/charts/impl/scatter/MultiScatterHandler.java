@@ -40,6 +40,12 @@ public class MultiScatterHandler extends DefaultChartHandler {
     private String type = "multi-scatter";
 
     @Override
+    public void init() {
+        chartHandlerManager.registerChartHandler(this.getRender(), this.getType(), this);
+        chartHandlerManager.registerChartHandler(this.getRender(), "metric-matrix", this);
+    }
+
+    @Override
     public AxisFormatResult formatAxis(ChartViewDTO view) {
         var result = super.formatAxis(view);
         var xAxis = new ArrayList<ChartViewFieldDTO>();
@@ -146,5 +152,4 @@ public class MultiScatterHandler extends DefaultChartHandler {
                 .collect(Collectors.toList());
     }
 }
-
 

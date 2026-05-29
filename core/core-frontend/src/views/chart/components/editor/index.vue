@@ -4161,7 +4161,7 @@ const chartStyleScroll = (val: any) => {
         font-size: 14px;
       }
       &.active {
-        border-color: var(--ed-color-primary, #3370ff);
+        border-color: var(--ed-color-primary, #3B82F6);
       }
     }
 
@@ -4178,7 +4178,7 @@ const chartStyleScroll = (val: any) => {
       min-height: 100%;
       z-index: 5;
       .items {
-        border-color: var(--ed-color-primary, #3370ff);
+        border-color: var(--ed-color-primary, #3B82F6);
         & + .items {
           margin-top: 2px;
         }
@@ -4268,7 +4268,7 @@ const chartStyleScroll = (val: any) => {
       .ed-tabs__item {
         height: 35px;
         line-height: 35px;
-        color: var(--ed-color-primary, #3370ff);
+        color: var(--ed-color-primary, #3B82F6);
         font-family: var(--de-custom_font, 'PingFang');
         font-size: 12px;
         font-style: normal;
@@ -4297,7 +4297,7 @@ const chartStyleScroll = (val: any) => {
       .ed-tabs__item {
         height: 35px;
         line-height: 35px;
-        color: var(--ed-color-primary, #3370ff);
+        color: var(--ed-color-primary, #3B82F6);
         font-family: var(--de-custom_font, 'PingFang');
         font-size: 12px;
         font-style: normal;
@@ -4325,7 +4325,7 @@ const chartStyleScroll = (val: any) => {
       box-shadow: 0 0 0 1px hsla(0, 0%, 100%, 0.15) inset !important;
     }
     :deep(.ed-input__wrapper:hover) {
-      box-shadow: 0 0 0 1px var(--ed-color-primary, #3370ff) inset !important;
+      box-shadow: 0 0 0 1px var(--ed-color-primary, #3B82F6) inset !important;
     }
   }
   .query-style-tab {
@@ -4349,7 +4349,7 @@ const chartStyleScroll = (val: any) => {
       .ed-tabs__item {
         height: 35px;
         line-height: 35px;
-        color: var(--ed-color-primary, #3370ff);
+        color: var(--ed-color-primary, #3B82F6);
         font-family: var(--de-custom_font, 'PingFang');
         font-size: 12px;
         font-style: normal;
@@ -4491,7 +4491,7 @@ span {
         position: absolute;
         left: 16px;
         top: 0;
-        background: var(--ed-color-primary, #3370ff);
+        background: var(--ed-color-primary, #3B82F6);
       }
     }
 
@@ -4550,7 +4550,7 @@ span {
     }
 
     &.sortable-chosen {
-      border: 1px solid var(--ed-color-primary, #3370ff);
+      border: 1px solid var(--ed-color-primary, #3B82F6);
       background: #fff;
 
       &:hover {
@@ -4738,8 +4738,8 @@ span {
       }
 
       &.active {
-        color: var(--ed-color-primary, #3370ff);
-        border-color: var(--ed-color-primary, #3370ff);
+        color: var(--ed-color-primary, #3B82F6);
+        border-color: var(--ed-color-primary, #3B82F6);
       }
 
       &.invalid {
@@ -4818,7 +4818,7 @@ span {
   .result-style-dark {
     :deep(.ed-button) {
       color: #ffffff;
-      background-color: var(--ed-color-primary, #3370ff);
+      background-color: var(--ed-color-primary, #3B82F6);
       border: none;
       border-radius: 0;
     }
@@ -4864,7 +4864,7 @@ span {
       border-radius: 2px;
     }
     :deep(.ed-button:hover) {
-      border: 1px solid var(--ed-color-primary, #3370ff);
+      border: 1px solid var(--ed-color-primary, #3B82F6);
     }
   }
 

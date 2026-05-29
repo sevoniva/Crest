@@ -837,7 +837,7 @@ defineExpose({
       border-radius: 6px;
 
       .is-active {
-        background: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+        background: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
       }
 
       .ed-button:not(.is-active) {

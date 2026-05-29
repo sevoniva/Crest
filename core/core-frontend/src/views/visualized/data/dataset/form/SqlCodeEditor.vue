@@ -108,7 +108,7 @@ const codeComInit = (doc: string, sqlMode?: boolean) => {
       elt.style.borderRadius = '2px'
       elt.style.margin = '0 4px'
       elt.style.padding = '0 6px'
-      elt.style.background = isQuota ? 'rgba(0, 214, 185, 0.20)' : 'rgba(51, 112, 255, 0.20)'
+      elt.style.background = isQuota ? 'rgba(0, 214, 185, 0.20)' : 'rgba(59, 130, 246, 0.20)'
       elt.style.color = isQuota ? '#04B49C' : '#2B5FD9'
       return elt
     }

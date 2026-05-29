@@ -2471,7 +2471,7 @@ const getMenuList = (val: boolean) => {
             cursor: pointer;
             &::after {
               content: '';
-              background-color: var(--ed-color-primary-1a, #3370ff1a);
+              background-color: var(--ed-color-primary-1a, #3B82F61a);
               width: 28px;
               height: 28px;
               position: absolute;
@@ -2510,7 +2510,7 @@ const getMenuList = (val: boolean) => {
     }
     &.updating {
       color: var(--ed-color-primary-dark-2, #2b5fd9);
-      background: var(--ed-color-primary-33, rgba(51, 112, 255, 0.2));
+      background: var(--ed-color-primary-33, rgba(59, 130, 246, 0.2));
     }
     &.pause {
       background: rgba(31, 35, 41, 0.1);

@@ -802,7 +802,7 @@ defineExpose({
 }
 
 .mceNonEditable {
-  background: rgba(51, 112, 255, 0.4);
+  background: rgba(59, 130, 246, 0.4);
 }
 
 .tox-tinymce-inline {

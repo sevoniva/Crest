@@ -1196,7 +1196,7 @@ const mousedownDrag = () => {
       padding-left: 4px;
       width: 24px;
       .ed-icon {
-        color: var(--ed-color-primary, #3370ff);
+        color: var(--ed-color-primary, #3B82F6);
       }
     }
   }
@@ -1247,7 +1247,7 @@ const mousedownDrag = () => {
         z-index: 10;
         &:hover {
           .ed-icon {
-            color: var(--ed-color-primary, #3370ff) !important;
+            color: var(--ed-color-primary, #3B82F6) !important;
           }
         }
       }
@@ -1405,7 +1405,7 @@ const mousedownDrag = () => {
       .de-Exec-result,
       .de-Underway-pre {
         &::before {
-          background: var(--ed-color-primary, #3370ff);
+          background: var(--ed-color-primary, #3B82F6);
         }
       }
 
@@ -1422,7 +1422,7 @@ const mousedownDrag = () => {
         }
 
         .ed-icon-s-order {
-          color: var(--ed-color-primary, #3370ff);
+          color: var(--ed-color-primary, #3B82F6);
           cursor: pointer;
         }
       }
@@ -1492,8 +1492,8 @@ const mousedownDrag = () => {
               }
             }
             &:hover {
-              border-color: var(--ed-color-primary, #3370ff);
-              background: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+              border-color: var(--ed-color-primary, #3B82F6);
+              background: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
             }
           }
 
@@ -1563,13 +1563,13 @@ const mousedownDrag = () => {
       }
 
       &:focus {
-        background: var(--ed-color-primary-1a, #3370ff1a);
-        color: var(--ed-color-primary, #3370ff);
+        background: var(--ed-color-primary-1a, #3B82F61a);
+        color: var(--ed-color-primary, #3B82F6);
       }
 
       &:focus:hover {
-        color: var(--ed-color-primary, #3370ff);
-        background: var(--ed-color-primary-33, #3370ff33);
+        color: var(--ed-color-primary, #3B82F6);
+        background: var(--ed-color-primary-33, #3B82F633);
       }
     }
   }
@@ -1692,7 +1692,7 @@ const mousedownDrag = () => {
     height: 80px;
     width: 822px;
     border-radius: 6px;
-    background: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+    background: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
     position: relative;
     line-height: 22px;
     padding: 9px 0 9px 40px;
@@ -1705,7 +1705,7 @@ const mousedownDrag = () => {
       top: 10.6px;
       left: 16px;
       font-size: 14px;
-      color: var(--ed-color-primary, #3370ff);
+      color: var(--ed-color-primary, #3B82F6);
     }
 
     margin-bottom: 16px;

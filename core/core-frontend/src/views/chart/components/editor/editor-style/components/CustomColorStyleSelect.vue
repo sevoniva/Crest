@@ -613,7 +613,7 @@ const colorItemBorderColor = (index, state) => {
         cursor: initial;
       }
       &:hover {
-        border-color: var(--ed-color-primary-99, rgba(51, 112, 255, 0.6));
+        border-color: var(--ed-color-primary-99, rgba(59, 130, 246, 0.6));
       }
       &.active {
         border-color: var(--ed-color-primary);
@@ -682,7 +682,7 @@ const colorItemBorderColor = (index, state) => {
         border-radius: 1px;
       }
       &:hover {
-        border-color: var(--ed-color-primary-99, rgba(51, 112, 255, 0.6));
+        border-color: var(--ed-color-primary-99, rgba(59, 130, 246, 0.6));
       }
       &.active {
         border-color: var(--ed-color-primary);

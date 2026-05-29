@@ -160,7 +160,7 @@ const findUrl = name => {
 }
 
 .li-custom-active {
-  background: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+  background: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
   color: var(--ed-color-primary) !important;
   .li-a {
     color: var(--ed-color-primary) !important;

@@ -1280,7 +1280,7 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
             cursor: pointer;
             &::after {
               content: '';
-              background-color: var(--ed-color-primary-1a, #3370ff1a);
+              background-color: var(--ed-color-primary-1a, #3B82F61a);
               width: 28px;
               height: 28px;
               position: absolute;

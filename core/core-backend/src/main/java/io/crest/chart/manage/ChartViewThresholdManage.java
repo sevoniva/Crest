@@ -250,7 +250,7 @@ public class ChartViewThresholdManage {
         Matcher matcher = pattern.matcher(htmlString);
         if (matcher.find()) {
             String styleAttribute = matcher.group();
-            String newStyle = styleAttribute.replace("background: #3370FF33", "background: #FFFFFF")
+            String newStyle = styleAttribute.replaceAll("background: #[0-9A-Fa-f]{6}33", "background: #FFFFFF")
                     .replace("color: #2b5fd9", "color: #000000");
             return matcher.replaceAll(Matcher.quoteReplacement(newStyle));
         }

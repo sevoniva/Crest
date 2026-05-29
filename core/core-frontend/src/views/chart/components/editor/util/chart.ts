@@ -1368,6 +1368,13 @@ export const CHART_TYPE_CONFIGS = [
         value: 'area-stack',
         title: t('chart.chart_area_stack'),
         icon: 'area-stack'
+      },
+      {
+        render: 'antv',
+        category: 'trend',
+        value: 'cumulative-flow',
+        title: '累积流图',
+        icon: 'area-stack'
       }
     ]
   },
@@ -1561,6 +1568,13 @@ export const CHART_TYPE_CONFIGS = [
       {
         render: 'antv',
         category: 'relation',
+        value: 'stage-funnel',
+        title: '阶段漏斗',
+        icon: 'funnel'
+      },
+      {
+        render: 'antv',
+        category: 'relation',
         value: 'sankey',
         title: t('chart.chart_sankey'),
         icon: 'sankey'
@@ -1577,6 +1591,13 @@ export const CHART_TYPE_CONFIGS = [
         category: 'distribute',
         value: 'multi-scatter',
         title: '多维散点图',
+        icon: 'multi-scatter'
+      },
+      {
+        render: 'antv',
+        category: 'relation',
+        value: 'metric-matrix',
+        title: '指标矩阵',
         icon: 'multi-scatter'
       }
     ]

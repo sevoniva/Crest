@@ -145,7 +145,7 @@ const fieldSelect = name => {
   const field = {
     id: obj.id,
     name: obj.name,
-    backgroundColor: obj.groupType === 'd' ? '#3370FF33' : '#00D6B933',
+    backgroundColor: obj.groupType === 'd' ? '#3B82F633' : '#00D6B933',
     color: obj.groupType === 'd' ? '#2B5FD9' : '#04B49C'
   }
   const fieldId = 'changeText-' + field.id || ''

@@ -60,7 +60,7 @@ const visible = ref(true)
       border: 0px !important;
       border-color: #ffffff !important;
       font-weight: 500;
-      color: var(--ed-color-primary, rgba(51, 112, 255, 1)) !important;
+      color: var(--ed-color-primary, rgba(59, 130, 246, 1)) !important;
     }
   }
 }

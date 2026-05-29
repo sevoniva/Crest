@@ -197,7 +197,7 @@ function setPosition(p: 'left' | 'center' | 'right') {
 :deep(.ed-checkbox.is-checked) {
   .ed-checkbox__label {
     .bash-icon {
-      background: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+      background: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
       border-radius: 6px;
       color: var(--ed-color-primary);
     }
@@ -207,7 +207,7 @@ function setPosition(p: 'left' | 'center' | 'right') {
 :deep(.ed-radio.is-checked) {
   .ed-radio__label {
     .bash-icon {
-      background: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+      background: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
       border-radius: 6px;
     }
   }
@@ -253,7 +253,7 @@ function setPosition(p: 'left' | 'center' | 'right') {
     color: #a6a6a6;
     &.active {
       color: var(--ed-color-primary);
-      background-color: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+      background-color: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
     }
     &:hover {
       background-color: rgba(255, 255, 255, 0.1);
@@ -262,7 +262,7 @@ function setPosition(p: 'left' | 'center' | 'right') {
 
   &.active {
     color: var(--ed-color-primary);
-    background-color: var(--ed-color-primary-1a, rgba(51, 112, 255, 0.1));
+    background-color: var(--ed-color-primary-1a, rgba(59, 130, 246, 0.1));
   }
 
   &:hover {
