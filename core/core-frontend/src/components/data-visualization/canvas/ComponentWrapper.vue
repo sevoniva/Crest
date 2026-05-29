@@ -528,7 +528,7 @@ onBeforeUnmount(() => {
         :name="commonBackgroundSvgInner"
       ></Board>
     </div>
-        <DePreviewPopDialog ref="dePreviewPopDialogRef"></DePreviewPopDialog>
+    <DePreviewPopDialog ref="dePreviewPopDialogRef"></DePreviewPopDialog>
   </div>
 </template>
 

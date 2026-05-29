@@ -3266,7 +3266,7 @@ const getIconNameCalc = (deType, extField, dimension = false) => {
       <el-button type="primary" @click="confirmGroupField">{{ t('dataset.confirm') }} </el-button>
     </template>
   </el-dialog>
-      </template>
+</template>
 
 <style lang="less" scoped>
 @import '@/style/mixin.less';

@@ -322,7 +322,6 @@ onMounted(async () => {
                   </div>
                 </div>
               </div>
-
             </div>
 
             <div class="login-msg">

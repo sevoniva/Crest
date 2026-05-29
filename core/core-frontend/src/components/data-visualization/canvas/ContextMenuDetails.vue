@@ -330,7 +330,7 @@ const editQueryCriteria = () => {
             <li @click="customSort" v-if="curComponent.component === 'DeTabs'">
               {{ t('visualization.sort') }}
             </li>
-                        <li @click="categoryChange('hidden')" v-show="showMoveMenu">
+            <li @click="categoryChange('hidden')" v-show="showMoveMenu">
               {{ t('visualization.move_to_pop_area') }}
             </li>
             <el-divider class="custom-divider" />

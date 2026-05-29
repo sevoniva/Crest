@@ -147,7 +147,7 @@ export const useAppearanceStore = defineStore('appearanceStore', {
     },
     getShowDoc(): boolean {
       return isBtnShow(this.showDoc)
-    },
+    }
   },
   actions: {
     setNavigate(data: string) {

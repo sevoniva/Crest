@@ -71,6 +71,22 @@ function check_and_prepare_env_params() {
    fi
    set +a
    DE_INTERNAL_LITE=${DE_INTERNAL_LITE:-true}
+   if [[ -z "$DE_MYSQL_PASSWORD" ]]; then
+      DE_MYSQL_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9_@%+=' </dev/urandom | head -c 32)
+      export DE_MYSQL_PASSWORD
+   fi
+   if [[ -z "$DE_AES_KEY" ]]; then
+      DE_AES_KEY=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32)
+      export DE_AES_KEY
+   fi
+   if [[ -z "$DE_AES_IV" ]]; then
+      DE_AES_IV=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)
+      export DE_AES_IV
+   fi
+   if [[ -z "$DE_INITIAL_PASSWORD" ]]; then
+      DE_INITIAL_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9_@%+=' </dev/urandom | head -c 20)
+      export DE_INITIAL_PASSWORD
+   fi
 
    read available_disk <<< $(df -H --output=avail "${DE_BASE}" | tail -1)
    disk_num=${available_disk%[KMGTP]}
@@ -89,6 +105,10 @@ function set_run_base_path() {
    log_title "设置运行目录"
    DE_RUN_BASE=$DE_BASE/crest
    export DE_RUN_BASE
+   DE_LOG_PATH=${DE_LOG_PATH:-/opt/crest/logs/crest}
+   DE_CACHE_PATH=${DE_CACHE_PATH:-/opt/crest/cache}
+   export DE_LOG_PATH
+   export DE_CACHE_PATH
    CONF_FOLDER=${DE_RUN_BASE}/conf
    TEMPLATES_FOLDER=${DE_RUN_BASE}/templates
    log_content "运行目录 $DE_RUN_BASE"

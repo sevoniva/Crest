@@ -157,7 +157,7 @@ core/core-backend/src/main/resources/db/migration
 每次调整迁移脚本后，都要至少做一次空库安装验证：
 
 ```bash
-docker exec crest-mysql-local mysql -uroot -pPassword123@mysql \
+docker exec crest-mysql-local mysql -uroot -p'<mysql-root-password>' \
   -e "DROP DATABASE IF EXISTS crest_simplify; CREATE DATABASE crest_simplify DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
 launchctl kickstart -k gui/$(id -u)/com.crest.local
 ```

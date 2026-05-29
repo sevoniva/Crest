@@ -66,6 +66,8 @@ public class StaticResourceServer implements StaticResourceApi {
             byte[] fileBytes = file.getBytes();
             validateImageContent(newFileName, fileBytes, file.getContentType(), true);
             writeFileIfAbsent(newFileName, fileBytes);
+        } catch (DEException e) {
+            throw e;
         } catch (IOException e) {
             LogUtil.error("文件上传失败", e);
             DEException.throwException("文件上传失败");

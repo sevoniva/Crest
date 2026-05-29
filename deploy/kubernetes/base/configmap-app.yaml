@@ -26,7 +26,7 @@ data:
 
     logging:
       file:
-        path: /opt/crest/logs/crest
+        path: ${CREST_LOG_PATH:/opt/crest/logs/crest}
       level:
         "org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker": ERROR
 
@@ -41,3 +41,9 @@ data:
       path:
         excel: ${CREST_PATH_EXCEL:/opt/crest/data/excel/}
         exportData: ${CREST_PATH_EXPORT_DATA:/opt/crest/data/exportData/}
+        ehcache: ${CREST_PATH_EHCACHE:/opt/crest/cache}
+      crypto:
+        aes-key: ${CREST_AES_KEY}
+        aes-iv: ${CREST_AES_IV}
+      user:
+        initial-password: ${CREST_INITIAL_PASSWORD}

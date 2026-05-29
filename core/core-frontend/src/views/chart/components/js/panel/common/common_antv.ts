@@ -42,8 +42,7 @@ type GeoFeatureCollection = {
 
 type Listener = (...args: any[]) => void
 
-const L7_LEGEND_CONTAINER_TPL =
-  '<div><div class="l7plot-legend__category-list"></div></div>'
+const L7_LEGEND_CONTAINER_TPL = '<div><div class="l7plot-legend__category-list"></div></div>'
 const L7_LEGEND_ITEM_TPL = '<div class="l7plot-legend__category-item"></div>'
 const L7_LEGEND_LIST_CLASS = 'l7plot-legend__category-list'
 
@@ -82,10 +81,18 @@ class LiteMapObject {
     return 0
   }
 
-  setStatus() {}
-  setBaseMap() {}
-  checkResize() {}
-  removeStyle() {}
+  setStatus() {
+    return undefined
+  }
+  setBaseMap() {
+    return undefined
+  }
+  checkResize() {
+    return undefined
+  }
+  removeStyle() {
+    return undefined
+  }
 }
 
 export class Scene {
@@ -104,8 +111,12 @@ export class Scene {
     listener?.()
   }
 
-  addControl() {}
-  removeControl() {}
+  addControl() {
+    return undefined
+  }
+  removeControl() {
+    return undefined
+  }
   getControlByName() {
     return null
   }
@@ -115,10 +126,18 @@ export class Scene {
   getCenter() {
     return [0, 0]
   }
-  setZoomAndCenter() {}
-  setPitch() {}
-  setMapStyle() {}
-  async removeAllLayer() {}
+  setZoomAndCenter() {
+    return undefined
+  }
+  setPitch() {
+    return undefined
+  }
+  setMapStyle() {
+    return undefined
+  }
+  async removeAllLayer() {
+    return undefined
+  }
   getLayers() {
     return []
   }
@@ -155,7 +174,9 @@ class LiteZoom {
     return button
   }
 
-  updateDisabled() {}
+  updateDisabled() {
+    return undefined
+  }
 }
 
 class GaodeMap extends LiteMapObject {}

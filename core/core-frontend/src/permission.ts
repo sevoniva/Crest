@@ -121,10 +121,16 @@ router.beforeEach(async (to, from, next) => {
         router.addRoute(route as unknown as RouteRecordRaw) // 动态添加可访问路由表
       })
 
-      const redirectTarget = parseRedirectLocation((from.query.redirect as string) || to.fullPath || to.path)
+      const redirectTarget = parseRedirectLocation(
+        (from.query.redirect as string) || to.fullPath || to.path
+      )
       const nextData =
         to.path === redirectTarget.path
-          ? { ...to, query: Object.keys(to.query).length ? to.query : redirectTarget.query, replace: true }
+          ? {
+              ...to,
+              query: Object.keys(to.query).length ? to.query : redirectTarget.query,
+              replace: true
+            }
           : redirectTarget
 
       permissionStore.setIsAddRouters(true)

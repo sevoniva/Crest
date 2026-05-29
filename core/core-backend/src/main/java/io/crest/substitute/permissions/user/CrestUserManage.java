@@ -12,6 +12,7 @@ import io.crest.api.permissions.user.vo.UserGridVO;
 import io.crest.api.permissions.user.vo.UserGridRoleItem;
 import io.crest.exception.DEException;
 import io.crest.substitute.permissions.user.model.CrestUser;
+import io.crest.utils.ConfigUtils;
 import io.crest.utils.IDUtils;
 import io.crest.utils.Md5Utils;
 import jakarta.annotation.PostConstruct;
@@ -29,7 +30,7 @@ import java.util.List;
 @Component("crestUserManage")
 public class CrestUserManage {
 
-    private static final String DEFAULT_PASSWORD = "admin";
+    private static final String INITIAL_PASSWORD_PROPERTY = "crest.user.initial-password";
 
     @Resource
     private JdbcTemplate jdbcTemplate;
@@ -59,7 +60,7 @@ public class CrestUserManage {
             jdbcTemplate.update("""
                     INSERT INTO crest_user(id, account, name, password_hash, enable, is_admin, origin, create_time, update_time)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, 1L, "admin", "管理员", Md5Utils.md5(DEFAULT_PASSWORD), true, true, 0, now, now);
+                    """, 1L, "admin", "管理员", Md5Utils.md5(initialPassword()), true, true, 0, now, now);
         } else {
             jdbcTemplate.update("UPDATE crest_user SET is_admin = 1, enable = 1 WHERE id = 1");
         }
@@ -135,7 +136,7 @@ public class CrestUserManage {
                 INSERT INTO crest_user(id, account, name, email, phone_prefix, phone, password_hash, enable, is_admin, origin, create_time, update_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, id, creator.getAccount().trim(), creator.getName().trim(), creator.getEmail(),
-                creator.getPhonePrefix(), creator.getPhone(), Md5Utils.md5(DEFAULT_PASSWORD),
+                creator.getPhonePrefix(), creator.getPhone(), Md5Utils.md5(initialPassword()),
                 creator.getEnable() == null || creator.getEnable(), hasAdminRole(creator.getRoleIds()), 0, now, now);
         return id;
     }
@@ -180,7 +181,7 @@ public class CrestUserManage {
     @Transactional
     public void resetPwd(Long id) {
         jdbcTemplate.update("UPDATE crest_user SET password_hash = ?, update_time = ? WHERE id = ?",
-                Md5Utils.md5(DEFAULT_PASSWORD), System.currentTimeMillis(), id);
+                Md5Utils.md5(initialPassword()), System.currentTimeMillis(), id);
     }
 
     @Transactional
@@ -251,5 +252,13 @@ public class CrestUserManage {
 
     private boolean hasAdminRole(List<Long> roleIds) {
         return roleIds != null && roleIds.stream().anyMatch(roleId -> Long.valueOf(1L).equals(roleId));
+    }
+
+    private String initialPassword() {
+        String password = ConfigUtils.getConfig(INITIAL_PASSWORD_PROPERTY, null);
+        if (StringUtils.isBlank(password)) {
+            throw new IllegalStateException(INITIAL_PASSWORD_PROPERTY + " must be configured");
+        }
+        return password;
     }
 }

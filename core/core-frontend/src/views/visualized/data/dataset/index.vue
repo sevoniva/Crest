@@ -1034,7 +1034,7 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
                 :name="ele.name"
               ></el-tab-pane>
             </el-tabs>
-                      </div>
+          </div>
         </div>
         <div class="dataset-table-info">
           <div v-if="activeName === 'dataPreview'" class="preview-num">
@@ -1104,8 +1104,7 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
             </div>
           </template>
           <template v-if="['row', 'column'].includes(activeName)">
-            <div class="table-row-column">
-                                        </div>
+            <div class="table-row-column"></div>
           </template>
         </div>
       </template>

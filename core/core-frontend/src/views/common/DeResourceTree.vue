@@ -798,7 +798,7 @@ defineExpose({
       />
     </el-scrollbar>
   </div>
-  </template>
+</template>
 <style lang="less" scoped>
 .filter-icon-span {
   border: 1px solid #d9dcdf;

@@ -776,7 +776,9 @@ const deleteExcelEditRows = () => {
       excelEditState.deletedIds.push(row[EXCEL_EDIT_ROW_ID])
     }
   })
-  excelEditState.rows = excelEditState.rows.filter(row => !selectedRowIds.has(row[EXCEL_EDIT_ROW_ID]))
+  excelEditState.rows = excelEditState.rows.filter(
+    row => !selectedRowIds.has(row[EXCEL_EDIT_ROW_ID])
+  )
   excelEditState.selectedRows = []
   excelEditState.dirty = true
 }
@@ -1951,7 +1953,7 @@ const getMenuList = (val: boolean) => {
                 </template>
 
                 <!--    数据填报      -->
-                              </template>
+              </template>
               <template v-if="['es'].includes(nodeInfo.type) && nodeInfo.weight >= 7">
                 <el-row :gutter="24">
                   <el-col :span="12">
@@ -2387,8 +2389,7 @@ const getMenuList = (val: boolean) => {
       </template>
     </el-dialog>
     <relationChart ref="relationChartRef"></relationChart>
-
-      </div>
+  </div>
 </template>
 
 <style lang="less" scoped>

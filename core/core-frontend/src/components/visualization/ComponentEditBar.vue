@@ -169,7 +169,7 @@
             >{{ t('visualization.hidden') }}</el-dropdown-item
           >
 
-                    <el-dropdown-item divided @click="deleteComponent" v-if="barShowCheck('delete')">{{
+          <el-dropdown-item divided @click="deleteComponent" v-if="barShowCheck('delete')">{{
             t('visualization.delete')
           }}</el-dropdown-item>
         </el-dropdown-menu>

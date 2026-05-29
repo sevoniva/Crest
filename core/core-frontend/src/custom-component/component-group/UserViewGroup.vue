@@ -193,7 +193,7 @@ const loadPluginCategory = data => {
       </el-row>
     </el-scrollbar>
   </el-row>
-  </template>
+</template>
 
 <style lang="less" scoped>
 .light {

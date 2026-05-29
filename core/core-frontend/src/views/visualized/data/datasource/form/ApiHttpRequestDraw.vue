@@ -798,8 +798,7 @@ defineExpose({
         </div>
       </el-form>
     </el-row>
-    <el-row v-show="active === 0 && dsType !== 'API'">
-          </el-row>
+    <el-row v-show="active === 0 && dsType !== 'API'"> </el-row>
     <el-row v-show="active === 1">
       <el-form
         style="width: 100%"

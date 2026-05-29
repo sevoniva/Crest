@@ -1277,7 +1277,7 @@ const clearG2Tooltip = () => {
       :drill-filters="state.drillFilters"
       @onDrillJump="drillJump"
     />
-            <DePreviewPopDialog ref="dePreviewPopDialogRef"></DePreviewPopDialog>
+    <DePreviewPopDialog ref="dePreviewPopDialogRef"></DePreviewPopDialog>
   </div>
 </template>
 

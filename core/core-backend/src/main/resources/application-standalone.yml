@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/crest?autoReconnect=false&useUnicode=true&characterEncoding=UTF-8&characterSetResults=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
-    username: root
-    password: Password123@mysql
+    url: ${CREST_DB_URL:jdbc:mysql://127.0.0.1:3306/crest?autoReconnect=false&useUnicode=true&characterEncoding=UTF-8&characterSetResults=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${CREST_DB_USERNAME:root}
+    password: ${CREST_DB_PASSWORD:}
   messages:
     basename: i18n/lic,i18n/core,i18n/permissions,i18n/sync
   flyway:

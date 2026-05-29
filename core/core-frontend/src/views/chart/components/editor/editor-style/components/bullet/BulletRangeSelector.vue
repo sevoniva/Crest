@@ -162,7 +162,7 @@ onMounted(() => {
         :label="t('chart.radar_size')"
         class="form-item"
         :class="'form-item-' + themes"
-        style="padding-left: 4px; width: 100%"
+        style="width: 100%; padding-left: 4px"
       >
         <el-input-number
           :effect="props.themes"

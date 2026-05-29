@@ -7,9 +7,9 @@ spring:
         enabled: true
         server-addr: 127.0.0.1:8848
   datasource:
-    url: jdbc:mysql://localhost:3306/de_manage?autoReconnect=false&useUnicode=true&characterEncoding=UTF-8&characterSetResults=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false
-    username: root
-    password: 1qaz@WSX
+    url: ${CREST_DB_URL:jdbc:mysql://localhost:3306/crest?autoReconnect=false&useUnicode=true&characterEncoding=UTF-8&characterSetResults=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false}
+    username: ${CREST_DB_USERNAME:root}
+    password: ${CREST_DB_PASSWORD:}
   flyway:
     enabled: false
   messages:
@@ -20,9 +20,9 @@ dynamic:
   datasource:
     official-ds:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://localhost:3306/de_official?autoReconnect=false&useUnicode=true&characterEncoding=UTF-8&characterSetResults=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false
-      username: root
-      password: 1qaz@WSX
+      url: ${CREST_OFFICIAL_DB_URL:jdbc:mysql://localhost:3306/crest_official?autoReconnect=false&useUnicode=true&characterEncoding=UTF-8&characterSetResults=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false}
+      username: ${CREST_OFFICIAL_DB_USERNAME:${CREST_DB_USERNAME:root}}
+      password: ${CREST_OFFICIAL_DB_PASSWORD:${CREST_DB_PASSWORD:}}
 
 mybatis-plus:
   mapper-locations: classpath:mybatis/*.xml

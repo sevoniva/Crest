@@ -125,7 +125,7 @@ const emit = defineEmits([
   'onExtTooltipChange',
   'onIndicatorChange',
   'onIndicatorNameChange',
-  'onChangeQuadrantForm',
+  'onChangeQuadrantForm'
 ])
 
 const indicatorValueRef = ref()

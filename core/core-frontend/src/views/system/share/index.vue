@@ -115,7 +115,9 @@ onMounted(loadTable)
         </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="row.extFlag1 ? 'success' : 'info'">{{ row.extFlag1 ? '可访问' : '资源异常' }}</el-tag>
+            <el-tag :type="row.extFlag1 ? 'success' : 'info'">{{
+              row.extFlag1 ? '可访问' : '资源异常'
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">

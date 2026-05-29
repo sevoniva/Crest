@@ -76,43 +76,43 @@ const setBoard = () => {
 <style scoped>
 .testcase-template {
   display: inline-block;
-  margin: 5px 0px;
   width: 90px;
+  margin: 5px 0;
 }
 
 .demonstration {
   display: block;
+  width: 130px;
+  margin: 10px auto;
+  overflow: hidden;
   font-size: 8px;
   color: gray;
   text-align: center;
-  margin: 10px auto;
-  width: 130px;
-  white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .template-img {
   position: relative;
-  height: 80px;
   width: 130px;
+  height: 80px;
   margin: 0 auto;
-  box-sizing: border-box;
   border-radius: 3px;
+  box-sizing: border-box;
 }
 
 .template-img:hover {
-  border: solid 1px #4b8fdf;
-  border-radius: 3px;
   color: deepskyblue;
   cursor: pointer;
+  border: solid 1px #4b8fdf;
+  border-radius: 3px;
 }
 
 .template-img > i {
   display: none;
   float: right;
-  color: gray;
   margin: 2px;
+  color: gray;
 }
 
 .template-img > i:hover {
@@ -128,9 +128,9 @@ const setBoard = () => {
 }
 
 .template-img-active {
+  color: deepskyblue;
   border: solid 1px red;
   border-radius: 3px;
-  color: deepskyblue;
 }
 
 .svg-background {
@@ -140,6 +140,7 @@ const setBoard = () => {
   width: 100% !important;
   height: 100% !important;
 }
+
 :deep(.ed-row) {
   flex-direction: column;
 }

@@ -615,7 +615,7 @@ defineExpose({
   <empty-background v-if="!state.initState" description="参数不能为空" img-type="noneWhite" />
   <de-fullscreen ref="fullScreeRef"></de-fullscreen>
   <dataset-params-component ref="customDatasetParamsRef"></dataset-params-component>
-    <link-opt-bar
+  <link-opt-bar
     v-if="linkOptBarShow"
     ref="link-opt-bar"
     :terminal="'pc'"

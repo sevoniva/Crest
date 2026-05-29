@@ -902,7 +902,7 @@ defineExpose({
               (!isPlugin || currentDsType.startsWith('API'))
             "
           ></editor-detail>
-                    <template v-if="activeStep !== 0 && currentDsType == 'Excel'">
+          <template v-if="activeStep !== 0 && currentDsType == 'Excel'">
             <excel-detail
               :editDs="editDs"
               :is-supportSetKey="isSupportSetKey"
@@ -971,8 +971,7 @@ defineExpose({
         :name="dsInfo.name"
         v-if="showFinishPage"
       ></FinishPage>
-
-          </div>
+    </div>
   </el-drawer>
   <creat-ds-group
     @handle-show-finish-page="handleShowFinishPage"

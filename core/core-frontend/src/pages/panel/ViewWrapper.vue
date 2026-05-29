@@ -219,7 +219,7 @@ onMounted(() => {
     <user-view-enlarge ref="userViewEnlargeRef"></user-view-enlarge>
   </div>
   <empty-background v-if="!state.initState" description="参数不能为空" img-type="noneWhite" />
-  </template>
+</template>
 
 <style lang="less" scoped>
 .de-view-wrapper {

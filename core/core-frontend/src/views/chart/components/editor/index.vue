@@ -2014,8 +2014,7 @@ const chartStyleScroll = (val: any) => {
             :chart="view"
             :themes="themes"
           />
-          <template v-else-if="view.plugin?.isPlugin">
-                      </template>
+          <template v-else-if="view.plugin?.isPlugin"> </template>
           <template v-else>
             <chart-style
               v-if="chartStyleShow"
@@ -2186,8 +2185,7 @@ const chartStyleScroll = (val: any) => {
                           </template>
                         </el-popover>
                       </el-row>
-                      <template v-if="view.plugin?.isPlugin">
-                                              </template>
+                      <template v-if="view.plugin?.isPlugin"> </template>
                       <template v-else>
                         <!--xAxis-->
                         <template v-if="view.type !== 'multi-scatter'">
@@ -3396,8 +3394,7 @@ const chartStyleScroll = (val: any) => {
                       @scroll="chartStyleScroll"
                       class="drag_main_area"
                     >
-                      <template v-if="view.plugin?.isPlugin">
-                                              </template>
+                      <template v-if="view.plugin?.isPlugin"> </template>
                       <template v-else>
                         <chart-style
                           v-if="chartStyleShow"
@@ -3448,8 +3445,7 @@ const chartStyleScroll = (val: any) => {
                 >
                   <el-container direction="vertical">
                     <el-scrollbar class="drag_main_area">
-                      <template v-if="view.plugin?.isPlugin">
-                                              </template>
+                      <template v-if="view.plugin?.isPlugin"> </template>
                       <template v-else>
                         <senior
                           :chart="view"
@@ -4109,7 +4105,7 @@ const chartStyleScroll = (val: any) => {
     </el-dialog>
   </div>
   <FilterTree ref="filterTree" @filter-data="changeFilterData" />
-    <Teleport v-if="componentNameEdit" :to="'#component-name'">
+  <Teleport v-if="componentNameEdit" :to="'#component-name'">
     <input
       ref="componentNameInput"
       v-model="inputComponentName.name"

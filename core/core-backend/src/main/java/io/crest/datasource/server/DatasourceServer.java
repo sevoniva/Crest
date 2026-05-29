@@ -43,6 +43,7 @@ import io.crest.job.schedule.ScheduleManager;
 import io.crest.log.DeLog;
 import io.crest.model.BusiNodeRequest;
 import io.crest.model.BusiNodeVO;
+import io.crest.result.ResultCode;
 import io.crest.system.dao.auto.entity.CoreSysSetting;
 import io.crest.system.manage.CoreUserManage;
 import io.crest.utils.*;
@@ -66,6 +67,7 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.*;
@@ -119,6 +121,18 @@ public class DatasourceServer implements DatasourceApi {
     @Autowired(required = false)
     private RelationApi relationManage;
 
+    private static String decodeBase64RequestValue(String value, String fieldName) {
+        if (StringUtils.isBlank(value)) {
+            return "";
+        }
+        try {
+            return new String(Base64.getDecoder().decode(value), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            DEException.throwException(ResultCode.PARAM_IS_INVALID.code(), fieldName + "格式无效");
+            return "";
+        }
+    }
+
     public enum UpdateType {
         all_scope, add_scope
     }
@@ -158,7 +172,7 @@ public class DatasourceServer implements DatasourceApi {
         if (CollectionUtils.isEmpty(datasources)) {
             return false;
         }
-        dataSourceDTO.setConfiguration(new String(Base64.getDecoder().decode(dataSourceDTO.getConfiguration())));
+        dataSourceDTO.setConfiguration(decodeBase64RequestValue(dataSourceDTO.getConfiguration(), "数据源配置"));
         DatasourceConfiguration configuration = JsonUtil.parseObject(dataSourceDTO.getConfiguration(), DatasourceConfiguration.class);
         boolean hasRepeat = false;
         for (CoreDatasource datasource : datasources) {
@@ -263,7 +277,7 @@ public class DatasourceServer implements DatasourceApi {
             return update(busiDsRequest);
         }
         if (StringUtils.isNotEmpty(dataSourceDTO.getConfiguration())) {
-            dataSourceDTO.setConfiguration(new String(Base64.getDecoder().decode(dataSourceDTO.getConfiguration())));
+            dataSourceDTO.setConfiguration(decodeBase64RequestValue(dataSourceDTO.getConfiguration(), "数据源配置"));
         }
         if (ObjectUtils.isNotEmpty(dataSourceDTO.getPid()) && !Objects.equals(dataSourceDTO.getPid(), 0L)) {
             requireDatasourceAccess(dataSourceDTO.getPid());
@@ -393,7 +407,7 @@ public class DatasourceServer implements DatasourceApi {
         }
         DatasourceDTO sourceData = dataSourceManage.getDs(pk);
         requireDatasourceAccess(pk);
-        dataSourceDTO.setConfiguration(new String(Base64.getDecoder().decode(dataSourceDTO.getConfiguration())));
+        dataSourceDTO.setConfiguration(decodeBase64RequestValue(dataSourceDTO.getConfiguration(), "数据源配置"));
         dataSourceDTO.setPid(sourceData.getPid());
         preCheckDs(dataSourceDTO);
 
@@ -524,9 +538,10 @@ public class DatasourceServer implements DatasourceApi {
     public DatasourceDTO validate(BusiDsRequest busiDsRequest) throws DEException {
         DatasourceDTO dataSourceDTO = new DatasourceDTO();
         BeanUtils.copyBean(dataSourceDTO, busiDsRequest);
-        dataSourceDTO.setConfiguration(new String(Base64.getDecoder().decode(dataSourceDTO.getConfiguration())));
+        dataSourceDTO.setConfiguration(decodeBase64RequestValue(dataSourceDTO.getConfiguration(), "数据源配置"));
         CoreDatasource coreDatasource = new CoreDatasource();
         BeanUtils.copyBean(coreDatasource, dataSourceDTO);
+        checkDatasourceConfigurationComplete(dataSourceDTO);
         checkDatasourceStatus(dataSourceDTO);
         DatasourceDTO result = new DatasourceDTO();
         result.setType(dataSourceDTO.getType());
@@ -538,7 +553,7 @@ public class DatasourceServer implements DatasourceApi {
     public List<String> getSchema(BusiDsRequest busiDsRequest) throws DEException {
         DatasourceDTO dataSourceDTO = new DatasourceDTO();
         BeanUtils.copyBean(dataSourceDTO, busiDsRequest);
-        dataSourceDTO.setConfiguration(new String(Base64.getDecoder().decode(dataSourceDTO.getConfiguration())));
+        dataSourceDTO.setConfiguration(decodeBase64RequestValue(dataSourceDTO.getConfiguration(), "数据源配置"));
         CoreDatasource coreDatasource = new CoreDatasource();
         BeanUtils.copyBean(coreDatasource, dataSourceDTO);
         DatasourceRequest datasourceRequest = new DatasourceRequest();
@@ -943,8 +958,8 @@ public class DatasourceServer implements DatasourceApi {
     }
 
     public ExcelFileData loadRemoteFile(RemoteExcelRequest remoteExcelRequest) throws DEException, IOException {
-        remoteExcelRequest.setUserName(new String(Base64.getDecoder().decode(remoteExcelRequest.getUserName())));
-        remoteExcelRequest.setPasswd(new String(Base64.getDecoder().decode(remoteExcelRequest.getPasswd())));
+        remoteExcelRequest.setUserName(decodeBase64RequestValue(remoteExcelRequest.getUserName(), "远程 Excel 用户名"));
+        remoteExcelRequest.setPasswd(decodeBase64RequestValue(remoteExcelRequest.getPasswd(), "远程 Excel 密码"));
         ExcelFileData excelFileData = new ExcelUtils().parseRemoteExcel(remoteExcelRequest);
         CoreDatasource coreDatasource = null;
         if (ObjectUtils.isNotEmpty(remoteExcelRequest.getDatasourceId()) && 0L != remoteExcelRequest.getDatasourceId()) {
@@ -1037,12 +1052,12 @@ public class DatasourceServer implements DatasourceApi {
     }
 
     public ApiDefinition checkApiDatasource(Map<String, String> request) throws DEException {
-        ApiDefinition apiDefinition = JsonUtil.parseObject(new String(java.util.Base64.getDecoder().decode(request.get("data"))), ApiDefinition.class);
+        ApiDefinition apiDefinition = JsonUtil.parseObject(decodeBase64RequestValue(request.get("data"), "API 数据源配置"), ApiDefinition.class);
         apiDefinition.setType("table");
         if (request.keySet().contains("type") && request.get("type").equals("apiStructure")) {
             apiDefinition.setShowApiStructure(true);
         }
-        List<ApiDefinition> paramsList = JsonUtil.parseList(new String(java.util.Base64.getDecoder().decode(request.get("paramsList"))), listTypeReference);
+        List<ApiDefinition> paramsList = JsonUtil.parseList(decodeBase64RequestValue(request.get("paramsList"), "API 参数配置"), listTypeReference);
         paramsList.add(apiDefinition);
         DatasourceRequest datasourceRequest = new DatasourceRequest();
         DatasourceDTO datasource = new DatasourceDTO();
@@ -1104,8 +1119,11 @@ public class DatasourceServer implements DatasourceApi {
                 status = provider.checkStatus(datasourceRequest);
             }
             coreDatasource.setStatus(status);
+        } catch (DEException e) {
+            throw e;
         } catch (Exception e) {
-            DEException.throwException(e);
+            LogUtil.debug(StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName()));
+            DEException.throwException(ResultCode.PARAM_IS_INVALID.code(), "数据源配置不完整或无法连接");
         }
     }
 
@@ -1625,6 +1643,9 @@ public class DatasourceServer implements DatasourceApi {
 
     private static void checkParams(String configurationStr) {
         DatasourceConfiguration configuration = JsonUtil.parseObject(configurationStr, DatasourceConfiguration.class);
+        if (configuration == null) {
+            DEException.throwException(ResultCode.PARAM_IS_INVALID.code(), "数据源配置格式无效");
+        }
         if (configuration.getInitialPoolSize() < configuration.getMinPoolSize()) {
             DEException.throwException("初始连接数不能小于最小连接数！");
         }
@@ -1636,6 +1657,37 @@ public class DatasourceServer implements DatasourceApi {
         }
         if (configuration.getQueryTimeout() < 0) {
             DEException.throwException("查询超时不能小于0！");
+        }
+    }
+
+    private static void checkDatasourceConfigurationComplete(DatasourceDTO datasource) {
+        String type = datasource.getType();
+        if (StringUtils.isBlank(type)) {
+            DEException.throwException(ResultCode.PARAM_IS_INVALID.code(), "数据源类型不能为空");
+        }
+        if (notFullDs.stream().anyMatch(item -> Strings.CI.contains(type, item))) {
+            return;
+        }
+        DatasourceConfiguration configuration = JsonUtil.parseObject(datasource.getConfiguration(), DatasourceConfiguration.class);
+        if (configuration == null) {
+            DEException.throwException(ResultCode.PARAM_IS_INVALID.code(), "数据源配置格式无效");
+        }
+        boolean customJdbcUrl = StringUtils.isNotBlank(configuration.getUrlType())
+                && !Strings.CI.equals(configuration.getUrlType(), "hostName");
+        if (customJdbcUrl) {
+            if (StringUtils.isBlank(configuration.getJdbcUrl())) {
+                DEException.throwException(ResultCode.PARAM_IS_INVALID.code(), "数据源 JDBC 地址不能为空");
+            }
+            return;
+        }
+        if (StringUtils.isBlank(configuration.getHost())) {
+            DEException.throwException(ResultCode.PARAM_IS_INVALID.code(), "数据源地址不能为空");
+        }
+        if (configuration.getPort() == null) {
+            DEException.throwException(ResultCode.PARAM_IS_INVALID.code(), "数据源端口不能为空");
+        }
+        if (StringUtils.isBlank(configuration.getDataBase())) {
+            DEException.throwException(ResultCode.PARAM_IS_INVALID.code(), "数据库名称不能为空");
         }
     }
 
@@ -1796,7 +1848,7 @@ public class DatasourceServer implements DatasourceApi {
     @Override
     public List<Map<String, String>> multidimensionalTables(Map<String, String> request) throws DEException {
         List<ApiDefinition> paramsList = new ArrayList<>();
-        ApiDefinition apiDefinition = JsonUtil.parseObject(new String(java.util.Base64.getDecoder().decode(request.get("data"))), ApiDefinition.class);
+        ApiDefinition apiDefinition = JsonUtil.parseObject(decodeBase64RequestValue(request.get("data"), "API 数据源配置"), ApiDefinition.class);
         paramsList.add(apiDefinition);
         DatasourceRequest datasourceRequest = new DatasourceRequest();
         DatasourceDTO datasource = new DatasourceDTO();

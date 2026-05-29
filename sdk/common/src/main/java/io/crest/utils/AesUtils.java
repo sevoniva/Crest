@@ -14,6 +14,25 @@ import java.security.SecureRandom;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class AesUtils {
+    private static final String AES_KEY_PROPERTY = "crest.crypto.aes-key";
+    private static final String AES_IV_PROPERTY = "crest.crypto.aes-iv";
+
+    private static String configuredSecretKey() {
+        String value = ConfigUtils.getConfig(AES_KEY_PROPERTY, null);
+        int length = StringUtils.length(value);
+        if (length != 16 && length != 24 && length != 32) {
+            throw new IllegalStateException(AES_KEY_PROPERTY + " must be 16, 24, or 32 characters");
+        }
+        return value;
+    }
+
+    private static String configuredIv() {
+        String value = ConfigUtils.getConfig(AES_IV_PROPERTY, null);
+        if (StringUtils.length(value) != 16) {
+            throw new IllegalStateException(AES_IV_PROPERTY + " must be 16 characters");
+        }
+        return value;
+    }
 
     public static String aesDecrypt(String src, String secretKey, String iv) {
         if (StringUtils.isBlank(secretKey)) {
@@ -58,11 +77,11 @@ public class AesUtils {
 
     public static Object aesEncrypt(Object o) {
 
-        return o == null ? null : aesEncrypt(o.toString(), "www.fit2cloud.co", "1234567890123456");
+        return o == null ? null : aesEncrypt(o.toString(), configuredSecretKey(), configuredIv());
     }
 
     public static Object aesDecrypt(Object o) {
-        return o == null ? null : aesDecrypt(o.toString(), "www.fit2cloud.co", "1234567890123456");
+        return o == null ? null : aesDecrypt(o.toString(), configuredSecretKey(), configuredIv());
     }
 
     public static String aesEncryptWithIv(String src, String secretKey) {

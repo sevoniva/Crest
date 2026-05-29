@@ -3,15 +3,22 @@ package io.crest.exportCenter.server;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.crest.api.exportCenter.ExportCenterApi;
+import io.crest.exception.DEException;
 import io.crest.exportCenter.manage.ExportCenterManage;
 import io.crest.exportCenter.util.ExportCenterUtils;
 import io.crest.model.ExportTaskDTO;
+import io.crest.result.ResultMessage;
+import io.crest.utils.JsonUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -49,8 +56,24 @@ public class ExportCenterServer implements ExportCenterApi {
     }
 
     @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void download(String id, String ticket, HttpServletResponse response) throws Exception {
-        exportCenterManage.download(id, ticket, response);
+        try {
+            exportCenterManage.download(id, ticket, response);
+        } catch (DEException e) {
+            writeForbidden(response, e);
+        }
+    }
+
+    private void writeForbidden(HttpServletResponse response, DEException e) throws Exception {
+        if (response.isCommitted()) {
+            return;
+        }
+        response.resetBuffer();
+        response.setStatus(HttpStatus.FORBIDDEN.value());
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.getWriter().write(JsonUtil.toJSONString(new ResultMessage(e.getCode(), e.getMessage())).toString());
     }
 
     @Override

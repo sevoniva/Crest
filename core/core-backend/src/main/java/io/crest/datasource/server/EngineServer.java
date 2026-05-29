@@ -7,6 +7,7 @@ import io.crest.datasource.manage.EngineManage;
 import io.crest.datasource.provider.CalciteProvider;
 import io.crest.exception.DEException;
 import io.crest.extensions.datasource.dto.DatasourceDTO;
+import io.crest.result.ResultCode;
 import io.crest.utils.AuthUtils;
 import io.crest.utils.BeanUtils;
 import io.crest.utils.IDUtils;
@@ -18,6 +19,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @RestController
@@ -52,7 +54,7 @@ public class EngineServer implements EngineApi {
             DEException.throwException("非管理员，无权访问！");
         }
         if (StringUtils.isNotEmpty(datasourceDTO.getConfiguration())) {
-            datasourceDTO.setConfiguration(new String(Base64.getDecoder().decode(datasourceDTO.getConfiguration())));
+            datasourceDTO.setConfiguration(decodeBase64RequestValue(datasourceDTO.getConfiguration(), "引擎配置"));
         }
         CoreDeEngine coreDeEngine = new CoreDeEngine();
         BeanUtils.copyBean(coreDeEngine, datasourceDTO);
@@ -73,7 +75,7 @@ public class EngineServer implements EngineApi {
         }
         CoreDeEngine coreDeEngine = new CoreDeEngine();
         BeanUtils.copyBean(coreDeEngine, datasourceDTO);
-        coreDeEngine.setConfiguration(new String(Base64.getDecoder().decode(coreDeEngine.getConfiguration())));
+        coreDeEngine.setConfiguration(decodeBase64RequestValue(coreDeEngine.getConfiguration(), "引擎配置"));
         engineManage.validate(coreDeEngine);
     }
 
@@ -94,5 +96,17 @@ public class EngineServer implements EngineApi {
             return !deEngines.getFirst().getType().equalsIgnoreCase("h2");
         }
 
+    }
+
+    private static String decodeBase64RequestValue(String value, String fieldName) {
+        if (StringUtils.isBlank(value)) {
+            return "";
+        }
+        try {
+            return new String(Base64.getDecoder().decode(value), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            DEException.throwException(ResultCode.PARAM_IS_INVALID.code(), fieldName + "格式无效");
+            return "";
+        }
     }
 }

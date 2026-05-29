@@ -306,7 +306,6 @@ const removeJumpSenior = () => {
             />
           </collapse-switch-item>
 
-
           <collapse-switch-item
             v-if="showProperties('linkage')"
             :themes="themes"

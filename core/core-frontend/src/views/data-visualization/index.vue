@@ -666,7 +666,7 @@ eventBus.on('tabSort', tabSort)
       </div>
     </el-container>
   </div>
-      <canvas-cache-dialog ref="canvasCacheOutRef" @doUseCache="doUseCache"></canvas-cache-dialog>
+  <canvas-cache-dialog ref="canvasCacheOutRef" @doUseCache="doUseCache"></canvas-cache-dialog>
   <dv-preview
     v-if="fullscreenFlag"
     style="z-index: 10"

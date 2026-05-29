@@ -46,8 +46,15 @@ onMounted(load)
         </div>
         <el-form label-position="top" class="site-form">
           <el-form-item label="标题后缀">
-            <el-input v-model.trim="form.title" maxlength="40" show-word-limit placeholder="请输入标题" />
-            <div class="form-tip">实际显示为 {{ form.title === 'Crest' ? 'Crest' : `Crest-${form.title || 'Crest'}` }}</div>
+            <el-input
+              v-model.trim="form.title"
+              maxlength="40"
+              show-word-limit
+              placeholder="请输入标题"
+            />
+            <div class="form-tip">
+              实际显示为 {{ form.title === 'Crest' ? 'Crest' : `Crest-${form.title || 'Crest'}` }}
+            </div>
           </el-form-item>
           <el-button type="primary" @click="save">保存</el-button>
         </el-form>
