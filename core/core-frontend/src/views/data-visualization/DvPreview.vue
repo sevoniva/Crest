@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, type CSSProperties } from 'vue'
 import DePreview from '@/components/data-visualization/canvas/DePreview.vue'
 import { storeToRefs } from 'pinia'
 
 const dvMainStore = dvMainStoreWithOut()
 const { fullscreenFlag } = storeToRefs(dvMainStore)
-const dePreviewRef = ref(null)
-const dePreviewOuterRef = ref(null)
+const dePreviewRef = ref<InstanceType<typeof DePreview> | null>(null)
+const dePreviewOuterRef = ref<HTMLElement | null>(null)
 const dataInitState = ref(true)
 const keepProportion = ref('heightFirst')
 const props = defineProps({
@@ -55,7 +55,7 @@ const props = defineProps({
 })
 
 const restore = () => {
-  dePreviewRef.value.restore()
+  dePreviewRef.value?.restore()
 }
 const contentInnerClass = computed(() => {
   //屏幕适配方式 widthFirst=宽度优先(默认) heightFirst=高度优先 full=铺满全屏 keepSize=不缩放
@@ -70,7 +70,7 @@ const contentInnerClass = computed(() => {
   }
 })
 
-const outerStyle = computed(() => {
+const outerStyle = computed<CSSProperties>(() => {
   return {
     flexDirection: props.canvasStylePreview.screenAdaptor === 'heightFirst' ? 'row' : 'column'
   }
@@ -97,7 +97,6 @@ const keepProportionCheck = outerContentRect => {
 onMounted(() => {
   const observer = new ResizeObserver(entries => {
     for (let entry of entries) {
-      console.log('元素新尺寸:', entry.contentRect)
       // entry.contentRect 包含 width, height, top, left 等属性
       keepProportionCheck(entry.contentRect)
     }

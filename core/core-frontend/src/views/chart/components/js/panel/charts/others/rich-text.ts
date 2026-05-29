@@ -18,6 +18,7 @@ export class RichTextChartView extends AbstractChartView {
     threshold: ['tableThreshold'],
     'function-cfg': ['emptyDataStrategy']
   }
+  selectorSpec: EditorSelectorSpec = {}
   axis: AxisType[] = ['xAxis', 'yAxis', 'filter']
   axisConfig: AxisConfig = {
     xAxis: {

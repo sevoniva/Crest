@@ -155,9 +155,11 @@ declare interface ChartThreshold {
   /**
    * 折线阈值
    */
-  lineThreshold: TableThreshold[]
+  lineThreshold?: TableThreshold[]
+  lineThresholdArr?: TableThreshold[]
+  lineLabelThreshold?: TableThreshold[]
 
-  symbolicBubbleThreshold: TableThreshold[]
+  symbolicBubbleThreshold?: TableThreshold[]
 }
 declare interface TableThreshold {
   /**
@@ -225,6 +227,9 @@ declare interface Threshold {
    * 动态值最大值字段 仅当term为between时使用
    */
   dynamicMaxField: ThresholdDynamicField
+  target?: string
+  targetFieldId?: string
+  [key: string]: any
 }
 
 declare interface ThresholdDynamicField {

@@ -17,6 +17,9 @@ export interface Field {
   checked: boolean
   fieldShortName: string
   desensitized: boolean
+  variableName?: string
+  params?: any[]
+  [key: string]: any
 }
 
 export interface ComponentInfo {

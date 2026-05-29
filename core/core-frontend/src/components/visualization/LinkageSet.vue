@@ -325,11 +325,11 @@ const linkageInfoTreeDiffDs = ref(null)
 const { t } = useI18n()
 const dialogShow = ref(false)
 const loading = ref(false)
-const curLinkageTargetViewsInfo = ref([])
-const curLinkageTargetViewsInfoSameDs = ref([])
-const curLinkageTargetViewsInfoDiffDs = ref([])
+const curLinkageTargetViewsInfo = ref<any[]>([])
+const curLinkageTargetViewsInfoSameDs = ref<any[]>([])
+const curLinkageTargetViewsInfoDiffDs = ref<any[]>([])
 const snapshotStore = snapshotStoreWithOut()
-const state = reactive({
+const state = reactive<any>({
   sourceLinkageInfo: {},
   showSelected: false,
   curLinkageViewInfo: {},

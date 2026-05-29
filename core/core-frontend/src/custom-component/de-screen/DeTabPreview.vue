@@ -1,5 +1,7 @@
 <script setup lang="ts"></script>
 
-<template></template>
+<template>
+  <div class="de-tab-preview" />
+</template>
 
 <style scoped lang="less"></style>

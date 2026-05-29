@@ -111,7 +111,7 @@ export abstract class S2ChartView<P extends SpreadSheet> extends AntVAbstractCha
         y: event.clientY
       },
       content,
-      meta,
+      ...({ meta } as Record<string, any>),
       event
     })
   }
@@ -142,7 +142,10 @@ export abstract class S2ChartView<P extends SpreadSheet> extends AntVAbstractCha
           touchPosition[0] - canvasPosition.x,
           touchPosition[1] - canvasPosition.y
         ]
-        const shape = s2Instance.container.getShape(relativePosition[0], relativePosition[1])
+        const shape = (s2Instance.container as Record<string, any>).getShape(
+          relativePosition[0],
+          relativePosition[1]
+        )
         // 图片单元格，表头排序图标点击放大图片
         if (shape.cfg?.type === 'image') {
           return
@@ -167,7 +170,7 @@ export abstract class S2ChartView<P extends SpreadSheet> extends AntVAbstractCha
         let fieldId
         if (cellMeta) {
           const field = find(meta, item => item.field === cellMeta.valueField)
-          fieldId = field?.id
+          fieldId = (field as Record<string, any>)?.id
         }
         touchAction(callback, fieldId)
       })

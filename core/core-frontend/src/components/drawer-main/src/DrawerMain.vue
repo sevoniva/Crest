@@ -1,31 +1,35 @@
 <script lang="ts" setup>
 import { ref, reactive, computed } from 'vue'
 import { ElDrawer, ElButton } from 'element-plus-secondary'
-import { propTypes } from '@/utils/propTypes'
 import DrawerFilter from '@/components/drawer-filter/src/DrawerFilter.vue'
 import DrawerEnumFilter from '@/components/drawer-filter/src/DrawerEnumFilter.vue'
 import DrawerTimeFilter from '@/components/drawer-filter/src/DrawerTimeFilter.vue'
 import DrawerTreeFilter from '@/components/drawer-filter/src/DrawerTreeFilter.vue'
 import { useI18n } from '@/hooks/web/useI18n'
 const { t } = useI18n()
-const props = defineProps({
-  filterOptions: propTypes.arrayOf(
-    propTypes.shape({
-      type: propTypes.string,
-      field: propTypes.string,
-      option: propTypes.array,
-      title: propTypes.string,
-      property: propTypes.shape({})
-    })
-  ),
-  title: propTypes.string
-})
-const myRefs = ref([])
-const componentList = computed(() => {
-  return props.filterOptions
+type FilterOption = {
+  type: string
+  field: string
+  option?: any[]
+  title?: string
+  property?: Record<string, any>
+  operator?: string
+}
+const props = withDefaults(
+  defineProps<{
+    filterOptions?: FilterOption[]
+    title?: string
+  }>(),
+  {
+    filterOptions: () => []
+  }
+)
+const myRefs = ref<any[]>([])
+const componentList = computed<any[]>(() => {
+  return props.filterOptions as any[]
 })
 
-const state = reactive({
+const state = reactive<{ conditions: any[] }>({
   conditions: []
 })
 const userDrawer = ref(false)

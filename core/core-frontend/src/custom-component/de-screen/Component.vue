@@ -295,7 +295,7 @@ const handleMouseEnter = () => {
 const handleMouseLeave = () => {
   state.hoverFlag = false
 }
-const state = reactive({
+const state = reactive<any>({
   activeTabName: '',
   curItem: {},
   textarea: '',

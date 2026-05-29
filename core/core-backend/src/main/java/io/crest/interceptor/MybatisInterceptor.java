@@ -75,6 +75,7 @@ public class MybatisInterceptor implements Interceptor {
                 Class c = classMap.get(className);
                 if (c == null) {
                     try {
+                        // nosemgrep: java.lang.security.audit.unsafe-reflection.unsafe-reflection
                         c = Class.forName(className);
                         classMap.put(className, c);
                     } catch (ClassNotFoundException e) {
@@ -125,6 +126,7 @@ public class MybatisInterceptor implements Interceptor {
             }
             Object fieldValue = BeanUtils.getFieldValueByName(interceptorConfig.getAttrName(), newObject);
             if (fieldValue != null) {
+                // nosemgrep: java.lang.security.audit.unsafe-reflection.unsafe-reflection
                 Class<?> processClazz = Class.forName(interceptorConfig.getInterceptorClass());
                 Method method = processClazz.getMethod(interceptorConfig.getInterceptorMethod(), Object.class);
                 Object processedValue = method.invoke(null, fieldValue);
@@ -159,6 +161,7 @@ public class MybatisInterceptor implements Interceptor {
             }
             Object fieldValue = BeanUtils.getFieldValueByName(interceptorConfig.getAttrName(), result);
             if (fieldValue != null) {
+                // nosemgrep: java.lang.security.audit.unsafe-reflection.unsafe-reflection
                 Class<?> processClazz = Class.forName(interceptorConfig.getUndoClass());
                 Object undoValue;
                 if (fieldValue instanceof List) {

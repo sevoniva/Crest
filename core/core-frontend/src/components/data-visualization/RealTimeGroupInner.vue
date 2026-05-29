@@ -62,7 +62,7 @@ import { layerStoreWithOut } from '@/store/modules/data-visualization/layer'
 import { storeToRefs } from 'pinia'
 import { ElIcon, ElMessage, ElRow } from 'element-plus-secondary'
 import Icon from '../icon-custom/src/Icon.vue'
-import { nextTick, ref, toRefs } from 'vue'
+import { nextTick, PropType, ref, toRefs } from 'vue'
 import draggable from 'vuedraggable'
 import { lockStoreWithOut } from '@/store/modules/data-visualization/lock'
 import ContextMenuAsideDetails from '@/components/data-visualization/canvas/ContextMenuAsideDetails.vue'
@@ -90,7 +90,10 @@ const props = defineProps({
     required: false,
     default: 'main'
   },
-  componentData: []
+  componentData: {
+    type: Array as PropType<any[]>,
+    default: () => []
+  }
 })
 
 const { componentData } = toRefs(props)

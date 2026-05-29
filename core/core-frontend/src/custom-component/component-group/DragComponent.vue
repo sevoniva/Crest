@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { toRefs } from 'vue'
+import { PropType, toRefs } from 'vue'
 import Icon from '@/components/icon-custom/src/Icon.vue'
 
 const props = defineProps({
   icon: {
-    type: Object,
+    type: [Object, String, Function] as PropType<any>,
     required: false
   },
   name: {

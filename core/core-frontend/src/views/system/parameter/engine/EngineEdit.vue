@@ -439,7 +439,7 @@ defineExpose({
         </el-row>
       </template>
       <!--    数据填报      -->
-          </el-form>
+    </el-form>
     <template #footer>
       <span class="dialog-footer">
         <el-button secondary @click="resetForm()">{{ t('common.cancel') }}</el-button>

@@ -36,7 +36,7 @@ import ChartError from '@/views/chart/components/views/components/ChartError.vue
 import { deepCopy } from '@/utils/utils'
 const dvMainStore = dvMainStoreWithOut()
 const { canvasViewInfo, mobileInPc, fullscreenFlag } = storeToRefs(dvMainStore)
-const state = reactive({
+const state = reactive<any>({
   emptyValue: '-',
   data: null,
   viewDataInfo: null,

@@ -9,7 +9,7 @@ import joinJoin from '@/assets/svg/join-join.svg'
 import icon_deleteTrash_outlined from '@/assets/svg/icon_delete-trash_outlined.svg'
 import { PropType, ref } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
-import type { Field } from '@/api/chart'
+import type { Field } from './util'
 import { fieldType } from '@/utils/attr'
 import { iconFieldMap } from '@/components/icon-group/field-list'
 const unionTypeFromParent = ref('left')

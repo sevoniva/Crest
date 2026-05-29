@@ -30,6 +30,7 @@ declare interface ChartStyle {
     color: string
     alpha: string
   }
+  [key: string]: any
 }
 
 /**
@@ -155,7 +156,7 @@ declare interface ChartAxisStyle {
   /**
    * 是否显示轴线标题名称
    */
-  nameShow: boolean
+  nameShow?: boolean
   /**
    * 轴线标题名称
    */
@@ -216,7 +217,7 @@ declare interface AxisLabel {
   /**
    * 长度限制
    */
-  lengthLimit: number
+  lengthLimit?: number
 }
 /**
  * 轴线条设置

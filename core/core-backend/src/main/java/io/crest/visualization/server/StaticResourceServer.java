@@ -6,12 +6,11 @@ import io.crest.exception.DEException;
 import io.crest.utils.FileUtils;
 import io.crest.utils.JsonUtil;
 import io.crest.utils.LogUtil;
-import io.crest.utils.StaticResourceUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.Assert;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,17 +27,29 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 @RestController
 @RequestMapping("/staticResource")
 @SuppressWarnings("unchecked")
 public class StaticResourceServer implements StaticResourceApi {
+
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(
+            ".gif", ".svg", ".png", ".jpeg", ".jpg"
+    );
+
+    private static final Set<String> ALLOWED_SVG_MIME_TYPES = Set.of(
+            "image/svg+xml",
+            "image/svg-xml",
+            "application/svg+xml"
+    );
 
     @Value("${crest.path.static-resource:/opt/crest/data/static-resource/}")
     private String staticDir;
@@ -48,17 +59,15 @@ public class StaticResourceServer implements StaticResourceApi {
         // check if the path is valid (not outside staticDir)
         Assert.notNull(file, "Multipart file must not be null");
         try {
-            if (!isImage(file)) {
-                DEException.throwException("Multipart file must be image");
-            }
             String originName = file.getOriginalFilename();
+            validateImageFilename(originName);
             String newFileName = fileId + originName.substring(originName.lastIndexOf("."), originName.length());
-            Path basePath = Paths.get(staticDir.toString());
-            // create dir is absent
-            FileUtils.createIfAbsent(basePath);
-            Path uploadPath = basePath.resolve(newFileName);
-            Files.createFile(uploadPath);
-            file.transferTo(uploadPath);
+            validateImageFilename(newFileName);
+            byte[] fileBytes = file.getBytes();
+            validateImageContent(newFileName, fileBytes, file.getContentType(), true);
+            writeFileIfAbsent(newFileName, fileBytes);
+        } catch (DEException e) {
+            throw e;
         } catch (IOException e) {
             LogUtil.error("文件上传失败", e);
             DEException.throwException("文件上传失败");
@@ -86,14 +95,8 @@ public class StaticResourceServer implements StaticResourceApi {
         if (StringUtils.isEmpty(filename)) {
             return false;
         }
-        // 转换为小写进行比较
-        String lowerFilename = filename.toLowerCase();
-        // 允许的图片后缀名列表
-        Set<String> allowedExtensions = Set.of(
-                ".gif", ".svg", ".png", ".jpeg", ".jpg"
-        );
-
-        for (String ext : allowedExtensions) {
+        String lowerFilename = filename.toLowerCase(Locale.ROOT);
+        for (String ext : ALLOWED_IMAGE_EXTENSIONS) {
             if (lowerFilename.endsWith(ext)) {
                 return true;
             }
@@ -119,28 +122,31 @@ public class StaticResourceServer implements StaticResourceApi {
     public void saveFilesToServe(String staticResource) {
         if (StringUtils.isNotEmpty(staticResource)) {
             Map<String, String> resource = JsonUtil.parse(staticResource, Map.class);
+            if (resource == null || resource.isEmpty()) {
+                return;
+            }
             for (Map.Entry<String, String> entry : resource.entrySet()) {
                 String path = entry.getKey();
-                String fileName = path.substring(path.lastIndexOf("/") + 1, path.length());
+                String fileName = extractFileName(path);
                 saveSingleFileToServe(fileName, entry.getValue());
             }
         }
     }
 
     public void saveSingleFileToServe(String fileName, String content) {
-        Path basePath = Paths.get(staticDir.toString());
-        Path uploadPath = basePath.resolve(fileName);
         try {
-            if (Files.exists(uploadPath)) {
-                LogUtil.info("file exists");
-            } else {
-                if (StringUtils.isNotEmpty(content)) {
-                    Files.createFile(uploadPath);
-                    FileCopyUtils.copy(Base64.getDecoder().decode(content), Files.newOutputStream(uploadPath));
-                }
+            validateImageFilename(fileName);
+            if (StringUtils.isEmpty(content)) {
+                DEException.throwException("静态资源内容不能为空");
             }
+            byte[] fileBytes = decodeBase64Content(content);
+            validateImageContent(fileName, fileBytes, null, false);
+            writeFileIfAbsent(fileName, fileBytes);
+        } catch (DEException e) {
+            throw e;
         } catch (Exception e) {
-            LogUtil.error("template static resource save error" + e.getMessage());
+            LogUtil.error("template static resource save error", e);
+            DEException.throwException(e);
         }
     }
 
@@ -149,11 +155,119 @@ public class StaticResourceServer implements StaticResourceApi {
         Map<String, String> result = new HashMap<>();
         if (CollectionUtils.isNotEmpty(resourceRequest.getResourcePathList())) {
             for (String path : resourceRequest.getResourcePathList()) {
-                String value = StaticResourceUtils.getImgFileToBase64(path.substring(path.lastIndexOf("/") + 1, path.length()));
+                String value = readResourceAsBase64(extractFileName(path));
                 result.put(path, value);
             }
         }
         return result;
+    }
+
+    private void validateImageFilename(String filename) {
+        FileUtils.validateUploadFilename(filename);
+        if (!hasValidImageExtension(filename)) {
+            DEException.throwException("静态资源必须是图片");
+        }
+    }
+
+    private String extractFileName(String path) {
+        return StringUtils.substringAfterLast(path.replace("\\", "/"), "/");
+    }
+
+    private String readResourceAsBase64(String fileName) {
+        if (StringUtils.isBlank(fileName) || !hasValidImageExtension(fileName)) {
+            return null;
+        }
+        try {
+            FileUtils.validateUploadFilename(fileName);
+            Path basePath = Paths.get(staticDir).normalize();
+            Path resourcePath = basePath.resolve(fileName).normalize();
+            if (!resourcePath.startsWith(basePath) || !Files.isRegularFile(resourcePath)) {
+                return null;
+            }
+            return Base64.getEncoder().encodeToString(Files.readAllBytes(resourcePath));
+        } catch (RuntimeException e) {
+            return null;
+        } catch (IOException e) {
+            LogUtil.debug(StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName()));
+            return null;
+        }
+    }
+
+    private byte[] decodeBase64Content(String content) {
+        try {
+            return Base64.getDecoder().decode(content);
+        } catch (IllegalArgumentException e) {
+            DEException.throwException("静态资源Base64内容无效");
+            return new byte[0];
+        }
+    }
+
+    private void writeFileIfAbsent(String fileName, byte[] content) throws IOException {
+        Path basePath = Paths.get(staticDir.toString());
+        FileUtils.createIfAbsent(basePath);
+        Path uploadPath = basePath.resolve(fileName).normalize();
+        if (!uploadPath.startsWith(basePath.normalize())) {
+            DEException.throwException("静态资源文件名非法");
+        }
+        if (Files.exists(uploadPath)) {
+            LogUtil.info("file exists");
+            return;
+        }
+        Files.write(uploadPath, content, StandardOpenOption.CREATE_NEW);
+    }
+
+    private void validateImageContent(String fileName, byte[] content, String mimeType, boolean checkSvgMimeType) {
+        if (content == null || content.length == 0) {
+            DEException.throwException("静态资源内容不能为空");
+        }
+        if (Strings.CI.endsWith(fileName, ".svg")) {
+            validateSvgContent(content, mimeType, checkSvgMimeType);
+            return;
+        }
+        if (!isImageOther(content)) {
+            DEException.throwException("静态资源必须是图片");
+        }
+    }
+
+    private boolean isImageOther(byte[] content) {
+        try (InputStream input = new ByteArrayInputStream(content)) {
+            BufferedImage image = ImageIO.read(input);
+            return image != null && image.getWidth() > 0 && image.getHeight() > 0;
+        } catch (IOException e) {
+            LogUtil.error(e.getMessage(), e);
+            return false;
+        }
+    }
+
+    private void validateSvgContent(byte[] content, String mimeType, boolean checkSvgMimeType) {
+        if (checkSvgMimeType && !isValidSvgMimeType(mimeType)) {
+            DEException.throwException("无效的SVG文件MIME类型");
+        }
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        try (InputStream inputStream = new ByteArrayInputStream(content)) {
+            dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            dbf.setNamespaceAware(true);
+            dbf.setXIncludeAware(false);
+            dbf.setExpandEntityReferences(false);
+
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.parse(inputStream);
+            if (!"svg".equals(doc.getDocumentElement().getNodeName())) {
+                DEException.throwException("根元素必须是svg");
+            }
+            if (containsDangerousContent(doc)) {
+                DEException.throwException("SVG包含不允许的脚本或事件处理器");
+            }
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            if (e.getMessage() != null && e.getMessage().contains("DOCTYPE")) {
+                DEException.throwException("svg 内容禁止使用 DOCTYPE");
+            } else {
+                DEException.throwException("SVG解析失败: " + e.getMessage());
+            }
+        }
     }
 
     private static boolean isValidSVG(MultipartFile file){
@@ -214,18 +328,14 @@ public class StaticResourceServer implements StaticResourceApi {
      */
     private static boolean isValidSvgMimeType(MultipartFile file) {
         String contentType = file.getContentType();
+        return isValidSvgMimeType(contentType);
+    }
+
+    private static boolean isValidSvgMimeType(String contentType) {
         if (contentType == null) {
             return false;
         }
-
-        // 允许的SVG MIME类型
-        Set<String> allowedMimeTypes = new HashSet<>(Arrays.asList(
-                "image/svg+xml",
-                "image/svg-xml",
-                "application/svg+xml"
-        ));
-
-        return allowedMimeTypes.contains(contentType.toLowerCase());
+        return ALLOWED_SVG_MIME_TYPES.contains(contentType.toLowerCase(Locale.ROOT));
     }
 
     /**

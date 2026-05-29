@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { getStyle } from '@/utils/style'
 import eventBus from '@/utils/eventBus'
-import { ref, toRefs, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { ref, toRefs, computed, nextTick, onMounted, onBeforeUnmount, PropType } from 'vue'
 import findComponent from '@/utils/components'
 import { downloadCanvas2 } from '@/utils/imgUtils'
 import ComponentEditBar from '@/components/visualization/ComponentEditBar.vue'
@@ -44,7 +44,7 @@ const commonFilterAttrsFilterBorder = [
 
 const props = defineProps({
   curStyle: {
-    type: Object
+    type: Object as PropType<Record<string, any>>
   },
   active: {
     type: Boolean,
@@ -55,20 +55,23 @@ const props = defineProps({
     default: false
   },
   canvasStyleData: {
-    type: Object,
-    required: true
+    type: Object as PropType<Record<string, any>>,
+    required: false,
+    default: () => ({})
   },
   canvasViewInfo: {
-    type: Object,
-    required: true
+    type: Object as PropType<Record<string, any>>,
+    required: false,
+    default: () => ({})
   },
   dvInfo: {
-    type: Object,
-    required: true
+    type: Object as PropType<Record<string, any>>,
+    required: false,
+    default: () => ({})
   },
   config: {
-    type: Object,
-    required: true,
+    type: Object as PropType<Record<string, any>>,
+    required: false,
     default() {
       return {
         component: null,
@@ -84,11 +87,11 @@ const props = defineProps({
     }
   },
   viewInfo: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: false
   },
   index: {
-    required: true,
+    required: false,
     type: [Number, String],
     default: 0
   },
@@ -528,7 +531,7 @@ onBeforeUnmount(() => {
         :name="commonBackgroundSvgInner"
       ></Board>
     </div>
-        <DePreviewPopDialog ref="dePreviewPopDialogRef"></DePreviewPopDialog>
+    <DePreviewPopDialog ref="dePreviewPopDialogRef"></DePreviewPopDialog>
   </div>
 </template>
 

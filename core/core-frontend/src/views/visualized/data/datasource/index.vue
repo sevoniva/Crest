@@ -294,19 +294,19 @@ const handleLoadExcel = data => {
 const validateDS = () => {
   let nodeTmpInfo = reactive<Node>(cloneDeep(defaultInfo))
   Object.assign(nodeTmpInfo, cloneDeep(nodeInfo))
-  validateById(nodeTmpInfo.id as number)
+  validateById(Number(nodeTmpInfo.id))
     .then(res => {
       if (res.data.type.startsWith('API')) {
         let error = 0
-        const dsStatus = JSON.parse(res.data.status)
-        for (let i = 0; i < dsStatus.length; i++) {
-          if (dsStatus[i].status === 'Error') {
+        const dsStatus = JSON.parse(res.data.status) as Array<{ name: string; status: string }>
+        const apiConfiguration = nodeInfo.apiConfiguration || []
+        for (const statusInfo of dsStatus) {
+          if (statusInfo.status === 'Error') {
             error++
           }
-          for (let i = 0; i < nodeTmpInfo.apiConfiguration.length; i++) {
-            if (nodeInfo.apiConfiguration[i].name === dsStatus[i].name) {
-              nodeInfo.apiConfiguration[i].status = dsStatus[i].status
-            }
+          const apiInfo = apiConfiguration.find(api => api.name === statusInfo.name)
+          if (apiInfo) {
+            apiInfo.status = statusInfo.status
           }
         }
         if (error === 0) {
@@ -776,7 +776,9 @@ const deleteExcelEditRows = () => {
       excelEditState.deletedIds.push(row[EXCEL_EDIT_ROW_ID])
     }
   })
-  excelEditState.rows = excelEditState.rows.filter(row => !selectedRowIds.has(row[EXCEL_EDIT_ROW_ID]))
+  excelEditState.rows = excelEditState.rows.filter(
+    row => !selectedRowIds.has(row[EXCEL_EDIT_ROW_ID])
+  )
   excelEditState.selectedRows = []
   excelEditState.dirty = true
 }
@@ -969,7 +971,7 @@ const editDatasource = (editType?: number) => {
   if (nodeInfo.type.startsWith('Excel')) {
     nodeInfo.editType = editType
   }
-  return getById(nodeInfo.id).then(res => {
+  return getById(Number(nodeInfo.id)).then(res => {
     let arr = pluginDs.value.filter(ele => {
       return ele.type == res.data.type
     })
@@ -1951,7 +1953,7 @@ const getMenuList = (val: boolean) => {
                 </template>
 
                 <!--    数据填报      -->
-                              </template>
+              </template>
               <template v-if="['es'].includes(nodeInfo.type) && nodeInfo.weight >= 7">
                 <el-row :gutter="24">
                   <el-col :span="12">
@@ -2019,7 +2021,7 @@ const getMenuList = (val: boolean) => {
             v-if="nodeInfo.type.startsWith('Excel')"
             v-slot="slotProps"
             :name="t('dataset.data_preview')"
-            :time="nodeInfo.lastSyncTime"
+            :time="Number(nodeInfo.lastSyncTime) || undefined"
             :showTime="nodeInfo.type === 'ExcelRemote'"
           >
             <template v-if="slotProps.active">
@@ -2059,7 +2061,7 @@ const getMenuList = (val: boolean) => {
             "
             v-slot="slotProps"
             :name="t('dataset.update_setting')"
-            :time="(nodeInfo.lastSyncTime as string)"
+            :time="Number(nodeInfo.lastSyncTime) || undefined"
           >
             <template v-if="slotProps.active">
               <el-row :gutter="24">
@@ -2387,8 +2389,7 @@ const getMenuList = (val: boolean) => {
       </template>
     </el-dialog>
     <relationChart ref="relationChartRef"></relationChart>
-
-      </div>
+  </div>
 </template>
 
 <style lang="less" scoped>

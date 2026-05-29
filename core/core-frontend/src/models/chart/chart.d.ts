@@ -34,6 +34,7 @@ declare interface Chart {
     }
     customCalc: any
     customSumResult?: Record<string, any>
+    [key: string]: any
   }
   xAxis?: Axis[]
   xAxisExt?: Axis[]
@@ -43,7 +44,7 @@ declare interface Chart {
   extBubble?: Axis[]
   extLabel?: Axis[]
   extTooltip?: Axis[]
-  customFilter: {}
+  customFilter: Record<string, any>
   senior: CustomSenior
   customAttr: CustomAttr
   customAttrMobile: CustomAttr
@@ -77,6 +78,7 @@ declare interface Chart {
   extColor: Axis[]
 
   fontFamily?: string
+  chartExtRequest?: Record<string, any>
 }
 declare type CustomAttr = DeepPartial<ChartAttr> | JSONString<DeepPartial<ChartAttr>>
 declare type CustomStyle = DeepPartial<ChartStyle> | JSONString<DeepPartial<ChartStyle>>
@@ -97,34 +99,34 @@ declare interface BaseFormatter {
   /**
    * 格式化类型：auto,value,percent
    */
-  type: string
+  type?: string
   /**
    * 单位换算
    */
-  unitLanguage: 'ch' | 'en'
-  unit: number
+  unitLanguage?: string
+  unit?: number
   /**
    * 单位后缀
    */
-  suffix: string
+  suffix?: string
   /**
    * 保留小数位数
    */
-  decimalCount: number
+  decimalCount?: number
   /**
    * 千分符
    */
-  thousandSeparator: boolean
+  thousandSeparator?: boolean
   /**
    * 显示总出占比
    */
-  showTotalPercent: boolean
+  showTotalPercent?: boolean
 }
 
 /**
  * 多系列格式化属性
  */
-declare interface SeriesFormatter extends Axis {
+declare interface SeriesFormatter extends Partial<Axis> {
   /**
    * 是否显示
    */
@@ -140,11 +142,11 @@ declare interface SeriesFormatter extends Axis {
   /**
    * 序列id
    */
-  seriesId: string
+  seriesId?: string
   /**
    * 轴类型
    */
-  axisType: string
+  axisType?: string
   /**
    * 显示极值
    */
@@ -183,6 +185,21 @@ declare interface Axis extends ChartViewField {
    * 是否隐藏
    */
   hide: boolean
+  dateStyle?: string
+  datePattern?: string
+  chartType?: string
+  compareCalc?: {
+    type?: string
+    resultData?: string
+    field?: string | number | null
+    custom?: Record<string, any> | null
+  }
+  logic?: string | null
+  filter?: any[]
+  filterType?: string | null
+  index?: number | null
+  busiType?: string | null
+  chartId?: string | number | null
 }
 declare interface ChartViewField {
   /**
@@ -209,6 +226,33 @@ declare interface ChartViewField {
    * 分组类型
    */
   groupType: 'q' | 'd'
+  datasourceId?: string | number
+  datasetTableId?: string | number
+  datasetGroupId?: string | number
+  chartId?: string | number | null
+  originName?: string
+  dbFieldName?: string | null
+  description?: string | null
+  type?: string
+  precision?: number | null
+  scale?: number | null
+  deExtractType?: number
+  extField?: number
+  checked?: boolean
+  columnIndex?: number | null
+  lastSyncTime?: number | string | null
+  dateFormat?: string | null
+  dateFormatType?: string | null
+  fieldShortName?: string
+  summary?: string | null
+  sort?: string
+  dateStyle?: string
+  datePattern?: string
+  formatterCfg?: BaseFormatter | Record<string, any> | null
+  filter?: any[]
+  customSort?: string[] | null
+  busiType?: string | null
+  [key: string]: any
 }
 
 declare interface Filter {

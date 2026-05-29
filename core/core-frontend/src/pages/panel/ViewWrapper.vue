@@ -14,8 +14,8 @@ import exeRequest from '@/config/axios'
 const { wsCache } = useCache()
 const interactiveStore = interactiveStoreWithOut()
 const embeddedStore = useEmbedded()
-const embeddedParamsDiv = inject('embeddedParams') as object
-const config = ref()
+const embeddedParamsDiv = inject('embeddedParams') as Record<string, any>
+const config = ref<Record<string, any>>({})
 const viewInfo = ref()
 const userViewEnlargeRef = ref()
 const dvMainStore = dvMainStoreWithOut()
@@ -88,7 +88,7 @@ onBeforeMount(async () => {
   // div嵌入
   if (embeddedParams.outerParams) {
     try {
-      const outerPramsParse = JSON.parse(embeddedParams.outerParams)
+      const outerPramsParse = JSON.parse(embeddedParams.outerParams) as Record<string, any>
       attachParams = outerPramsParse.attachParams
       dvMainStore.setEmbeddedCallBack(outerPramsParse.callBackFlag || 'no')
     } catch (e) {
@@ -119,7 +119,7 @@ onBeforeMount(async () => {
         (canvasDataResult as unknown as Array<{
           id: string
           component: string
-          propValue: Array<{ id: string }>
+          propValue: Array<{ id: string; componentData?: Array<{ id: string }> }>
         }>) || []
       ).some(ele => {
         if (ele.id === chartId) {
@@ -219,7 +219,7 @@ onMounted(() => {
     <user-view-enlarge ref="userViewEnlargeRef"></user-view-enlarge>
   </div>
   <empty-background v-if="!state.initState" description="参数不能为空" img-type="noneWhite" />
-  </template>
+</template>
 
 <style lang="less" scoped>
 .de-view-wrapper {

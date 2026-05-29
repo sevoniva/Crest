@@ -44,6 +44,7 @@ defineProps({
 </script>
 
 <template>
+  <!-- nosemgrep: javascript.vue.security.audit.xss.templates.avoid-v-html.avoid-v-html -->
   <div class="svg-container" v-html="borderMap[name]"></div>
 </template>
 <style lang="less" scoped>

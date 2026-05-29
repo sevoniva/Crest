@@ -46,6 +46,7 @@ declare interface ChartAttr {
    * 指标名称
    */
   indicatorName: ChartIndicatorNameStyle
+  [key: string]: any
 }
 /**
  * 基础样式设置
@@ -153,6 +154,7 @@ declare interface ChartBasicStyle {
      */
     color: string
   }[]
+  subColors?: string[]
   /**
    * 渐变
    */
@@ -173,6 +175,22 @@ declare interface ChartBasicStyle {
    * 平滑折线
    */
   lineSmooth: boolean
+  /**
+   * 双轴图左轴线宽
+   */
+  leftLineWidth?: number
+  /**
+   * 双轴图左轴折点形状
+   */
+  leftLineSymbol?: string
+  /**
+   * 双轴图左轴折点大小
+   */
+  leftLineSymbolSize?: number
+  /**
+   * 双轴图左轴平滑折线
+   */
+  leftLineSmooth?: boolean
   /**
    * 自适应
    */
@@ -424,8 +442,8 @@ declare interface ChartTableHeaderAttr {
    * 表头对齐方式
    */
   tableHeaderAlign: 'left' | 'center' | 'right' | 'custom'
-  tableHeaderCornerAlign: 'left' | 'center' | 'right'
-  tableHeaderColAlign: 'left' | 'center' | 'right'
+  tableHeaderCornerAlign: 'left' | 'center' | 'right' | 'custom'
+  tableHeaderColAlign: 'left' | 'center' | 'right' | 'custom'
   /**
    * 显示序号
    */
@@ -636,7 +654,7 @@ declare interface TotalConfig {
   /**
    * 兼容旧版的判断
    */
-  subTotalsDimensionsNew: boolean
+  subTotalsDimensionsNew?: boolean
   /**
    * 总计汇总设置
    */

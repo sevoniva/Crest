@@ -135,7 +135,7 @@ const emits = defineEmits(['update:modelValue'])
     </div>
     <div>
       <el-radio v-model="type" label="2" size="small" border>{{ t('cron.cycle') }}</el-radio>
-      <span style="margin-left: 10px; margin-right: 5px">{{ t('cron.week_start') }}</span>
+      <span style="margin-right: 5px; margin-left: 10px">{{ t('cron.week_start') }}</span>
       <el-input-number
         v-model="state.cycle.start"
         :min="1"
@@ -144,7 +144,7 @@ const emits = defineEmits(['update:modelValue'])
         style="width: 100px"
         @change="type = '2'"
       />
-      <span style="margin-left: 5px; margin-right: 5px">{{ t('cron.week_end') }}</span>
+      <span style="margin-right: 5px; margin-left: 5px">{{ t('cron.week_end') }}</span>
       <el-input-number
         v-model="state.cycle.end"
         :min="2"
@@ -156,7 +156,7 @@ const emits = defineEmits(['update:modelValue'])
     </div>
     <div>
       <el-radio v-model="type" label="3" size="small" border>{{ t('cron.repeat') }}</el-radio>
-      <span style="margin-left: 10px; margin-right: 5px">{{ t('cron.week_start') }}</span>
+      <span style="margin-right: 5px; margin-left: 10px">{{ t('cron.week_start') }}</span>
       <el-input-number
         v-model="state.loop.start"
         :min="1"
@@ -165,7 +165,7 @@ const emits = defineEmits(['update:modelValue'])
         style="width: 100px"
         @change="type = '3'"
       />
-      <span style="margin-left: 5px; margin-right: 5px">{{ t('cron.every_begin') }}</span>
+      <span style="margin-right: 5px; margin-left: 5px">{{ t('cron.every_begin') }}</span>
       <el-input-number
         v-model="state.loop.end"
         :min="1"

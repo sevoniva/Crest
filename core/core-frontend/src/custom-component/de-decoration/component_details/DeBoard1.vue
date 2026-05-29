@@ -68,7 +68,7 @@ import { ref, watch, onMounted, computed } from 'vue'
 interface Props {
   color?: string[]
   backgroundColor?: string
-  curStyle: object
+  curStyle: { width: number; height: number }
   scale: number
 }
 const props = withDefaults(defineProps<Props>(), {

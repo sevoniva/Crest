@@ -24,8 +24,11 @@ secretGenerator:
   - name: crest-db-secret
     literals:
       - CREST_DB_USERNAME=root
-      - CREST_DB_PASSWORD=Password123@mysql
-      - MYSQL_ROOT_PASSWORD=Password123@mysql
+      - CREST_DB_PASSWORD=<set-strong-password-before-apply>
+      - MYSQL_ROOT_PASSWORD=<set-strong-password-before-apply>
+      - CREST_AES_KEY=<set-32-character-aes-key>
+      - CREST_AES_IV=<set-16-character-aes-iv>
+      - CREST_INITIAL_PASSWORD=<set-initial-admin-password>
 
 generatorOptions:
   disableNameSuffixHash: true

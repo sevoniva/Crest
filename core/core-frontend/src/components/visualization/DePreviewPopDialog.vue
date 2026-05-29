@@ -24,7 +24,7 @@
       />
     </div>
   </el-dialog>
-  </template>
+</template>
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'

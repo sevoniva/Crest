@@ -400,7 +400,7 @@ const snapshotStore = snapshotStoreWithOut()
 import icon_info_outlined from '@/assets/svg/icon_info_outlined.svg'
 import dvInfoSvg from '@/assets/svg/dv-info.svg'
 
-const state = reactive({
+const state = reactive<any>({
   filterExpand: true,
   datasetExpand: true,
   loading: false,

@@ -190,15 +190,16 @@ export class Bar extends G2PlotChartView<ColumnOptions, Column> {
         return group
       },
       position: data => {
+        const labelPosition = (tmpOptions.label as any)?.position
         if (data.value < 0) {
-          if (tmpOptions.label?.position === 'top') {
+          if (labelPosition === 'top') {
             return 'bottom'
           }
-          if (tmpOptions.label?.position === 'bottom') {
+          if (labelPosition === 'bottom') {
             return 'top'
           }
         }
-        return tmpOptions.label?.position
+        return labelPosition
       }
     }
     return {
@@ -238,7 +239,7 @@ export class Bar extends G2PlotChartView<ColumnOptions, Column> {
       columnWidthRatio = 1
     }
     if (columnWidthRatio) {
-      options.columnWidthRatio = columnWidthRatio
+      ;(options as any).columnWidthRatio = columnWidthRatio
     }
 
     return options
@@ -430,15 +431,15 @@ export class StackBar extends Bar {
       if (sort?.length) {
         // 用值域限定排序，有可能出现新数据但是未出现在图表上，所以这边要遍历一下子维度，加到后面，让新数据显示出来
         const data = options.data
-        const cats =
-          data?.reduce((p, n) => {
+        const cats: any[] =
+          (data as any[])?.reduce((p, n) => {
             const cat = n['category']
             if (cat && !p.includes(cat)) {
               p.push(cat)
             }
             return p
-          }, []) || []
-        const values = sort.reduce((p, n) => {
+          }, [] as any[]) || []
+        const values: any[] = sort.reduce((p, n) => {
           if (cats.includes(n)) {
             const index = cats.indexOf(n)
             if (index !== -1) {
@@ -447,9 +448,9 @@ export class StackBar extends Bar {
             p.push(n)
           }
           return p
-        }, [])
+        }, [] as any[])
         cats.length > 0 && values.push(...cats)
-        options.meta = {
+        ;(options as any).meta = {
           ...options.meta,
           category: {
             type: 'cat',
@@ -502,7 +503,7 @@ export class StackBar extends Bar {
       size = DEFAULT_LEGEND_STYLE.size
     }
 
-    optionTmp.legend.marker.style = style => {
+    ;(optionTmp.legend.marker as any).style = style => {
       return {
         r: size,
         fill: style.fill
@@ -518,7 +519,7 @@ export class StackBar extends Bar {
           return p
         }, {}) || {}
       const dupCheck = new Set()
-      const colors = optionTmp.color ?? optionTmp.theme.styleSheet.paletteQualitative10
+      const colors = optionTmp.color ?? (optionTmp.theme as any).styleSheet.paletteQualitative10
       const items = optionTmp.data?.reduce((arr, item) => {
         if (!dupCheck.has(item.category)) {
           const fill = seriesMap[item.category]?.color ?? colors[dupCheck.size % colors.length]
@@ -552,7 +553,7 @@ export class StackBar extends Bar {
         })
         items.unshift(...tmp)
       }
-      optionTmp.legend.items = items
+      ;(optionTmp.legend as any).items = items
       if (extStack?.customSort?.length > 0) {
         delete optionTmp.meta?.category.values
       }
@@ -645,7 +646,7 @@ export class GroupBar extends StackBar {
       return plot
     }
     plot.chart.once('beforepaint', () => {
-      const geo = plot.chart.geometries[0]
+      const geo = plot.chart.geometries[0] as any
       const originMapping = geo.beforeMapping.bind(geo)
       geo.beforeMapping = originData => {
         const values = geo.getXScale().values
@@ -828,11 +829,11 @@ export class GroupStackBar extends StackBar {
 
   protected configData(chart: Chart, options: ColumnOptions): ColumnOptions {
     if (!chart.xAxisExt?.length) {
-      options.isGroup = false
+      ;(options as any).isGroup = false
     }
     if (!chart.extStack?.length) {
-      options.isStack = false
-      options.groupField = 'category'
+      ;(options as any).isStack = false
+      ;(options as any).groupField = 'category'
     }
     return options
   }

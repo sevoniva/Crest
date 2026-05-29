@@ -556,14 +556,17 @@ const formatDate = computed(() => {
       <van-date-picker
         :min-date="minDate"
         :max-date="maxDate"
-        :columns-type="columnsType"
+        :columns-type="columnsType as any"
         v-model="currentDate"
       />
-      <van-time-picker :columns-type="['hour', 'minute', 'second']" v-model="currentTime" />
+      <van-time-picker
+        :columns-type="(['hour', 'minute', 'second'] as any)"
+        v-model="currentTime"
+      />
     </van-picker-group>
     <van-date-picker
       :title="t('dataset.select_date')"
-      :columns-type="columnsType"
+      :columns-type="columnsType as any"
       @confirm="onConfirm"
       @cancel="onCancel"
       :min-date="minDate"

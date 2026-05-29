@@ -74,7 +74,7 @@ export class RangeBar extends G2PlotChartView<BarOptions, Bar> {
     ]
   }
   axis: AxisType[] = [...BAR_AXIS_TYPE, 'yAxisExt']
-  protected baseOptions: BarOptions = {
+  protected baseOptions: any = {
     data: [],
     xField: 'values',
     yField: 'field',
@@ -141,7 +141,7 @@ export class RangeBar extends G2PlotChartView<BarOptions, Bar> {
       seriesField: isDate ? (ifAggregate ? 'category' : undefined) : 'category',
       isGroup: isDate ? !ifAggregate : false,
       isStack: isDate ? !ifAggregate : false,
-      meta: isDate
+      meta: (isDate
         ? {
             values: {
               type: 'time',
@@ -162,7 +162,7 @@ export class RangeBar extends G2PlotChartView<BarOptions, Bar> {
             tempId: {
               key: true
             }
-          }
+          }) as any
     }
 
     const options = this.setupOptions(chart, initOptions)
@@ -183,7 +183,7 @@ export class RangeBar extends G2PlotChartView<BarOptions, Bar> {
         })
       })
     }
-    configPlotTooltipEvent(chart, newChart)
+    configPlotTooltipEvent(chart, newChart as any)
     configAxisLabelLengthLimit(chart, newChart)
     return newChart
   }
@@ -337,7 +337,7 @@ export class RangeBar extends G2PlotChartView<BarOptions, Bar> {
       barWidthRatio = 1
     }
     if (barWidthRatio) {
-      options.barWidthRatio = barWidthRatio
+      ;(options as any).barWidthRatio = barWidthRatio
     }
 
     return options
@@ -368,10 +368,10 @@ export class RangeBar extends G2PlotChartView<BarOptions, Bar> {
 
     if (isDate && !ifAggregate) {
       if (!tmpOptions.label.layout) {
-        tmpOptions.label.layout = []
+        ;(tmpOptions.label as any).layout = []
       }
-      tmpOptions.label.layout.push({ type: 'interval-hide-overlap' })
-      tmpOptions.label.layout.push({ type: 'limit-in-plot', cfg: { action: 'hide' } })
+      ;(tmpOptions.label.layout as any[]).push({ type: 'interval-hide-overlap' })
+      ;(tmpOptions.label.layout as any[]).push({ type: 'limit-in-plot', cfg: { action: 'hide' } })
     }
 
     const label = {

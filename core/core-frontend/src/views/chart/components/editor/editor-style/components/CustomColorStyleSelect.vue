@@ -29,6 +29,7 @@ const props = withDefaults(
   }>(),
   {
     themes: 'light',
+    propertyInner: () => [],
     sub: false
   }
 )

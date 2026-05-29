@@ -42,8 +42,7 @@ type GeoFeatureCollection = {
 
 type Listener = (...args: any[]) => void
 
-const L7_LEGEND_CONTAINER_TPL =
-  '<div><div class="l7plot-legend__category-list"></div></div>'
+const L7_LEGEND_CONTAINER_TPL = '<div><div class="l7plot-legend__category-list"></div></div>'
 const L7_LEGEND_ITEM_TPL = '<div class="l7plot-legend__category-item"></div>'
 const L7_LEGEND_LIST_CLASS = 'l7plot-legend__category-list'
 
@@ -82,10 +81,18 @@ class LiteMapObject {
     return 0
   }
 
-  setStatus() {}
-  setBaseMap() {}
-  checkResize() {}
-  removeStyle() {}
+  setStatus() {
+    return undefined
+  }
+  setBaseMap() {
+    return undefined
+  }
+  checkResize() {
+    return undefined
+  }
+  removeStyle() {
+    return undefined
+  }
 }
 
 export class Scene {
@@ -104,9 +111,13 @@ export class Scene {
     listener?.()
   }
 
-  addControl() {}
-  removeControl() {}
-  getControlByName() {
+  addControl(..._args: any[]) {
+    return undefined
+  }
+  removeControl(..._args: any[]) {
+    return undefined
+  }
+  getControlByName(..._args: any[]) {
     return null
   }
   getZoom() {
@@ -115,10 +126,18 @@ export class Scene {
   getCenter() {
     return [0, 0]
   }
-  setZoomAndCenter() {}
-  setPitch() {}
-  setMapStyle() {}
-  async removeAllLayer() {}
+  setZoomAndCenter(..._args: any[]) {
+    return undefined
+  }
+  setPitch(..._args: any[]) {
+    return undefined
+  }
+  setMapStyle(..._args: any[]) {
+    return undefined
+  }
+  async removeAllLayer() {
+    return undefined
+  }
   getLayers() {
     return []
   }
@@ -135,8 +154,8 @@ class LiteZoom {
   controlOption: Record<string, any>
   mapsService = {
     map: new LiteMapObject(),
-    fitBounds: () => undefined,
-    setZoomAndCenter: () => undefined
+    fitBounds: (..._args: any[]) => undefined,
+    setZoomAndCenter: (..._args: any[]) => undefined
   }
   zoomIn = () => undefined
   zoomOut = () => undefined
@@ -155,7 +174,9 @@ class LiteZoom {
     return button
   }
 
-  updateDisabled() {}
+  updateDisabled() {
+    return undefined
+  }
 }
 
 class GaodeMap extends LiteMapObject {}
@@ -177,10 +198,10 @@ const L7PositionType = {
 function getGeometryCenter(geometry: any): [number, number] {
   const coordinates = geometry?.coordinates
   if (Array.isArray(coordinates?.[0]?.[0])) {
-    return coordinates[0][0]
+    return coordinates[0][0] as [number, number]
   }
   if (Array.isArray(coordinates?.[0])) {
-    return coordinates[0]
+    return coordinates[0] as [number, number]
   }
   return [0, 0]
 }
@@ -340,7 +361,7 @@ export function getTheme(chart: Chart) {
     }
   }
   if (chart.fontFamily) {
-    theme.styleSheet.fontFamily = chart.fontFamily
+    ;(theme.styleSheet as any).fontFamily = chart.fontFamily
   }
   return theme
 }
@@ -1105,7 +1126,7 @@ export function transAxisPosition(position: string): string {
 export function configL7Label(chart: Chart): false | L7LabelOptions {
   const customAttr = parseJson(chart.customAttr)
   const label = customAttr.label
-  const style = {
+  const style: Record<string, any> = {
     fill: label.color,
     fontSize: label.fontSize,
     textAllowOverlap: true,
@@ -1503,7 +1524,7 @@ export function configL7Zoom(
         newZoomOptions.initZoom = basicStyle.zoomLevel
         newZoomOptions.center = [basicStyle.mapCenter.longitude, basicStyle.mapCenter.latitude]
       } else {
-        const coordinates: [][] = []
+        const coordinates: number[][] = []
         if (chart.type === 'flow-map') {
           const startAxis = chart.xAxis
           const endAxis = chart.xAxisExt
@@ -1536,15 +1557,12 @@ export function configL7Zoom(
  * @param coordinates 经纬度数组 [[lng, lat], [lng, lat], ...]
  * @returns {[[number, number], [number, number]]} 返回东北角和西南角的坐标
  */
-export function calculateBounds(coordinates: number[][]): {
-  northEast: [number, number]
-  southWest: [number, number]
-} {
+export function calculateBounds(coordinates: number[][]): number[][] {
   if (!coordinates || coordinates.length === 0) {
-    return {
-      northEast: [180, 90],
-      southWest: [-180, -90]
-    }
+    return [
+      [180, 90],
+      [-180, -90]
+    ]
   }
 
   let maxLng = -180
@@ -1970,10 +1988,7 @@ const getChartElements = chart => {
     document.getElementById('shape-id-' + chart.id)
   )
 }
-export function configPlotTooltipEvent<O extends PickOptions, P extends Plot<O>>(
-  chart: Chart,
-  plot: P
-) {
+export function configPlotTooltipEvent(chart: Chart, plot: any) {
   const { tooltip } = parseJson(chart.customAttr)
   if (!tooltip.show) {
     ChartCarouselTooltip.destroyByContainer(chart.container)
@@ -1987,14 +2002,18 @@ export function configPlotTooltipEvent<O extends PickOptions, P extends Plot<O>>
   // 轮播时tooltip的zIndex
   const carousel_zIndex = enlargeElement ? '9999' : '1002'
   configCarouselTooltip(plot, chart)
+  const plotAny = plot as any
+  const tooltipContainer = plotAny.options?.tooltip?.container as HTMLElement | undefined
   // 鼠标可移入, 移入之后保持显示, 移出之后隐藏
-  plot.options.tooltip.container.addEventListener('mouseenter', e => {
-    e.target.style.visibility = 'visible'
-    e.target.style.display = 'block'
+  tooltipContainer?.addEventListener('mouseenter', e => {
+    const target = e.target as HTMLElement
+    target.style.visibility = 'visible'
+    target.style.display = 'block'
   })
-  plot.options.tooltip.container.addEventListener('mouseleave', e => {
-    e.target.style.visibility = 'hidden'
-    e.target.style.display = 'none'
+  tooltipContainer?.addEventListener('mouseleave', e => {
+    const target = e.target as HTMLElement
+    target.style.visibility = 'hidden'
+    target.style.display = 'none'
   })
   // 手动处理 tooltip 的显示和隐藏事件，需配合源码理解
   // https://github.com/antvis/G2/blob/master/src/chart/controller/tooltip.ts#showTooltip
@@ -2009,18 +2028,18 @@ export function configPlotTooltipEvent<O extends PickOptions, P extends Plot<O>>
     }
     // 处理 tooltip 与下拉菜单的显示冲突问题
     const viewTrackBarElement = document.getElementById('view-track-bar-' + chart.id)
-    const event = plot.chart.interactions.tooltip?.context?.event
+    const event = plotAny.chart.interactions.tooltip?.context?.event
     // 是否时轮播模式
     const isCarousel =
-      chart.customAttr?.tooltip?.carousel &&
+      (chart.customAttr as any)?.tooltip?.carousel &&
       (!event || // 事件触发时，使用event的client坐标
         ['plot:leave', 'plot:mouseleave'].includes(event?.type) || //鼠标离开时，使用tooltipCtl.point
         ['pie', 'pie-rose', 'pie-donut'].includes(chart.type)) // 饼图时，使用tooltipCtl.point
-    plot.options.tooltip.showMarkers = isCarousel ? true : false
+    plotAny.options.tooltip.showMarkers = isCarousel ? true : false
     const wrapperDom = document.getElementById(G2_TOOLTIP_WRAPPER)
     wrapperDom.style.zIndex = isCarousel && wrapperDom ? carousel_zIndex : '9999'
     // 处理视图放大后再关闭 tooltip 的 dom 被清除
-    const container = plot.chart.getOptions().tooltip?.container
+    const container = plotAny.chart.getOptions().tooltip?.container as HTMLElement | undefined
     if (container) {
       // 当下拉菜单不显示时，移除tooltip的hidden-tooltip样式
       if (viewTrackBarElement?.getAttribute('aria-expanded') === 'false') {
@@ -2052,8 +2071,8 @@ export function configPlotTooltipEvent<O extends PickOptions, P extends Plot<O>>
         }
       }
     }
-    plot.chart.getOptions().tooltip.follow = false
-    tooltipCtl.title = Math.random().toString()
+    plotAny.chart.getOptions().tooltip.follow = false
+    ;(tooltipCtl as any).title = Math.random().toString()
     // 当显示提示为事件触发时，使用event的client坐标，否则使用tooltipCtl.point 数据点的位置，在图表中，需要加上图表在绘制区的位置
     chartElement = getChartElements(chart)
     const { x, y } = calculateTooltipPosition(chart, isCarousel, tooltipCtl, chartElement, event)
@@ -2066,8 +2085,8 @@ export function configPlotTooltipEvent<O extends PickOptions, P extends Plot<O>>
     if (!tooltipCtl) {
       return
     }
-    plot.chart.getOptions().tooltip.follow = true
-    const container = tooltipCtl.tooltip?.cfg?.container
+    plotAny.chart.getOptions().tooltip.follow = true
+    const container = (tooltipCtl as any).tooltip?.cfg?.container
     if (container) {
       container.style.display = 'none'
     }
@@ -2081,10 +2100,10 @@ export function configPlotTooltipEvent<O extends PickOptions, P extends Plot<O>>
       if (!tooltipCtl) {
         return
       }
-      const container = plot.chart.getOptions().tooltip?.container
+      const container = plotAny.chart.getOptions().tooltip?.container as HTMLElement | undefined
       for (const ele of wrapperDom.children) {
         if (!container || container.id !== ele.id) {
-          ele.style.display = 'none'
+          ;(ele as HTMLElement).style.display = 'none'
         }
       }
     }
@@ -2094,7 +2113,7 @@ export function configPlotTooltipEvent<O extends PickOptions, P extends Plot<O>>
     if (!tooltipCtl) {
       return
     }
-    const container = tooltipCtl.tooltip?.cfg.container
+    const container = (tooltipCtl as any).tooltip?.cfg.container
     container && (container.style.display = 'none')
   })
 }
@@ -2125,7 +2144,7 @@ export function getConditions(chart: Chart) {
         color: t.color
       }
       // 加中线
-      const annotationLine = {
+      const annotationLine: any = {
         type: 'line',
         start: ['start', t.value],
         end: ['end', t.value],
@@ -2134,22 +2153,23 @@ export function getConditions(chart: Chart) {
           lineDash: [2, 2]
         }
       }
+      const annotationAny = annotation as any
       if (t.term === 'between') {
-        annotation.start = ['start', parseFloat(t.min)]
-        annotation.end = ['end', parseFloat(t.max)]
-        annotationLine.start = ['start', parseFloat(t.min)]
-        annotationLine.end = ['end', parseFloat(t.min)]
+        annotationAny.start = ['start', Number(t.min)]
+        annotationAny.end = ['end', Number(t.max)]
+        annotationLine.start = ['start', Number(t.min)]
+        annotationLine.end = ['end', Number(t.min)]
         annotations.push(JSON.parse(JSON.stringify(annotationLine)))
-        annotationLine.start = ['start', parseFloat(t.max)]
-        annotationLine.end = ['end', parseFloat(t.max)]
+        annotationLine.start = ['start', Number(t.max)]
+        annotationLine.end = ['end', Number(t.max)]
         annotations.push(annotationLine)
       } else if (['lt', 'le'].includes(t.term)) {
-        annotation.start = ['start', t.value]
-        annotation.end = ['end', 'min']
+        annotationAny.start = ['start', t.value]
+        annotationAny.end = ['end', 'min']
         annotations.push(annotationLine)
       } else if (['gt', 'ge'].includes(t.term)) {
-        annotation.start = ['start', t.value]
-        annotation.end = ['end', 'max']
+        annotationAny.start = ['start', t.value]
+        annotationAny.end = ['end', 'max']
         annotations.push(annotationLine)
       }
       annotations.push(annotation)
@@ -2227,7 +2247,7 @@ export function configAxisLabelLengthLimit(chart, plot, triggerObjName = 'axis-l
       // 设置 tooltip 的样式
       AXIS_LABEL_TOOLTIP_STYLE.backgroundColor = tooltip.backgroundColor
       AXIS_LABEL_TOOLTIP_STYLE.boxShadow = `${tooltip.backgroundColor} 0px 0px 5px`
-      AXIS_LABEL_TOOLTIP_STYLE.maxWidth = '200px'
+      ;(AXIS_LABEL_TOOLTIP_STYLE as any).maxWidth = '200px'
       _.assign(labelTooltipDom.style, AXIS_LABEL_TOOLTIP_STYLE)
 
       // 将 tooltip 添加到父节点
@@ -2465,7 +2485,11 @@ export const addConditionsStyleColorToData = (chart: Chart, options) => {
  * @param quotaList 指标列表
  * @param values 值
  */
-const getColorByConditions = (quotaList: [], values: number | number[], chart) => {
+const getColorByConditions = (
+  quotaList: Array<string | number>,
+  values: number | number[],
+  chart
+) => {
   const { threshold } = parseJson(chart.senior)
   const { basicStyle } = parseJson(chart.customAttr)
   const currentValue = Array.isArray(values) ? values[1] - values[0] : values

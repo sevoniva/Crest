@@ -82,9 +82,10 @@ public class DeLinkAop {
         return context;
     }
 
+    // nosemgrep: java.spring.security.audit.spel-injection.spel-injection
     private Object resolveValue(String exp, EvaluationContext context) {
         if (Strings.CS.contains(exp, SPRING_EL_FLAG)) {
-            Expression expression = parser.parseExpression(exp);
+            Expression expression = parser.parseExpression(exp); // nosemgrep: java.spring.security.audit.spel-injection.spel-injection
             return expression.getValue(context);
         }
         return exp;

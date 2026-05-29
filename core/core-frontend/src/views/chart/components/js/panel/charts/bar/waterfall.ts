@@ -133,7 +133,7 @@ export class Waterfall extends G2PlotChartView<WaterfallOptions, G2Waterfall> {
       columnWidthRatio = 1
     }
     if (columnWidthRatio) {
-      options.columnWidthRatio = columnWidthRatio
+      ;(options as Record<string, any>).columnWidthRatio = columnWidthRatio
     }
 
     return {

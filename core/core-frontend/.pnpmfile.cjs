@@ -2,6 +2,7 @@ function readPackage(pkg) {
   if (pkg.name === 'exceljs' && pkg.version === '4.4.0') {
     pkg.dependencies = pkg.dependencies || {}
     pkg.dependencies.uuid = '^11.1.1'
+    pkg.dependencies.tmp = '^0.2.6'
   }
   if (pkg.dependencies?.['@antv/color-util']) {
     pkg.dependencies['@antv/color-util'] = 'link:./vendor/antv-color-util'

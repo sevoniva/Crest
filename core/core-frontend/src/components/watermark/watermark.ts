@@ -119,7 +119,7 @@ export function watermark(settings, domId) {
       mask_div.style.zIndex = '10'
       // 让水印不遮挡页面的点击事件
       mask_div.style.pointerEvents = 'none'
-      mask_div.style.opacity = defaultSettings.watermark_alpha
+      mask_div.style.opacity = String(defaultSettings.watermark_alpha)
       mask_div.style.fontSize = defaultSettings.watermark_fontsize
       mask_div.style.fontFamily = defaultSettings.watermark_font
       mask_div.style.color = defaultSettings.watermark_color

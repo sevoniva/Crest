@@ -994,11 +994,11 @@ const modifyAlpha = isBorder => {
   return `rgba(${r}, ${g}, ${b}, ${!backgroundColorSelect || isBorder ? 0.01 : a})`
 }
 
-const titleIconStyle = computed(() => {
+const titleIconStyle = computed<CSSProperties>(() => {
   const bgColor = modifyAlpha(false)
   const borderColor = modifyAlpha(true)
   // 不显示标题时，图标的样式
-  const style = {
+  const style: CSSProperties = {
     position: 'absolute',
     border: `1px solid ${borderColor}`,
     'background-color': bgColor,
@@ -1145,8 +1145,9 @@ const clearG2Tooltip = () => {
                     wordWrap: 'break-word',
                     whiteSpace: 'pre-wrap'
                   }"
-                  v-html="state.title_remark.remark"
-                ></div>
+                >
+                  {{ state.title_remark.remark }}
+                </div>
               </template>
               <el-icon :size="iconSize" class="inner-icon">
                 <Icon name="icon_info_outlined"><icon_info_outlined class="svg-icon" /></Icon>
@@ -1276,7 +1277,7 @@ const clearG2Tooltip = () => {
       :drill-filters="state.drillFilters"
       @onDrillJump="drillJump"
     />
-            <DePreviewPopDialog ref="dePreviewPopDialogRef"></DePreviewPopDialog>
+    <DePreviewPopDialog ref="dePreviewPopDialogRef"></DePreviewPopDialog>
   </div>
 </template>
 

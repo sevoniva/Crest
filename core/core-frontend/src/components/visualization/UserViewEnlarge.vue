@@ -181,8 +181,8 @@ const dvMainStore = dvMainStoreWithOut()
 const dialogShow = ref(false)
 const requestStore = useRequestStoreWithOut()
 const permissionStore = usePermissionStoreWithOut()
-let viewInfo = ref<DeepPartial<ChartObj>>(null)
-const config = ref(null)
+let viewInfo = ref<any>(null)
+const config = ref<any>(null)
 const viewContainer = ref(null)
 const { t } = useI18n()
 const optType = ref(null)
@@ -223,7 +223,7 @@ const DETAIL_CHART_ATTR: DeepPartial<ChartObj> = {
   showPosition: 'dialog'
 }
 
-const state = reactive({
+const state = reactive<any>({
   scale: 0.5,
   componentSourceType: null,
   dataFrom: null
@@ -481,10 +481,10 @@ const openMessageLoading = cb => {
       t('data_fill.progress_to_download')
     ]),
     iconClass,
-    icon: h(RefreshLeft),
+    icon: h(RefreshLeft) as any,
     showClose: true,
     customClass
-  })
+  } as any)
 }
 // 地图
 const mapChartTypes = ['bubble-map', 'flow-map', 'heat-map', 'map', 'symbolic-map']

@@ -227,7 +227,7 @@ const initOpenHandler = newWindow => {
       </el-dropdown>
     </div>
   </div>
-  </template>
+</template>
 
 <style lang="less">
 .pad12 {

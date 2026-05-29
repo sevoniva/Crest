@@ -20,6 +20,7 @@ import io.crest.extensions.datasource.api.PluginManageApi;
 import io.crest.extensions.datasource.dto.DatasetTableFieldDTO;
 import io.crest.extensions.datasource.dto.DatasourceRequest;
 import io.crest.extensions.datasource.dto.DatasourceSchemaDTO;
+import io.crest.extensions.datasource.dto.TableFieldWithValue;
 import io.crest.extensions.datasource.factory.ProviderFactory;
 import io.crest.extensions.datasource.model.SQLMeta;
 import io.crest.extensions.datasource.provider.Provider;
@@ -734,6 +735,10 @@ public class ChartDataManage {
         DatasourceRequest datasourceRequest = new DatasourceRequest();
         datasourceRequest.setDsList(dsMap);
         datasourceRequest.setIsCross(crossDs);
+        List<TableFieldWithValue> tableFieldWithValues = (List<TableFieldWithValue>) sqlMap.get("tableFieldWithValues");
+        if (CollectionUtils.isNotEmpty(tableFieldWithValues)) {
+            datasourceRequest.setTableFieldWithValues(tableFieldWithValues.stream().map(TableFieldWithValue::copy).toList());
+        }
 
         Provider provider;
         if (crossDs) {

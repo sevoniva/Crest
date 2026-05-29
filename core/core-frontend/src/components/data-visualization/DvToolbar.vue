@@ -568,7 +568,7 @@ const fullScreenPreview = () => {
   <de-fullscreen ref="fullScreeRef" show-position="dvEdit"></de-fullscreen>
   <multiplexing-canvas ref="multiplexingRef"></multiplexing-canvas>
   <outer-params-set ref="outerParamsSetRef"></outer-params-set>
-  </template>
+</template>
 
 <style lang="less" scoped>
 .toolbar-main {

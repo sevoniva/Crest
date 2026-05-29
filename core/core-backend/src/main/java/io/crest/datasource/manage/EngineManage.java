@@ -109,11 +109,11 @@ public class EngineManage {
             queryWrapper.eq("type", engineType.mysql.name());
         }
         List<CoreDeEngine> deEngines = deEngineMapper.selectList(queryWrapper);
-        if (!CollectionUtils.isEmpty(deEngines)) {
+        if (!CollectionUtils.isEmpty(deEngines) && validConfiguration(deEngines.get(0).getConfiguration())) {
             return;
         }
 
-        CoreDeEngine engine = new CoreDeEngine();
+        CoreDeEngine engine = CollectionUtils.isEmpty(deEngines) ? new CoreDeEngine() : deEngines.get(0);
         if (ModelUtils.isDesktop()) {
             engine.setType(engineType.h2.name());
             H2 h2 = new H2();
@@ -141,7 +141,15 @@ public class EngineManage {
         }
         engine.setName("默认引擎");
         engine.setDescription("默认引擎");
-        deEngineMapper.insert(engine);
+        if (engine.getId() == null) {
+            deEngineMapper.insert(engine);
+        } else {
+            deEngineMapper.updateById(engine);
+        }
+    }
+
+    private boolean validConfiguration(String configuration) {
+        return StringUtils.isNotBlank(configuration) && configuration.trim().startsWith("{");
     }
 
 

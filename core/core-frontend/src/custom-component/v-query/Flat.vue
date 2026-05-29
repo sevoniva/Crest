@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { inject, computed } from 'vue'
+import { inject, computed, PropType } from 'vue'
 import { getCSSVariable } from '@/utils/color'
 
 const props = defineProps({
   options: {
-    type: Array,
+    type: Array as PropType<Array<Record<string, any>>>,
     default: () => []
   },
   disabled: {
@@ -12,7 +12,7 @@ const props = defineProps({
     default: false
   },
   activeItems: {
-    type: Array,
+    type: Array as PropType<any[]>,
     default: () => []
   },
   selectStyle: {
@@ -56,7 +56,7 @@ const handleItemClick = (item: any) => {
         <p
           @click="handleItemClick(item)"
           v-for="item in options"
-          :key="item"
+          :key="item.value"
           :style="customColor"
           class="select-item"
           :class="activeItems.includes(item.value) && 'active-select'"

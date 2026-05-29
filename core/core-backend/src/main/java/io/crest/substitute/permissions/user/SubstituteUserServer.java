@@ -13,8 +13,10 @@ import io.crest.api.permissions.user.vo.CurUserVO;
 import io.crest.api.permissions.user.vo.UserFormVO;
 import io.crest.api.permissions.user.vo.UserGridVO;
 import io.crest.api.permissions.user.vo.UserItem;
+import io.crest.auth.bo.TokenUserBO;
 import io.crest.exception.DEException;
 import io.crest.i18n.Lang;
+import io.crest.result.ResultCode;
 import io.crest.substitute.permissions.user.model.CrestUser;
 import io.crest.utils.AuthUtils;
 import io.crest.utils.CacheUtils;
@@ -43,9 +45,12 @@ public class SubstituteUserServer {
 
     @GetMapping("/info")
     public CurUserVO info() {
-        Long uid = AuthUtils.getUser() == null ? 1L : AuthUtils.getUser().getUserId();
+        Long uid = currentUserId();
         CrestUser user = crestUserManage.queryById(uid);
-        CurUserVO result = crestUserManage.toCurrent(user == null ? crestUserManage.queryById(1L) : user);
+        if (user == null) {
+            DEException.throwException(ResultCode.USER_NOT_EXIST.code(), ResultCode.USER_NOT_EXIST.message());
+        }
+        CurUserVO result = crestUserManage.toCurrent(user);
         Object langObj = CacheUtils.get(USER_COMMUNITY_LANGUAGE, "de");
         if (ObjectUtils.isNotEmpty(langObj) && StringUtils.isNotBlank(langObj.toString())) {
             result.setLanguage(langObj.toString());
@@ -55,7 +60,7 @@ public class SubstituteUserServer {
 
     @GetMapping("/personInfo")
     public UserFormVO personInfo() {
-        Long uid = AuthUtils.getUser() == null ? 1L : AuthUtils.getUser().getUserId();
+        Long uid = currentUserId();
         UserFormVO userFormVO = crestUserManage.toForm(crestUserManage.queryById(uid));
         userFormVO.setIp(IPUtils.get());
         return userFormVO;
@@ -108,7 +113,8 @@ public class SubstituteUserServer {
 
     @GetMapping("/defaultPwd")
     public String defaultPwd() {
-        return "admin";
+        CrestPermissionUtils.requireAdmin();
+        return "";
     }
 
     @PostMapping("/resetPwd/{id}")
@@ -144,5 +150,13 @@ public class SubstituteUserServer {
             DEException.throwException("无效language");
         }
         CacheUtils.put(USER_COMMUNITY_LANGUAGE, "de", lang);
+    }
+
+    private Long currentUserId() {
+        TokenUserBO user = AuthUtils.getUser();
+        if (user == null || user.getUserId() == null) {
+            DEException.throwException(ResultCode.USER_NOT_LOGGED_IN.code(), ResultCode.USER_NOT_LOGGED_IN.message());
+        }
+        return user.getUserId();
     }
 }

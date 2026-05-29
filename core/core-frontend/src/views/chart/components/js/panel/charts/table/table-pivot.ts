@@ -36,7 +36,7 @@ type DataItem = Record<string, any>
 const { t } = useI18n()
 
 class CustomPivotDataset extends PivotDataSet {
-  getTotalValue(query: Query, totalStatus?: TotalStatus) {
+  getTotalValue(query: Query, totalStatus?: TotalStatus): any {
     const { options } = this.spreadsheet
     const effectiveStatus = some(totalStatus)
     const status = effectiveStatus ? totalStatus : this.getTotalStatus(query)
@@ -50,9 +50,13 @@ class CustomPivotDataset extends PivotDataSet {
 
     // 前端计算汇总值
     if (calcAction || calcFunc) {
-      const data = this.getMultiData(query, {
-        queryType: QueryDataType.DetailOnly
-      })
+      const data =
+        (this as any).getMultiData?.(query, {
+          queryType: QueryDataType.DetailOnly
+        }) ??
+        (this as any).getCellMultiData(query, {
+          queryType: QueryDataType.DetailOnly
+        } as any)
       let totalValue: number
       if (calcFunc) {
         totalValue = calcFunc(query, data, this.spreadsheet, status)
@@ -238,7 +242,7 @@ export class TablePivot extends S2ChartView<PivotSheet> {
     const newData = this.configEmptyDataStrategy(chart)
     const sortParams = this.configSortParams(chart, newData)
     // data config
-    const s2DataConfig: S2DataConfig = {
+    const s2DataConfig: any = {
       fields: {
         rows: r,
         columns: c,
@@ -248,8 +252,8 @@ export class TablePivot extends S2ChartView<PivotSheet> {
       meta: meta,
       data: newData,
       sortParams: sortParams
-    }
-    const s2Options: S2Options = {
+    } as any
+    const s2Options: any = {
       width: containerDom.offsetWidth,
       height: containerDom.offsetHeight,
       totals: tableTotal as Totals,
@@ -264,9 +268,9 @@ export class TablePivot extends S2ChartView<PivotSheet> {
         hoverHighlight: !(basicStyle.showHoverStyle === false),
         hoverFocus: false
       },
-      dataCell: meta => {
+      dataCell: ((meta: any) => {
         return new CustomDataCell(meta, meta.spreadsheet)
-      },
+      }) as any,
       frozenRowHeader: !(tableHeader.rowHeaderFreeze === false)
     }
     // options
@@ -359,15 +363,15 @@ export class TablePivot extends S2ChartView<PivotSheet> {
     // 自适应铺满
     if (basicStyle.tableColumnMode === 'adapt') {
       s2.on(S2Event.LAYOUT_RESIZE_COL_WIDTH, () => {
-        s2.store.set('lastLayoutResult', s2.facet.layoutResult)
+        s2.store.set('lastLayoutResult', s2.facet.getLayoutResult())
       })
       // 平铺模式行头resize
       s2.on(S2Event.LAYOUT_RESIZE_ROW_WIDTH, () => {
-        s2.store.set('lastLayoutResult', s2.facet.layoutResult)
+        s2.store.set('lastLayoutResult', s2.facet.getLayoutResult())
       })
       // 树形模式行头resize
       s2.on(S2Event.LAYOUT_RESIZE_TREE_WIDTH, () => {
-        s2.store.set('lastLayoutResult', s2.facet.layoutResult)
+        s2.store.set('lastLayoutResult', s2.facet.getLayoutResult())
       })
       s2.on(S2Event.LAYOUT_AFTER_HEADER_LAYOUT, (ev: LayoutResult) => {
         const lastLayoutResult = s2.store.get('lastLayoutResult') as LayoutResult
@@ -734,7 +738,7 @@ export class TablePivot extends S2ChartView<PivotSheet> {
     }
     return theme
   }
-  private configSortParams(chart: Chart, newData: []) {
+  private configSortParams(chart: Chart, newData: Record<string, any>[]) {
     // 行列分开处理，先行后列，样式设置中汇总总计排序的优先级最高，剩下的按照字段的排序优先级设置进行排序
     const { xAxis: rowFields, xAxisExt: columnFields, yAxis: valueFields } = chart
     const [r, c, v] = [rowFields, columnFields, valueFields].map(arr =>
@@ -752,7 +756,7 @@ export class TablePivot extends S2ChartView<PivotSheet> {
       v.indexOf(tableTotal.row.totalSortField) > -1
     ) {
       c.forEach(i => {
-        const sort = {
+        const sort: any = {
           sortFieldId: i,
           sortMethod: tableTotal.row.totalSort.toUpperCase(),
           sortByMeasure: TOTAL_VALUE,
@@ -773,7 +777,7 @@ export class TablePivot extends S2ChartView<PivotSheet> {
       v.indexOf(tableTotal.col.totalSortField) > -1
     ) {
       r.forEach(i => {
-        const sort = {
+        const sort: any = {
           sortFieldId: i,
           sortMethod: tableTotal.col.totalSort.toUpperCase(),
           sortByMeasure: TOTAL_VALUE,
@@ -839,7 +843,7 @@ export class TablePivot extends S2ChartView<PivotSheet> {
         })
         const tmpFields = [...sortFieldsBeforeValueFields, ...sortFieldsNotInPriority]
         tmpFields.forEach(f => {
-          const sort = {
+          const sort: any = {
             sortFieldId: sortRowFieldsMap[f].dataeaseName
           }
           const sortMethod = sortRowFieldsMap[f]?.sort?.toUpperCase()
@@ -868,7 +872,9 @@ export class TablePivot extends S2ChartView<PivotSheet> {
                 if (!b) {
                   return sortMethod === 'ASC' ? 1 : -1
                 }
-                return sortMethod === 'ASC' ? a.localeCompare(b) : b.localeCompare(a)
+                return sortMethod === 'ASC'
+                  ? String(a).localeCompare(String(b))
+                  : String(b).localeCompare(String(a))
               })
               sort.sortBy = uniqueValues
             }
@@ -878,7 +884,7 @@ export class TablePivot extends S2ChartView<PivotSheet> {
         if (sortFieldsAfterValueFields.length && minSortValueFieldId) {
           const sortValueField = valueFields.find(f => f.id === minSortValueFieldId)
           sortFieldsAfterValueFields.forEach(f => {
-            const sort = {
+            const sort: any = {
               sortFieldId: sortRowFieldsMap[f].dataeaseName,
               sortMethod: sortValueField.sort.toUpperCase(),
               sortByMeasure: TOTAL_VALUE,
@@ -893,7 +899,7 @@ export class TablePivot extends S2ChartView<PivotSheet> {
       } else {
         rowFields.forEach(f => {
           if (sortRowFieldsMap[f.id]) {
-            const sort = {
+            const sort: any = {
               sortFieldId: f.dataeaseName
             }
             const sortMethod = f.sort.toUpperCase()
@@ -922,7 +928,9 @@ export class TablePivot extends S2ChartView<PivotSheet> {
                   if (!b) {
                     return sortMethod === 'ASC' ? 1 : -1
                   }
-                  return sortMethod === 'ASC' ? a.localeCompare(b) : b.localeCompare(a)
+                  return sortMethod === 'ASC'
+                    ? String(a).localeCompare(String(b))
+                    : String(b).localeCompare(String(a))
                 })
                 sort.sortBy = uniqueValues
               }
@@ -931,7 +939,7 @@ export class TablePivot extends S2ChartView<PivotSheet> {
           } else {
             if (sortValueFields.length) {
               const sortValueField = valueFields.find(f => f.id === sortValueFields[0])
-              const sort = {
+              const sort: any = {
                 sortFieldId: f.dataeaseName,
                 sortMethod: sortValueField.sort.toUpperCase(),
                 sortByMeasure: TOTAL_VALUE,
@@ -951,7 +959,7 @@ export class TablePivot extends S2ChartView<PivotSheet> {
         if (valueFieldMap[f]?.sort === 'none') {
           return
         }
-        const sort = {
+        const sort: any = {
           sortFieldId: f
         }
         const sortMethod = valueFieldMap[f]?.sort?.toUpperCase()
@@ -982,7 +990,9 @@ export class TablePivot extends S2ChartView<PivotSheet> {
               if (!b) {
                 return sortMethod === 'ASC' ? 1 : -1
               }
-              return sortMethod === 'ASC' ? a.localeCompare(b) : b.localeCompare(a)
+              return sortMethod === 'ASC'
+                ? String(a).localeCompare(String(b))
+                : String(b).localeCompare(String(a))
             })
             sort.sortBy = uniqueValues
           }
@@ -995,7 +1005,7 @@ export class TablePivot extends S2ChartView<PivotSheet> {
         if (valueFieldMap[f]?.sort === 'none') {
           return
         }
-        const sort = {
+        const sort: any = {
           sortFieldId: f
         }
         const sortMethod = valueFieldMap[f]?.sort?.toUpperCase()
@@ -1025,7 +1035,9 @@ export class TablePivot extends S2ChartView<PivotSheet> {
               if (!b) {
                 return sortMethod === 'ASC' ? 1 : -1
               }
-              return sortMethod === 'ASC' ? a.localeCompare(b) : b.localeCompare(a)
+              return sortMethod === 'ASC'
+                ? String(a).localeCompare(String(b))
+                : String(b).localeCompare(String(a))
             })
             sort.sortBy = uniqueValues
           }
@@ -1457,7 +1469,8 @@ const calcActionByType: {
   [Aggregation.SUM]: getDataSumByField,
   [Aggregation.MIN]: (data, field) => getDataExtremumByField('min', data, field),
   [Aggregation.MAX]: (data, field) => getDataExtremumByField('max', data, field),
-  [Aggregation.AVG]: getDataAvgByField
+  [Aggregation.AVG]: getDataAvgByField,
+  [Aggregation.COUNT]: data => data?.length ?? 0
 }
 
 class EmptyDataCell extends MergedCell {
@@ -1465,8 +1478,8 @@ class EmptyDataCell extends MergedCell {
     this.meta.fieldValue = ' '
     super.drawTextShape()
     const { rowHeader, columnHeader } = this.spreadsheet.facet
-    const offsetX = columnHeader.getConfig().viewportWidth / 2
-    const offsetY = rowHeader.getConfig().viewportHeight / 2
+    const offsetX = (columnHeader.getConfig() as any).viewportWidth / 2
+    const offsetY = (rowHeader.getConfig() as any).viewportHeight / 2
     const style = this.getTextStyle()
     const config = {
       attrs: {
@@ -1479,7 +1492,7 @@ class EmptyDataCell extends MergedCell {
         textBaseline: 'middle'
       }
     }
-    this.addShape('text', config)
+    ;(this as any).addShape('text', config)
   }
 
   protected drawBackgroundShape(): void {
@@ -1514,7 +1527,7 @@ function configEmptyDataStyle(instance: PivotSheet, data: any[]) {
     return
   }
   instance.on(S2Event.LAYOUT_AFTER_RENDER, () => {
-    const { colLeafNodes, rowLeafNodes } = instance.facet?.layoutResult || {}
+    const { colLeafNodes, rowLeafNodes } = instance.facet?.getLayoutResult?.() || {}
     if (!colLeafNodes?.length || !rowLeafNodes?.length) {
       return
     }

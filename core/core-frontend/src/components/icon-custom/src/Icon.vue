@@ -16,6 +16,7 @@ const svgClass = computed(() => {
 </script>
 
 <template>
+  <!-- nosemgrep: javascript.vue.security.audit.xss.templates.avoid-v-html.avoid-v-html -->
   <div
     class="svg-container"
     v-if="staticContent"

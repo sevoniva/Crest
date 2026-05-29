@@ -229,13 +229,11 @@ service.interceptors.response.use(
       return
     }
     const header = error.response?.headers as AxiosHeaders
-    if (
-      !header.has('DE-FORBIDDEN-FLAG') &&
-      !header.has('DE-GATEWAY-FLAG')
-    ) {
+    const responseData = error.response?.data as Record<string, any> | undefined
+    if (!header.has('DE-FORBIDDEN-FLAG') && !header.has('DE-GATEWAY-FLAG')) {
       ElMessage({
         type: 'error',
-        message: error.response?.data?.msg ? error.response?.data?.msg : error.message,
+        message: responseData?.msg ? responseData.msg : error.message,
         showClose: true
       })
     }

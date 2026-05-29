@@ -1,6 +1,6 @@
 <script lang="tsx" setup>
 import { useI18n } from '@/hooks/web/useI18n'
-import { computed, reactive, toRefs, watch } from 'vue'
+import { computed, PropType, reactive, toRefs, watch } from 'vue'
 import {
   compareYearList,
   compareMonthList,
@@ -11,19 +11,19 @@ const { t } = useI18n()
 
 const props = defineProps({
   compareItem: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   chart: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   dimensionData: {
-    type: Array,
+    type: Array as PropType<Array<Record<string, any>>>,
     required: false
   },
   quotaData: {
-    type: Array,
+    type: Array as PropType<Array<Record<string, any>>>,
     required: false
   }
 })

@@ -74,9 +74,9 @@ export function getCustomTheme(chart: Chart): S2Theme {
     DEFAULT_TABLE_HEADER.tableHeaderBgColor,
     DEFAULT_BASIC_STYLE.alpha
   )
-  const headerAlign = DEFAULT_TABLE_HEADER.tableHeaderAlign
+  const headerAlign = DEFAULT_TABLE_HEADER.tableHeaderAlign as any
   const itemColor = hexColorToRGBA(DEFAULT_TABLE_CELL.tableItemBgColor, DEFAULT_BASIC_STYLE.alpha)
-  const itemAlign = DEFAULT_TABLE_CELL.tableItemAlign
+  const itemAlign = DEFAULT_TABLE_CELL.tableItemAlign as any
   const borderColor = hexColorToRGBA(
     DEFAULT_BASIC_STYLE.tableBorderColor,
     DEFAULT_BASIC_STYLE.alpha
@@ -268,7 +268,8 @@ export function getCustomTheme(chart: Chart): S2Theme {
       }
       const fontStyle = tableHeader.isItalic ? 'italic' : 'normal'
       const fontWeight = tableHeader.isBolder === false ? 'normal' : 'bold'
-      const { tableHeaderAlign, tableTitleFontSize } = tableHeader
+      const { tableHeaderAlign: rawTableHeaderAlign, tableTitleFontSize } = tableHeader
+      const tableHeaderAlign = rawTableHeaderAlign as any
       const tmpTheme: S2Theme = {
         cornerCell: {
           cell: {
@@ -383,7 +384,8 @@ export function getCustomTheme(chart: Chart): S2Theme {
       }
       const fontStyle = tableCell.isItalic ? 'italic' : 'normal'
       const fontWeight = tableCell.isBolder === false ? 'normal' : 'bold'
-      const { tableItemAlign, tableItemFontSize, enableTableCrossBG } = tableCell
+      const { tableItemAlign: rawTableItemAlign, tableItemFontSize, enableTableCrossBG } = tableCell
+      const tableItemAlign = rawTableItemAlign as any
       const tmpTheme: S2Theme = {
         rowCell: {
           cell: {
@@ -526,7 +528,7 @@ export function getStyle(chart: Chart, dataConfig: S2DataConfig): Style {
         }
         // 铺满
         const totalWidthPercent = dataConfig.meta?.reduce((p, n) => {
-          return p + (fieldMap[n.field]?.width ?? 10)
+          return p + (fieldMap[n.field as string]?.width ?? 10)
         }, 0)
         const fullFilled = parseInt(totalWidthPercent.toFixed(0)) === 100
         const widthArr = []
@@ -1631,7 +1633,7 @@ export class SortTooltip extends BaseTooltip {
 
   showSortTooltip(showOptions) {
     const { position, options, meta, event } = showOptions
-    const { enterable } = getTooltipDefaultOptions(options)
+    const { enterable } = getTooltipDefaultOptions(options) as { enterable?: boolean }
     const { autoAdjustBoundary, adjustPosition } = this.spreadsheet.options.tooltip || {}
     this.visible = true
     this.options = showOptions
@@ -1703,20 +1705,20 @@ export function configHeaderInteraction(chart: Chart, option: S2Options) {
   option.customSVGIcons = [
     {
       name: `customSortDefault${randomSuffix}`,
-      svg: sortDefault
+      src: sortDefault
     },
     {
       name: `customSortUp${randomSuffix}`,
-      svg: sortUp
+      src: sortUp
     },
     {
       name: `customSortDown${randomSuffix}`,
-      svg: sortDown
+      src: sortDown
     }
   ]
   option.headerActionIcons = [
     {
-      iconNames: [
+      icons: [
         `customSortDefault${randomSuffix}`,
         `customSortUp${randomSuffix}`,
         `customSortDown${randomSuffix}`
@@ -1750,8 +1752,10 @@ export function configHeaderInteraction(chart: Chart, option: S2Options) {
         const parent = document.getElementById(chart.container)
         if (parent?.childNodes?.length) {
           const child = Array.from(parent.childNodes)
-            .filter(node => node.nodeType === Node.ELEMENT_NODE)
-            .find(node => node.classList.contains('antv-s2-tooltip-container'))
+            .filter(node => node.nodeType === globalThis.Node.ELEMENT_NODE)
+            .find((node): node is HTMLElement =>
+              (node as HTMLElement).classList.contains('antv-s2-tooltip-container')
+            )
           if (child) {
             const left = child.offsetLeft + child.clientWidth
             if (left > parent.offsetWidth) {
@@ -1827,8 +1831,8 @@ export function copyContent(s2Instance: SpreadSheet, event, fieldMeta) {
       return
     }
     const brushSelection = s2Instance.interaction.interactions.get(
-      InteractionName.BRUSH_SELECTION
-    ) as DataCellBrushSelection
+      InteractionName.DATA_CELL_BRUSH_SELECTION
+    ) as any
     const selectedCells: TableDataCell[] = brushSelection.getScrollBrushRangeCells(cells)
     selectedCells.sort((a, b) => {
       const aMeta = a.getMeta()
@@ -1914,7 +1918,7 @@ export function copyContent(s2Instance: SpreadSheet, event, fieldMeta) {
       p[n.field] = n.name
       return p
     }, {})
-    content = cellMeta.value
+    content = String(cellMeta.value ?? '')
     if (fieldMap?.[content]) {
       content = fieldMap[content]
     }
@@ -1960,7 +1964,7 @@ function getTooltipPosition(event) {
 }
 
 export async function exportGridPivot(instance: PivotSheet, chart: ChartObj) {
-  const { layoutResult } = instance.facet
+  const layoutResult = instance.facet.getLayoutResult()
   const { meta, fields } = instance.dataCfg
   const rowLength = fields?.rows?.length || 0
   const colLength = fields?.columns?.length || 0
@@ -1973,14 +1977,14 @@ export async function exportGridPivot(instance: PivotSheet, chart: ChartObj) {
   const worksheet = workbook.addWorksheet(i18nt('chart.chart_data'))
   const metaMap: Record<string, Meta> = meta?.reduce((p, n) => {
     if (n.field) {
-      p[n.field] = n
+      p[n.field as string] = n
     }
     return p
-  }, {})
+  }, {} as Record<string, Meta>)
   // 角头
   fields.columns?.forEach((column, index) => {
     const cell = worksheet.getCell(index + 1, 1)
-    cell.value = metaMap[column]?.name ?? column
+    cell.value = String(metaMap[column as string]?.name ?? column)
     cell.alignment = { vertical: 'middle', horizontal: 'center' }
     if (rowLength >= 2) {
       worksheet.mergeCells(index + 1, 1, index + 1, rowLength)
@@ -1991,7 +1995,7 @@ export async function exportGridPivot(instance: PivotSheet, chart: ChartObj) {
   })
   fields?.rows?.forEach((row, index) => {
     const cell = worksheet.getCell(colLength + 1, index + 1)
-    cell.value = metaMap[row]?.name ?? row
+    cell.value = String(metaMap[row as string]?.name ?? row)
     cell.alignment = { vertical: 'middle', horizontal: 'center' }
     cell.border = {
       bottom: { style: 'thick', color: { argb: '00000000' } }
@@ -2154,7 +2158,7 @@ export async function exportGridPivot(instance: PivotSheet, chart: ChartObj) {
 }
 
 export async function exportRowQuotaGridPivot(instance: PivotSheet, chart: ChartObj) {
-  const { layoutResult } = instance.facet
+  const layoutResult = instance.facet.getLayoutResult()
   const { meta, fields } = instance.dataCfg
   const rowLength = fields?.rows?.length || 0
   const colLength = fields?.columns?.length || 0
@@ -2167,10 +2171,10 @@ export async function exportRowQuotaGridPivot(instance: PivotSheet, chart: Chart
   const worksheet = workbook.addWorksheet(i18nt('chart.chart_data'))
   const metaMap: Record<string, Meta> = meta?.reduce((p, n) => {
     if (n.field) {
-      p[n.field] = n
+      p[n.field as string] = n
     }
     return p
-  }, {})
+  }, {} as Record<string, Meta>)
   // 角头
   if (colLength > 1) {
     fields.columns.forEach((column: string, index) => {
@@ -2188,11 +2192,11 @@ export async function exportRowQuotaGridPivot(instance: PivotSheet, chart: Chart
   }
   fields?.rows?.forEach((row, index) => {
     const cell = worksheet.getCell(colLength === 0 ? 1 : colLength, index + 1)
-    cell.value = metaMap[row]?.name ?? row
+    cell.value = String(metaMap[row as string]?.name ?? row)
     cell.alignment = { vertical: 'middle', horizontal: 'center' }
     cell.border = { bottom: { style: 'thick', color: { argb: '00000000' } } }
   })
-  const quotaColLabel = chart.customAttr.basicStyle.quotaColLabel ?? t('dataset.value')
+  const quotaColLabel = chart.customAttr.basicStyle.quotaColLabel ?? i18nt('dataset.value')
   const quotaColHeadCell = worksheet.getCell(colLength === 0 ? 1 : colLength, rowLength + 1)
   quotaColHeadCell.value = quotaColLabel
   quotaColHeadCell.alignment = { vertical: 'middle', horizontal: 'center' }
@@ -2344,7 +2348,7 @@ export async function exportRowQuotaGridPivot(instance: PivotSheet, chart: Chart
 }
 
 export async function exportTreePivot(instance: PivotSheet, chart: ChartObj) {
-  const layoutResult = instance.facet.layoutResult
+  const layoutResult = instance.facet.getLayoutResult()
   if (layoutResult.colLeafNodes.length + 1 > 16384) {
     ElMessage.warning(i18nt('chart.pivot_export_invalid_col_exceed'))
     return
@@ -2355,22 +2359,22 @@ export async function exportTreePivot(instance: PivotSheet, chart: ChartObj) {
   const worksheet = workbook.addWorksheet(i18nt('chart.chart_data'))
   const metaMap: Record<string, Meta> = meta?.reduce((p, n) => {
     if (n.field) {
-      p[n.field] = n
+      p[n.field as string] = n
     }
     return p
-  }, {})
+  }, {} as Record<string, Meta>)
 
   // 角头
   fields.columns?.forEach((column, index) => {
     const cell = worksheet.getCell(index + 1, 1)
-    cell.value = metaMap[column]?.name ?? column
+    cell.value = String(metaMap[column as string]?.name ?? column)
     cell.alignment = { vertical: 'middle', horizontal: 'center' }
     cell.border = {
       right: { style: 'thick', color: { argb: '00000000' } }
     }
   })
   const maxColHeight = layoutResult.colsHierarchy.maxLevel + 1
-  const rowName = fields?.rows?.map(row => metaMap[row]?.name ?? row).join('/')
+  const rowName = fields?.rows?.map(row => metaMap[row as string]?.name ?? row).join('/')
   const cell = worksheet.getCell(colLength + 1, 1)
   cell.value = rowName
   cell.alignment = { vertical: 'middle', horizontal: 'center' }
@@ -2485,7 +2489,7 @@ export async function exportTreePivot(instance: PivotSheet, chart: ChartObj) {
 }
 
 export async function exportRowQuotaTreePivot(instance: PivotSheet, chart: ChartObj) {
-  const layoutResult = instance.facet.layoutResult
+  const layoutResult = instance.facet.getLayoutResult()
   if (layoutResult.colLeafNodes.length + 1 > 16384) {
     ElMessage.warning(i18nt('chart.pivot_export_invalid_col_exceed'))
     return
@@ -2496,10 +2500,10 @@ export async function exportRowQuotaTreePivot(instance: PivotSheet, chart: Chart
   const worksheet = workbook.addWorksheet(i18nt('chart.chart_data'))
   const metaMap: Record<string, Meta> = meta?.reduce((p, n) => {
     if (n.field) {
-      p[n.field] = n
+      p[n.field as string] = n
     }
     return p
-  }, {})
+  }, {} as Record<string, Meta>)
 
   // 角头
   fields.columns?.forEach((column, index) => {
@@ -2507,16 +2511,16 @@ export async function exportRowQuotaTreePivot(instance: PivotSheet, chart: Chart
       return
     }
     const cell = worksheet.getCell(index + 1, 1)
-    cell.value = metaMap[column]?.name ?? column
+    cell.value = String(metaMap[column as string]?.name ?? column)
     cell.alignment = { vertical: 'middle', horizontal: 'center' }
     cell.border = {
       right: { style: 'thick', color: { argb: '00000000' } }
     }
   })
-  const quotaColLabel = chart.customAttr.basicStyle.quotaColLabel ?? t('dataset.value')
+  const quotaColLabel = chart.customAttr.basicStyle.quotaColLabel ?? i18nt('dataset.value')
   const maxColHeight = layoutResult.colsHierarchy.maxLevel + 1
   const rowName = fields?.rows
-    ?.map(row => metaMap[row]?.name ?? row)
+    ?.map(row => metaMap[row as string]?.name ?? row)
     .concat(quotaColLabel)
     .join('/')
   const cell = worksheet.getCell(colLength, 1)
@@ -2771,8 +2775,8 @@ export function configMergeCells(chart: Chart, options: S2Options, dataConfig: S
       fields.reduce((p, n) => {
         p[n.dataeaseName] = n
         return p
-      }, {}) || {}
-    const quotaIndex = dataConfig.meta.findIndex(m => fieldsMap[m.field]?.groupType === 'q')
+      }, {} as Record<string, any>) || {}
+    const quotaIndex = dataConfig.meta.findIndex(m => fieldsMap[m.field as string]?.groupType === 'q')
     const data = chart.data?.tableRow
     if (quotaIndex === 0 || !data?.length) {
       return
@@ -2789,10 +2793,10 @@ export function configMergeCells(chart: Chart, options: S2Options, dataConfig: S
       mergedColInfo.push(curMergedColInfo)
       preMergedColInfo.forEach(range => {
         const [start, end] = range
-        let lastVal = data[start][a.field]
+        let lastVal = data[start][a.field as string]
         let lastIndex = start
         for (let index = start; index <= end; index++) {
-          const curVal = data[index][a.field]
+          const curVal = data[index][a.field as string]
           if (curVal !== lastVal || index === end) {
             const curRange = index - lastIndex
             if (curRange > 1 || (index === end && curRange === 1 && lastVal === curVal)) {
@@ -2883,12 +2887,12 @@ class CustomMergedCell extends MergedCell {
       stroke: cellTheme.horizontalBorderColor,
       fill,
       lineHeight: cellTheme.horizontalBorderWidth
-    })
+    } as any)
   }
 
 
-  protected getTextStyle() {
-    const textStyle = super.getTextStyle()
+  protected getTextStyle(): any {
+    const textStyle = super.getTextStyle() as any
     const dataCellAlignConfig = this.theme.dataCellAlignConfig
     if (dataCellAlignConfig) {
       const align = dataCellAlignConfig[this.meta.valueField]
@@ -2896,7 +2900,7 @@ class CustomMergedCell extends MergedCell {
         textStyle.textAlign = align
       }
     }
-    if (textStyle.textAlign === 'custom') {
+    if ((textStyle.textAlign as string) === 'custom') {
       textStyle.textAlign = 'left'
     }
     return textStyle
@@ -2937,8 +2941,8 @@ export class CustomDataCell extends TableDataCell {
     return bgColorInfo
   }
 
-  protected getTextStyle() {
-    const textStyle = super.getTextStyle()
+  protected getTextStyle(): any {
+    const textStyle = super.getTextStyle() as any
     const dataCellAlignConfig = this.theme.dataCellAlignConfig
     if (dataCellAlignConfig) {
       const align = dataCellAlignConfig[this.meta.valueField]
@@ -2946,7 +2950,7 @@ export class CustomDataCell extends TableDataCell {
         textStyle.textAlign = align
       }
     }
-    if (textStyle.textAlign === 'custom') {
+    if ((textStyle.textAlign as string) === 'custom') {
       textStyle.textAlign = 'left'
     }
     return textStyle
@@ -2956,8 +2960,8 @@ export class CustomDataCell extends TableDataCell {
    * 重写绘制文本内容的方法
    * @protected
    */
-  protected drawTextShape() {
-    if(this.meta.isMergedCell) {
+  drawTextShape() {
+    if (this.meta.isMergedCell) {
       return
     }
     if (this.meta.autoWrap) {
@@ -2970,8 +2974,8 @@ export class CustomDataCell extends TableDataCell {
 
 export class CustomTableColCell extends TableColCell {
 
-  protected getTextStyle() {
-    const textStyle = super.getTextStyle()
+  protected getTextStyle(): any {
+    const textStyle = super.getTextStyle() as any
     const colCellAlignConfig = this.theme.colCellAlignConfig
     if (colCellAlignConfig) {
       // 分组单元格居中
@@ -2984,7 +2988,7 @@ export class CustomTableColCell extends TableColCell {
         textStyle.textAlign = align
       }
     }
-    if (textStyle.textAlign === 'custom') {
+    if ((textStyle.textAlign as string) === 'custom') {
       textStyle.textAlign = 'left'
     }
     return textStyle
@@ -2994,7 +2998,7 @@ export class CustomTableColCell extends TableColCell {
    * 重写是为了表头文本内容的换行
    * @protected
    */
-  protected drawTextShape() {
+  drawTextShape() {
     if (this.meta.autoWrap) {
       drawTextShape(this, true)
     } else {
@@ -3082,7 +3086,7 @@ const drawTextShape = (cell, isHeader) => {
   const { y } = cell.getTextAndIconPosition()?.text || cell.getTextPosition()
   const x = getTextStartX(cell, textStyle)
   // 绘制文本
-  cell.textShape = renderText(cell, [cell.textShape], x, y, wrapText, textStyle, {
+  cell.textShape = (renderText as any)(cell, [cell.textShape], x, y, wrapText, textStyle, {
     fontSize: extraStyleFontSize
   })
 
@@ -3131,7 +3135,7 @@ function getTextStartX(cell, textStyle) {
  */
 export const calculateHeaderHeight = (info, newChart, tableHeader, basicStyle, layoutResult) => {
   if (tableHeader.showTableHeader === false) return
-  const ev = layoutResult || newChart.facet.layoutResult
+  const ev = layoutResult || newChart.facet.getLayoutResult()
   const maxLines = basicStyle.maxLines ?? 1
   const textStyle = { ...newChart.theme.cornerCell.text }
   const sourceText = info.info.meta.value
@@ -3337,7 +3341,7 @@ export class SummaryCell extends CustomDataCell {
 
   getBackgroundColor() {
     const { backgroundColor, backgroundColorOpacity } = this.theme.colCell.cell
-    return { backgroundColor, backgroundColorOpacity }
+    return { backgroundColor, backgroundColorOpacity, intelligentReverseTextColor: false }
   }
 }
 

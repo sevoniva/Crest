@@ -144,11 +144,11 @@ export class TableHeatmap extends G2PlotChartView<HeatmapOptions, Heatmap> {
       meta: {
         [xField]: {
           type: 'cat',
-          values: this.sortData(xAxis[0], [...new Set(data.map(i => i[[xField]]))])
+          values: this.sortData(xAxis[0], [...new Set(data.map(i => i[xField]))])
         },
         [xFieldExt]: {
           type: 'cat',
-          values: this.sortData(xAxisExt[0], [...new Set(data.map(i => i[[xFieldExt]]))]).reverse()
+          values: this.sortData(xAxisExt[0], [...new Set(data.map(i => i[xFieldExt]))]).reverse()
         }
       },
       legend: {
@@ -211,7 +211,7 @@ export class TableHeatmap extends G2PlotChartView<HeatmapOptions, Heatmap> {
 
   protected configTheme(chart: Chart, options: HeatmapOptions): HeatmapOptions {
     const tmp = super.configTheme(chart, options)
-    tmp.theme.innerLabels.offset = 0
+    ;(tmp.theme as any).innerLabels.offset = 0
     return tmp
   }
 
@@ -330,11 +330,12 @@ export class TableHeatmap extends G2PlotChartView<HeatmapOptions, Heatmap> {
       const extColor = deepCopy(chart.extColor)
       const { label: labelAttr } = parseJson(chart.customAttr)
       const layout = []
-      if (!tmpOptions.label.fullDisplay) {
-        layout.push(...tmpOptions.label.layout)
+      const labelConfig = tmpOptions.label as any
+      if (!labelConfig.fullDisplay) {
+        layout.push(...(Array.isArray(labelConfig.layout) ? labelConfig.layout : []))
       }
       const label = {
-        ...tmpOptions.label,
+        ...labelConfig,
         position: 'middle',
         layout,
         formatter: data => {

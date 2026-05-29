@@ -180,6 +180,8 @@ export interface Configuration {
   sslCA: string
   sslCert: string
   sslKey: string
+  url?: string
+  [key: string]: any
 }
 
 export interface ApiConfiguration {
@@ -193,6 +195,10 @@ export interface ApiConfiguration {
   status: string
   useJsonPath: boolean
   serialNumber: number
+  fields?: any[]
+  jsonFields?: any[]
+  updateTime?: string | number
+  [key: string]: any
 }
 
 export interface SyncSetting {
@@ -205,13 +211,14 @@ export interface SyncSetting {
   endTime: number
   endLimit: string
   cron: string
+  [key: string]: any
 }
 
 export interface Node {
   name: string
   createBy: string
   creator: string
-  copy: boolean
+  copy?: boolean
   createTime: string
   id: number | string
   size: number
@@ -225,5 +232,7 @@ export interface Node {
   apiConfiguration?: ApiConfiguration[]
   paramsConfiguration?: ApiConfiguration[]
   weight?: number
+  enableDataFill?: boolean
+  extraFlag?: number
   lastSyncTime?: number | string
 }

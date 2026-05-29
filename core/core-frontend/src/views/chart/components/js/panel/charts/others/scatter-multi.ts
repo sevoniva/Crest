@@ -189,7 +189,7 @@ export class MultiScatter extends G2PlotChartView<ScatterOptions, G2Scatter> {
       xField: scatterContext.xField,
       yField: scatterContext.yField,
       colorField: scatterContext.colorField,
-      rawFields: ['lightness'],
+      ...({ rawFields: ['lightness'] } as Record<string, any>),
       meta,
       appendPadding: getPadding(chart),
       interactions: [

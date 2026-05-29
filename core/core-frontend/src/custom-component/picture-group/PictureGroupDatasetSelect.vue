@@ -94,7 +94,7 @@ const initOpenHandler = newWindow => {
     @add-ds-window="addDsWindow"
     :state-obj="state"
   />
-  </template>
+</template>
 
 <style lang="less" scoped>
 .de-collapse-style {

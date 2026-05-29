@@ -39,7 +39,7 @@ watch(
   }
 )
 
-const changeColorOption = () => {
+const changeColorOption = (_prop?: string) => {
   const items = colorCases.filter(ele => {
     return ele.value === state.colorForm.value
   })
@@ -64,7 +64,7 @@ const switchColorCase = () => {
   changeColorCase()
 }
 
-const changeColorCase = () => {
+const changeColorCase = (_prop?: string) => {
   emit('onColorChange', state.colorForm)
 }
 

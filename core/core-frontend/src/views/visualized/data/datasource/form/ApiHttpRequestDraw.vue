@@ -23,6 +23,7 @@ export interface Field {
   checked: boolean
   primaryKey: boolean
   children?: Array<{}>
+  deExtractType?: number
 }
 
 export interface ApiItem {
@@ -75,7 +76,11 @@ let apiItem = reactive<ApiItem>({
   status: '',
   name: '',
   type: 'table',
+  appToken: '',
+  tableId: '',
+  viewId: '',
   url: '',
+  copy: false,
   method: 'GET',
   request: {
     changeId: '',
@@ -91,6 +96,11 @@ let apiItem = reactive<ApiItem>({
       verification: '',
       username: '',
       password: ''
+    },
+    page: {
+      pageType: 'empty',
+      requestData: [],
+      responseData: []
     }
   },
   fields: [],
@@ -112,7 +122,7 @@ const columns = shallowRef([])
 const valueList = shallowRef([])
 const tableData = shallowRef([])
 const apiItemBasicInfo = ref<FormInstance>()
-const pluginApiItemBasicInfo = ref<FormInstance>()
+const pluginApiItemBasicInfo = ref<any>()
 const isSupportSetKey = ref(false)
 const isNumber = (rule, value, callback) => {
   if (!value) {
@@ -254,8 +264,6 @@ const showApiData = () => {
           console.warn(error?.message)
         })
       loading.value = false
-    } else {
-      return false
     }
   })
 }
@@ -798,8 +806,7 @@ defineExpose({
         </div>
       </el-form>
     </el-row>
-    <el-row v-show="active === 0 && dsType !== 'API'">
-          </el-row>
+    <el-row v-show="active === 0 && dsType !== 'API'"> </el-row>
     <el-row v-show="active === 1">
       <el-form
         style="width: 100%"

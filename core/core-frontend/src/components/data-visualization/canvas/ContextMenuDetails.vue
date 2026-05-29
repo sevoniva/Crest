@@ -230,10 +230,10 @@ const handleComposeMouseDown = e => {
 
 const composeDivider = computed(() => {
   return !(
-    !curComponent ||
-    curComponent['isLock'] ||
-    curComponent['component'] != 'Group' ||
-    curComponent.category === 'hidden'
+    !curComponent.value ||
+    curComponent.value['isLock'] ||
+    curComponent.value['component'] != 'Group' ||
+    curComponent.value.category === 'hidden'
   )
 })
 
@@ -330,7 +330,7 @@ const editQueryCriteria = () => {
             <li @click="customSort" v-if="curComponent.component === 'DeTabs'">
               {{ t('visualization.sort') }}
             </li>
-                        <li @click="categoryChange('hidden')" v-show="showMoveMenu">
+            <li @click="categoryChange('hidden')" v-show="showMoveMenu">
               {{ t('visualization.move_to_pop_area') }}
             </li>
             <el-divider class="custom-divider" />

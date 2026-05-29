@@ -12,6 +12,7 @@
       :property-inner-all="mixPropertiesInner"
       :dimension-data="state.dimensionData"
       :quota-data="state.quotaData"
+      :all-fields="[]"
       @onMiscChange="onMiscChange"
       @onLabelChange="onLabelChange"
       @onTooltipChange="onTooltipChange"

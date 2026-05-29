@@ -1,6 +1,7 @@
 import { EdgeValues, CornerValues } from '@/Types'
+export type { EdgeValues, CornerValues } from '@/Types'
 import { COLOR_PANEL } from '@/views/chart/components/editor/util/chart'
-import type { UploadFile } from 'element-plus-secondary'
+import type { UploadUserFile } from 'element-plus-secondary'
 
 export type BackgroundType = 'outerImage' | 'innerImage'
 
@@ -23,7 +24,7 @@ export interface State {
   BackgroundShowMap: Record<string, any>
   checked: boolean
   backgroundOrigin: Record<string, any>
-  fileList: UploadFile[]
+  fileList: UploadUserFile[]
   dialogImageUrl: string
   dialogVisible: boolean
   uploadDisabled: boolean

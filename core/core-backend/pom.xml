@@ -78,6 +78,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -123,17 +124,6 @@
                     <artifactId>itext-core</artifactId>
                     <version>${itextpdf.version}</version>
                     <type>pom</type>
-                </dependency>
-                <dependency>
-                    <groupId>com.vladsch.flexmark</groupId>
-                    <artifactId>flexmark-all</artifactId>
-                    <version>${flexmark.version}</version>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>commons-logging</groupId>
-                            <artifactId>commons-logging</artifactId>
-                        </exclusion>
-                    </exclusions>
                 </dependency>
             </dependencies>
 

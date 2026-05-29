@@ -38,7 +38,7 @@ import {
 const { t } = useI18n()
 
 class ImageCell extends CustomDataCell {
-  protected drawTextShape(): void {
+  drawTextShape(): void {
     drawImage.apply(this)
   }
 }
@@ -179,7 +179,7 @@ export class TableInfo extends S2ChartView<TableSheet> {
       tooltip: {
         getContainer: () => containerDom,
         renderTooltip: sheet => new SortTooltip(sheet)
-      },
+      } as any,
       interaction: {
         hoverHighlight: !(basicStyle.showHoverStyle === false),
         scrollbarPosition: newData.length
@@ -252,7 +252,8 @@ export class TableInfo extends S2ChartView<TableSheet> {
       // 调整行高不能小于初始行高
       newChart.on(S2Event.LAYOUT_RESIZE_COL_HEIGHT, info => {
         if (info.info.resizedHeight < newChart.options.style.colCfg.height) {
-          info.style.colCfg.heightByField[info.info.id] = newChart.options.style.colCfg.height
+          info.style.colCfg.heightByField[(info.info as any).id] =
+            newChart.options.style.colCfg.height
         }
       })
       // 调整表头单元格宽度时，计算表头高度
@@ -287,7 +288,7 @@ export class TableInfo extends S2ChartView<TableSheet> {
     // 自适应铺满
     if (basicStyle.tableColumnMode === 'adapt') {
       newChart.on(S2Event.LAYOUT_RESIZE_COL_WIDTH, () => {
-        newChart.store.set('lastLayoutResult', newChart.facet.layoutResult)
+        newChart.store.set('lastLayoutResult', newChart.facet.getLayoutResult())
       })
       newChart.on(S2Event.LAYOUT_AFTER_HEADER_LAYOUT, (ev: LayoutResult) => {
         const lastLayoutResult = newChart.store.get('lastLayoutResult') as LayoutResult
@@ -418,6 +419,7 @@ export class TableInfo extends S2ChartView<TableSheet> {
       }
       const { tableBorderColor } = basicStyle
       const { tableItemAlign, tableItemFontSize } = tableCell
+      const textAlign = tableItemAlign as any
       const fontStyle = tableCell.isItalic ? 'italic' : 'normal'
       const fontWeight = tableCell.isBolder === false ? 'normal' : 'bold'
       const mergeCellTheme: S2Theme = {
@@ -437,28 +439,28 @@ export class TableInfo extends S2ChartView<TableSheet> {
           },
           bolderText: {
             fill: tableFontColor,
-            textAlign: tableItemAlign,
+            textAlign,
             fontSize: tableItemFontSize,
             fontStyle,
             fontWeight
           },
           text: {
             fill: tableFontColor,
-            textAlign: tableItemAlign,
+            textAlign,
             fontSize: tableItemFontSize,
             fontStyle,
             fontWeight
           },
           measureText: {
             fill: tableFontColor,
-            textAlign: tableItemAlign,
+            textAlign,
             fontSize: tableItemFontSize,
             fontStyle,
             fontWeight
           },
           seriesText: {
             fill: tableFontColor,
-            textAlign: tableItemAlign,
+            textAlign,
             fontSize: tableItemFontSize,
             fontStyle,
             fontWeight
@@ -540,7 +542,7 @@ export class TableInfo extends S2ChartView<TableSheet> {
         return p
       }, mergedCellsInfoMap)
     }
-    s2Options.dataCell = (viewMeta, spreadsheet) => {
+    s2Options.dataCell = ((viewMeta, spreadsheet) => {
       const sheet = spreadsheet || viewMeta?.spreadsheet
       // 总计行处理
       if (showSummary && viewMeta.rowIndex === data.length - 1) {
@@ -578,7 +580,7 @@ export class TableInfo extends S2ChartView<TableSheet> {
         viewMeta.isMergedCell = true
       }
       return new CustomDataCell(viewMeta, sheet)
-    }
+    }) as any
   }
 
   setupDefaultOptions(chart: ChartObj): ChartObj {

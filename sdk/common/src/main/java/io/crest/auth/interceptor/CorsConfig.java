@@ -15,7 +15,7 @@ import java.util.List;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
-    @Value("${crest.cors-strict:false}")
+    @Value("${crest.cors-strict:true}")
     private boolean corsStrict;
 
 
@@ -35,7 +35,7 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowCredentials(false)
                 .allowedHeaders("*")
                 .maxAge(3600)
-                .allowedMethods("GET", "POST", "DELETE");
+                .allowedMethods("GET", "POST", "DELETE", "OPTIONS");
         if (corsStrict) {
             operateCorsRegistration.allowedOrigins(originList.toArray(new String[0]));
             return;

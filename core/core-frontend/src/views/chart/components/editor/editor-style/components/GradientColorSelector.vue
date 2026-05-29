@@ -15,10 +15,11 @@ const props = withDefaults(
       customColor: any
       colorIndex: number
     }
-    propertyInner: Array<string>
+    propertyInner?: Array<string>
   }>(),
   {
-    themes: 'light'
+    themes: 'light',
+    propertyInner: () => []
   }
 )
 const colorCases = JSON.parse(JSON.stringify(COLOR_CASES))
@@ -56,7 +57,7 @@ const scrollToSelected = () => {
   if (!parents) return
   const items = parents.getElementsByClassName('color-div-base selected')
   if (items && items.length) {
-    const top = items[0].offsetTop || 0
+    const top = (items[0] as HTMLElement).offsetTop || 0
     parents.scrollTo(0, top)
   }
 }

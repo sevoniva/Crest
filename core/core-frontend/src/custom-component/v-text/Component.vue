@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import { keycodes } from '@/utils/DeShortcutKey.js'
 import eventBus from '@/utils/eventBus'
-import { nextTick, onBeforeUnmount, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { toRefs } from 'vue'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
+import { sanitizeHtml } from '@/utils/sanitizeHtml'
 
 const canEdit = ref(false)
 const ctrlKey = ref(17)
@@ -31,6 +32,7 @@ const props = defineProps({
 })
 
 const { element } = toRefs(props)
+const safePropValue = computed(() => sanitizeHtml(element.value?.propValue))
 const dvMainStore = dvMainStoreWithOut()
 const { editMode, curComponent } = storeToRefs(dvMainStore)
 
@@ -116,6 +118,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="editMode == 'edit'" class="v-text" @keydown="handleKeydown" @keyup="handleKeyup">
+    <!-- nosemgrep: javascript.vue.security.audit.xss.templates.avoid-v-html.avoid-v-html -->
     <div
       ref="text"
       :contenteditable="canEdit"
@@ -127,14 +130,12 @@ onBeforeUnmount(() => {
       @mousedown="handleMousedown"
       @blur="handleBlur"
       @input="handleInput"
-      v-html="element['propValue']"
+      v-html="safePropValue"
     ></div>
   </div>
   <div v-else class="v-text preview">
-    <div
-      :style="{ verticalAlign: element['style'].verticalAlign }"
-      v-html="element['propValue']"
-    ></div>
+    <!-- nosemgrep: javascript.vue.security.audit.xss.templates.avoid-v-html.avoid-v-html -->
+    <div :style="{ verticalAlign: element['style'].verticalAlign }" v-html="safePropValue"></div>
   </div>
 </template>
 

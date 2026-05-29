@@ -374,13 +374,13 @@ export function refreshOtherComponent(dvId, busiFlag) {
   )
   if (refreshComponentList && refreshComponentList.length > 0) {
     const refreshIdList = refreshComponentList.map(ele => ele.id)
-    findById(dvId, busiFlag, {}).then(rsp => {
-      const canvasInfo = rsp.data
-      const canvasDataResult = JSON.parse(canvasInfo.componentData)
+    findById(dvId, busiFlag, { source: 'main' } as any).then(rsp => {
+      const canvasInfo = rsp.data as any
+      const canvasDataResult = JSON.parse(canvasInfo.componentData) as any[]
       const canvasDataResultMap = canvasDataResult.reduce((acc, comp) => {
         acc[comp.id] = comp
         return acc
-      }, {})
+      }, {} as Record<string, any>)
       // 遍历数组并替换
       for (let i = 0; i < componentData.value.length; i++) {
         const component = componentData.value[i]
@@ -413,21 +413,22 @@ export function initCanvasDataPrepare(dvId, params, callBack) {
   const copyFlag = busiFlag != null && busiFlag.includes('-copy')
   const busiFlagCustom = copyFlag ? busiFlag.split('-')[0] : busiFlag
   const method = copyFlag ? findCopyResource : findById
-  let attachInfo = { source: params.source ? params.source : 'main' }
-  if (dvMainStore.canvasAttachInfo && !!dvMainStore.canvasAttachInfo.taskId) {
-    attachInfo = { source: 'report', taskId: dvMainStore.canvasAttachInfo.taskId }
+  let attachInfo: Record<string, any> = { source: params.source ? params.source : 'main' }
+  const canvasAttachInfo = dvMainStore.canvasAttachInfo as Record<string, any>
+  if (canvasAttachInfo && !!canvasAttachInfo.taskId) {
+    attachInfo = { source: 'report', taskId: canvasAttachInfo.taskId }
     const showWatermarkExist =
-      dvMainStore.canvasAttachInfo.hasOwnProperty('showWatermark') &&
-      typeof dvMainStore.canvasAttachInfo.showWatermark !== 'undefined' &&
-      dvMainStore.canvasAttachInfo.showWatermark !== null
+      canvasAttachInfo.hasOwnProperty('showWatermark') &&
+      typeof canvasAttachInfo.showWatermark !== 'undefined' &&
+      canvasAttachInfo.showWatermark !== null
     if (showWatermarkExist) {
-      const enable = dvMainStore.canvasAttachInfo.showWatermark === 'true'
+      const enable = canvasAttachInfo.showWatermark === 'true'
       attachInfo['showWatermark'] = enable
     }
   }
   attachInfo['resourceTable'] = params.resourceTable ? params.resourceTable : 'core'
-  method(dvId, busiFlagCustom, attachInfo).then(res => {
-    const canvasInfo = res.data
+  ;(method as any)(dvId, busiFlagCustom, attachInfo).then(res => {
+    const canvasInfo = res.data as any
     const watermarkInfo = {
       ...canvasInfo.watermarkInfo,
       settingContent: canvasInfo.watermarkInfo?.settingContent
@@ -454,8 +455,8 @@ export function initCanvasDataPrepare(dvId, params, callBack) {
     }
     const canvasVersion = canvasInfo.version
 
-    const canvasDataResult = JSON.parse(canvasInfo.componentData)
-    const canvasStyleResult = JSON.parse(canvasInfo.canvasStyleData)
+    const canvasDataResult = JSON.parse(canvasInfo.componentData) as any[]
+    const canvasStyleResult = JSON.parse(canvasInfo.canvasStyleData) as Record<string, any>
     const canvasViewInfoPreview = canvasInfo.canvasViewInfo
     historyAdaptor(canvasStyleResult, canvasDataResult, canvasInfo, attachInfo, canvasVersion)
     const curPreviewGap =
@@ -670,7 +671,7 @@ export async function canvasSaveWithParams(params, callBack) {
     }
   })
   const newContentId = guid()
-  const canvasInfo = {
+  const canvasInfo: Record<string, any> = {
     canvasStyleData: JSON.stringify(canvasStyleData.value),
     componentData: JSON.stringify(componentDataToSave),
     canvasViewInfo: canvasViewInfo.value,
@@ -974,9 +975,12 @@ export async function decompressionPre(params, callBack) {
   await decompression(params)
     .then(response => {
       const deTemplateDataTemp = response.data
-      const sourceComponentData = JSON.parse(deTemplateDataTemp['componentData'])
+      const sourceComponentData = JSON.parse(deTemplateDataTemp['componentData']) as any[]
       const appData = deTemplateDataTemp['appData']
-      const sourceCanvasStyle = JSON.parse(deTemplateDataTemp['canvasStyleData'])
+      const sourceCanvasStyle = JSON.parse(deTemplateDataTemp['canvasStyleData']) as Record<
+        string,
+        any
+      >
       sourceComponentData.forEach(componentItem => {
         // 2 为基础版本 此处需要增加仪表板矩阵密度
         if (
@@ -1105,7 +1109,9 @@ export function onInitReady(params, eventName = 'canvas_init_ready') {
       eventName: eventName,
       args: params
     }
-    const targetOrigin = document.referrer ? new URL(document.referrer).origin : window.location.origin
+    const targetOrigin = document.referrer
+      ? new URL(document.referrer).origin
+      : window.location.origin
     window.parent.postMessage(targetPm, targetOrigin)
   } catch (e) {
     console.debug('de_inner_params send error')

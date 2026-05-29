@@ -51,7 +51,7 @@ const DEFAULT_DATA = []
 /**
  * 柱线混合图
  */
-export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
+export class ColumnLineMix extends G2PlotChartView<any, any> {
   properties = CHART_MIX_EDITOR_PROPERTY
   propertyInner = {
     ...CHART_MIX_EDITOR_PROPERTY_INNER,
@@ -95,7 +95,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
     return 'line'
   }
 
-  async drawChart(drawOptions: G2PlotDrawOptions<DualAxes>): Promise<DualAxes> {
+  async drawChart(drawOptions: G2PlotDrawOptions<any>): Promise<any> {
     const { chart, action, container } = drawOptions
     chart.container = container
     if (!chart.data?.left?.data?.length && !chart.data?.right?.data?.length) {
@@ -174,7 +174,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
     const options = this.setupOptions(chart, initOptions)
     const { DualAxes } = await import('@antv/g2plot/esm/plots/dual-axes')
     // 开始渲染
-    const newChart = new DualAxes(container, options)
+    const newChart: any = new DualAxes(container, options)
 
     newChart.on('point:click', action)
     newChart.on('interval:click', action)
@@ -183,7 +183,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
     return newChart
   }
 
-  protected configLabel(chart: Chart, options: DualAxesOptions): DualAxesOptions {
+  protected configLabel(chart: Chart, options: any): any {
     const tempLabel = getLabel(chart)
     const tmpOption = { ...options }
     if (!tempLabel) {
@@ -255,7 +255,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
     return tmpOption
   }
 
-  protected configBasicStyle(chart: Chart, options: DualAxesOptions): DualAxesOptions {
+  protected configBasicStyle(chart: Chart, options: any): any {
     // size
     const customAttr: DeepPartial<ChartAttr> = parseJson(chart.customAttr)
     const s = defaultsDeep(
@@ -317,7 +317,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
       tempOption.geometryOptions[0].columnWidthRatio = columnWidthRatio
     }
 
-    if (super.name !== 'chart-mix-dual-line') {
+    if (this.name !== 'chart-mix-dual-line') {
       tempOption.geometryOptions[0].appendPadding = getPadding(chart)
     }
 
@@ -335,7 +335,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
     return chart
   }
 
-  protected configCustomColors(chart: Chart, options: DualAxesOptions): DualAxesOptions {
+  protected configCustomColors(chart: Chart, options: any): any {
     const tempOption = {
       ...options
     }
@@ -373,7 +373,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
     return tempOption
   }
 
-  protected configSubCustomColors(chart: Chart, options: DualAxesOptions): DualAxesOptions {
+  protected configSubCustomColors(chart: Chart, options: any): any {
     const tempOption = {
       ...options
     }
@@ -459,7 +459,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
     return result
   }
 
-  protected configYAxis(chart: Chart, options: DualAxesOptions): DualAxesOptions {
+  protected configYAxis(chart: Chart, options: any): any {
     const yAxis = getYAxis(chart)
     const yAxisExt = getYAxisExt(chart)
 
@@ -529,7 +529,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
     return tempOption
   }
 
-  protected configTooltip(chart: Chart, options: DualAxesOptions): DualAxesOptions {
+  protected configTooltip(chart: Chart, options: any): any {
     const customAttr: DeepPartial<ChartAttr> = parseJson(chart.customAttr)
     const tooltipAttr = customAttr.tooltip
     if (!tooltipAttr.show) {
@@ -586,7 +586,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
     }
   }
 
-  protected configLegend(chart: Chart, options: DualAxesOptions): DualAxesOptions {
+  protected configLegend(chart: Chart, options: any): any {
     const o = super.configLegend(chart, options)
     if (o.legend) {
       const left = cloneDeep(chart.data?.left?.data)
@@ -626,7 +626,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
     return o
   }
 
-  protected configAnalyse(chart: Chart, options: DualAxesOptions): DualAxesOptions {
+  protected configAnalyse(chart: Chart, options: any): any {
     chart.data.dynamicAssistLines = union(
       defaultTo(chart.data?.left?.dynamicAssistLines, []),
       defaultTo(chart.data?.right?.dynamicAssistLines, [])
@@ -639,7 +639,7 @@ export class ColumnLineMix extends G2PlotChartView<DualAxesOptions, DualAxes> {
     return { ...options, annotations }
   }
 
-  protected setupOptions(chart: Chart, options: DualAxesOptions): DualAxesOptions {
+  protected setupOptions(chart: Chart, options: any): any {
     return flow(
       this.configTheme,
       this.configLabel,
@@ -681,7 +681,7 @@ export class GroupColumnLineMix extends ColumnLineMix {
     }
   }
 
-  protected configCustomColors(chart: Chart, options: DualAxesOptions): DualAxesOptions {
+  protected configCustomColors(chart: Chart, options: any): any {
     const tempOption = {
       ...options
     }
@@ -794,7 +794,7 @@ export class StackColumnLineMix extends ColumnLineMix {
     }
   }
 
-  protected configCustomColors(chart: Chart, options: DualAxesOptions): DualAxesOptions {
+  protected configCustomColors(chart: Chart, options: any): any {
     const tempOption = {
       ...options
     }
@@ -912,7 +912,7 @@ export class DualLineMix extends ColumnLineMix {
     return 'line'
   }
 
-  protected configCustomColors(chart: Chart, options: DualAxesOptions): DualAxesOptions {
+  protected configCustomColors(chart: Chart, options: any): any {
     const tempOption = {
       ...options
     }

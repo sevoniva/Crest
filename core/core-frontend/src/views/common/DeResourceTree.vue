@@ -112,7 +112,7 @@ const state = reactive({
       svgName: dvDelete,
       divided: true
     }
-  ],
+  ] as any[],
   sortType: [
     {
       label: t('visualization.time_asc'), //'按时间升序'
@@ -363,7 +363,7 @@ const afterTreeInit = (notOpen = false) => {
     resourceListTree.value.filter(filterText.value)
     if (notOpen) return
     nextTick(() => {
-      document.querySelector('.is-current')?.firstChild?.click()
+      ;(document.querySelector('.is-current')?.firstChild as HTMLElement | undefined)?.click()
     })
   })
 }
@@ -413,7 +413,9 @@ const operation = (cmd: string, data: BusiTreeNode, nodeType: string) => {
       name: data.name + '-copy',
       type: curCanvasType.value,
       id: data.id,
-      pid: targetPid || '0'
+      pid: targetPid || '0',
+      mobileLayout: !!data?.extraFlag,
+      status: !!data?.extraFlag1
     }
 
     copyLoading.value = true
@@ -798,7 +800,7 @@ defineExpose({
       />
     </el-scrollbar>
   </div>
-  </template>
+</template>
 <style lang="less" scoped>
 .filter-icon-span {
   border: 1px solid #d9dcdf;

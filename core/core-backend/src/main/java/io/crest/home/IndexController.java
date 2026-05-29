@@ -21,5 +21,9 @@ public class IndexController {
         return PANEL_PAGE;
     }
 
+    @GetMapping({"/doc.html", "/swagger-ui.html", "/swagger-ui/index.html"})
+    public String doc() {
+        return "redirect:/webjars/swagger-ui/index.html";
+    }
 
 }

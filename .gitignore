@@ -66,6 +66,8 @@ test-results/
 mapFiles/156/*.json
 !mapFiles/156/156.json
 reports/
+/tools/security/
+.dependency-check-cache/
 *.pid
 *.out
 __pycache__/

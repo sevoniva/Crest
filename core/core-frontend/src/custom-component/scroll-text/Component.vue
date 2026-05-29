@@ -5,6 +5,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { toRefs } from 'vue'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { storeToRefs } from 'pinia'
+import { sanitizeHtml } from '@/utils/sanitizeHtml'
 
 const canEdit = ref(false)
 const ctrlKey = ref(17)
@@ -41,6 +42,7 @@ const props = defineProps({
 })
 
 const { element, showPosition } = toRefs(props)
+const safePropValue = computed(() => sanitizeHtml(element.value?.propValue))
 const dvMainStore = dvMainStoreWithOut()
 const { editMode, curComponent } = storeToRefs(dvMainStore)
 
@@ -175,6 +177,7 @@ onMounted(() => {
     @keyup="handleKeyup"
     @dblclick="setEdit"
   >
+    <!-- nosemgrep: javascript.vue.security.audit.xss.templates.avoid-v-html.avoid-v-html -->
     <div
       ref="text"
       :contenteditable="canEdit"
@@ -184,11 +187,12 @@ onMounted(() => {
       @mousedown="handleMousedown"
       @blur="handleBlur"
       @input="handleInput"
-      v-html="element['propValue']"
+      v-html="safePropValue"
     ></div>
   </div>
   <div v-else class="v-text preview" ref="textOut" :style="varStyle">
-    <div class="marquee-txt" ref="text" v-html="element['propValue']"></div>
+    <!-- nosemgrep: javascript.vue.security.audit.xss.templates.avoid-v-html.avoid-v-html -->
+    <div class="marquee-txt" ref="text" v-html="safePropValue"></div>
   </div>
 </template>
 

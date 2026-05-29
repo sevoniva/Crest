@@ -209,12 +209,12 @@ bash install.sh
 
 ```text
 用户名：admin
-初始密码：admin
+初始密码：以安装完成后的终端输出为准
 ```
 
 生产环境上线前建议完成这些检查：
 
-- 修改 `installer/install.conf` 中的 MySQL 密码；
+- 如需固定初始凭据，在安装前设置 `DE_MYSQL_PASSWORD` 和 `DE_INITIAL_PASSWORD`；
 - 使用 HTTPS 或网关反向代理；
 - 调整 `DE_ORIGIN_LIST` 为实际访问域名；
 - 首次登录后修改管理员密码；
@@ -253,7 +253,7 @@ core/core-backend/src/main/resources/db/migration
 
 当前初始状态包含：
 
-- 默认管理员账号 `admin`，初始密码 `admin`；
+- 默认管理员账号 `admin`，初始密码由部署配置或安装脚本生成；
 - 内置零售经营演示库 `crest_demo_retail`；
 - 内置演示数据源 `Crest 演示零售经营库`；
 - 内置演示数据集、图表和数据大屏，用于展示产品主链路；

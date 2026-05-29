@@ -6,7 +6,7 @@ import { cloneDeep } from 'lodash-es'
 interface Props {
   color?: string[]
   backgroundColor?: string
-  curStyle: object
+  curStyle: { width: number; height: number }
   scale: number
 }
 

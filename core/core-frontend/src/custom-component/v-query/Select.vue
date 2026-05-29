@@ -29,6 +29,7 @@ import { isMobile } from '@/utils/utils'
 import { ElMessage } from 'element-plus-secondary'
 
 interface SelectConfig {
+  name?: string
   selectValue: any
   required: false
   defaultMapValue: any
@@ -57,11 +58,8 @@ interface SelectConfig {
   optionValueSource: number
   defaultValueCheck: boolean
   multiple: boolean
-  valueSource: {
-    label: string
-    value: string
-  }[]
-  optionFilter: []
+  valueSource: any[]
+  optionFilter: any[]
 }
 
 const { t } = useI18n()
@@ -92,11 +90,11 @@ const props = defineProps({
   }
 })
 const { config } = toRefs(props)
-let enumValueArr = []
+let enumValueArr: any[] = []
 const selectValue = ref()
 const loading = ref(false)
 const multiple = ref(false)
-const options = shallowRef([])
+const options = shallowRef<any[]>([])
 const unMountSelect: Ref = inject('unmount-select')
 const placeholder: Ref = inject('placeholder')
 const releaseSelect = inject('release-unmount-select', Function, true)
@@ -337,7 +335,7 @@ const handleFieldIdChange = (val: EnumValue) => {
       if (selectValue.value?.length && config.value.multiple) {
         oldArr = [...selectValue.value]
       }
-      enumValueArr = [...(res || [])] || []
+      enumValueArr = [...(res || [])]
       options.value = [
         ...new Set(
           (res || []).map(ele => {

@@ -42,6 +42,8 @@ spec:
         - name: mysql
           image: mysql:8.0
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
           ports:
             - name: mysql
               containerPort: 3306

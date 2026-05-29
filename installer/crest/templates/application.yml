@@ -12,6 +12,9 @@ spring:
     url: jdbc:mysql://${DE_MYSQL_HOST}:${DE_MYSQL_PORT}/${DE_MYSQL_DB}?${DE_MYSQL_PARAMS}
     username: ${DE_MYSQL_USER}
     password: ${DE_MYSQL_PASSWORD}
+logging:
+  file:
+    path: ${DE_LOG_PATH}
 crest:
   export:
     views:
@@ -22,6 +25,13 @@ crest:
   login_timeout: ${DE_LOGIN_TIMEOUT}
   servers: ${DE_SERVERS}
   playwright-server: ${DE_PLAYWRIGHT_SERVER}
+  path:
+    ehcache: ${DE_CACHE_PATH}
+  crypto:
+    aes-key: ${DE_AES_KEY}
+    aes-iv: ${DE_AES_IV}
+  user:
+    initial-password: ${DE_INITIAL_PASSWORD}
 task:
   executor:
     address: http://sync-task-actuator:9001

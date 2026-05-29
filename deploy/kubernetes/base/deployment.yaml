@@ -45,6 +45,7 @@ spec:
                 name: crest-db-secret
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
@@ -59,6 +60,7 @@ spec:
               cp -an /opt/crest/data/static-resource/. /work/static-resource/ 2>/dev/null || true
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
@@ -88,6 +90,10 @@ spec:
               value: /opt/crest/data/excel/
             - name: CREST_PATH_EXPORT_DATA
               value: /opt/crest/data/exportData/
+            - name: CREST_PATH_EHCACHE
+              value: /opt/crest/cache
+            - name: CREST_LOG_PATH
+              value: /opt/crest/logs/crest
           envFrom:
             - configMapRef:
                 name: crest-env
@@ -121,6 +127,7 @@ spec:
               memory: 2Gi
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL

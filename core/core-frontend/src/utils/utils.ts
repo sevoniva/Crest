@@ -78,12 +78,7 @@ export const setColorName = (obj, keyword: string, key?: string, colorKey?: stri
 }
 
 export const getQueryString = (name: string) => {
-  const reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i')
-  const r = window.location.search.substr(1).match(reg)
-  if (r != null) {
-    return unescape(r[2])
-  }
-  return null
+  return new URLSearchParams(window.location.search).get(name)
 }
 
 export const isLarkPlatform = () => {
@@ -280,7 +275,7 @@ export const filterFreeFolder = (list, flagText) => {
     }
   }
 }
-export const nameTrim = (target: {}, msg = '名称字段长度1-64个字符') => {
+export const nameTrim = (target: Record<string, any>, msg = '名称字段长度1-64个字符') => {
   if (target.name) {
     target.name = target.name.trim()
     if (target.name.length < 1 || target.name.length > 64) {

@@ -30,7 +30,7 @@
     :setting-data="templateListTime"
   />
   <!--    数据填报      -->
-  </template>
+</template>
 
 <script lang="ts" setup>
 import icon_down_outlined1 from '@/assets/svg/icon_down_outlined-1.svg'

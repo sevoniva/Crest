@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, toRefs } from 'vue'
+import { computed, onBeforeUnmount, onMounted, PropType, ref, toRefs } from 'vue'
 import { findDragComponent } from '@/utils/canvasUtils'
 import { guid } from '@/views/visualized/data/dataset/form/util'
 import { changeComponentSizeWithScale } from '@/utils/changeComponentsSizeWithScale'
@@ -59,19 +59,19 @@ const { t } = useI18n()
 
 const props = defineProps({
   dvInfo: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   canvasStyleData: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   popComponentData: {
-    type: Array,
+    type: Array as PropType<Array<Record<string, any>>>,
     required: true
   },
   canvasViewInfo: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   canvasId: {
@@ -90,7 +90,7 @@ const props = defineProps({
     default: 'preview'
   },
   canvasState: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   }
 })

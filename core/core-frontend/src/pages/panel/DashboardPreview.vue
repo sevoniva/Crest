@@ -17,7 +17,7 @@ const { wsCache } = useCache()
 const interactiveStore = interactiveStoreWithOut()
 const embeddedStore = useEmbedded()
 const dashboardPreview = ref(null)
-const embeddedParamsDiv = inject('embeddedParams') as object
+const embeddedParamsDiv = inject('embeddedParams') as Record<string, any>
 
 const embeddedParams = embeddedParamsDiv?.dvId ? embeddedParamsDiv : embeddedStore
 const { t } = useI18n()
@@ -69,7 +69,7 @@ onBeforeMount(async () => {
   // div嵌入
   if (embeddedParams.outerParams) {
     try {
-      const outerPramsParse = JSON.parse(embeddedParams.outerParams)
+      const outerPramsParse = JSON.parse(embeddedParams.outerParams) as Record<string, any>
       attachParams = outerPramsParse.attachParams
       dvMainStore.setEmbeddedCallBack(outerPramsParse.callBackFlag || 'no')
     } catch (e) {

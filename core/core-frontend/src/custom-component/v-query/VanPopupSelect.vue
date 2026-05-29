@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref, computed, PropType } from 'vue'
 import FixedSizeList from 'element-plus-secondary/es/components/virtual-list/src/components/fixed-size-list.mjs'
 import VanPopup from 'vant/es/popup'
 import 'vant/es/popup/style'
 
 const props = defineProps({
   options: {
-    type: Array,
+    type: Array as PropType<Array<Record<string, any>>>,
     default: () => []
   },
   selectValue: {
-    type: Array,
+    type: Array as PropType<any[]>,
     default: () => []
   },
   multiple: {

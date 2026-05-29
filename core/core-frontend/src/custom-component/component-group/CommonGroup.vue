@@ -25,7 +25,7 @@ const commonGroup = ref<InstanceType<typeof ElScrollbar>>()
 
 const state = reactive({
   curCategory: 'CanvasBoard',
-  groupList: CANVAS_MATERIAL
+  groupList: CANVAS_MATERIAL as any[]
 })
 
 const scrollTo = offsetTop => {

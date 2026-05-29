@@ -52,17 +52,19 @@ const showDel = ref(false)
 const keywords = ref('')
 const activeName = ref('')
 const filterFiled = ref('')
-const enumList = ref([])
+const enumList = ref<string[]>([])
 const showTextArea = ref()
 const keydownCanceled = ref(false)
-const checklist = ref([])
-const filterList = ref([])
+const checklist = ref<string[]>([])
+const filterList = ref<any[]>([])
 const textareaValue = ref('')
 
 const { item } = toRefs(props)
 
-const getAuthTargetType = inject('getAuthTargetType')
-const filedList = inject('filedList')
+const getAuthTargetType = inject<{ authTargetType: string }>('getAuthTargetType', {
+  authTargetType: ''
+})
+const filedList = inject('filedList', ref<Record<string, any>>({}))
 
 const checkListWithFilter = computed(() => {
   if (!filterFiled.value) return enumList.value
@@ -107,7 +109,7 @@ const dimensions = computed(() => {
   return computedFiledList.value.filter(ele => ele.name.includes(keywords.value))
 })
 const computedFiledList = computed(() => {
-  return Object.values(filedList.value || {})
+  return Object.values(filedList.value || {}) as any[]
 })
 
 const authTargetType = ref('')

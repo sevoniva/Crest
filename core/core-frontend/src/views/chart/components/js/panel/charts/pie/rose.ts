@@ -122,7 +122,7 @@ export class Rose extends G2PlotChartView<RoseOptions, G2Rose> {
     const layout = []
     if (!labelAttr.fullDisplay) {
       const tmpOptions = super.configLabel(chart, options)
-      layout.push(...tmpOptions.label.layout)
+      layout.push(...(((tmpOptions.label as Record<string, any>)?.layout || []) as any[]))
     }
     const labelOptions: Label = {
       autoRotate: true,

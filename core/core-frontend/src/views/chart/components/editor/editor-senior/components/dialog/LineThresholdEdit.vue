@@ -16,13 +16,14 @@ const props = defineProps({
     required: true
   },
   threshold: {
-    type: Array,
+    type: Array as PropType<LineThreshold[]>,
     required: true,
     default: () => []
   }
 })
 
 const emit = defineEmits(['onLineThresholdChange'])
+type LineThreshold = TableThreshold & { options?: typeof expressionList }
 
 const thresholdCondition = {
   term: 'lt',
@@ -108,7 +109,7 @@ const valueOptions = computed(() => {
 })
 const predefineColors = COLOR_PANEL
 
-const state = reactive({
+const state = reactive<any>({
   thresholdArr: [] as LineThreshold[],
   fields: [],
   thresholdObj: {

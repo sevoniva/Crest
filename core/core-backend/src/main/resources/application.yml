@@ -18,10 +18,10 @@ spring:
       config: classpath:ehcache/ehcache.xml
   data:
     redis:
-      host: 127.0.0.1
-      port: 6379
-      password: 123456
-      database: 0
+      host: ${CREST_REDIS_HOST:127.0.0.1}
+      port: ${CREST_REDIS_PORT:6379}
+      password: ${CREST_REDIS_PASSWORD:}
+      database: ${CREST_REDIS_DATABASE:0}
   jackson:
     parser:
       allow-numeric-leading-zeros: true
@@ -40,12 +40,18 @@ crest:
   path:
     excel: ${CREST_PATH_EXCEL:/opt/crest/data/excel/}
     exportData: ${CREST_PATH_EXPORT_DATA:/opt/crest/data/exportData/}
+    ehcache: ${CREST_PATH_EHCACHE:/opt/crest/cache}
+  crypto:
+    aes-key: ${CREST_AES_KEY:}
+    aes-iv: ${CREST_AES_IV:}
+  user:
+    initial-password: ${CREST_INITIAL_PASSWORD:}
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
 logging:
   file:
-    path: /opt/crest/logs/crest
+    path: ${CREST_LOG_PATH:/opt/crest/logs/crest}
 # sql日志生产环境注释掉
 #mybatis-plus:
 #  configuration:
@@ -53,10 +59,12 @@ logging:
 # springdoc-openapi项目配置
 springdoc:
   swagger-ui:
+    enabled: false
     path: /swagger-ui.html
     tags-sorter: alpha
     #operations-sorter: alpha
   api-docs:
+    enabled: true
     path: /v3/api-docs
 # knife4j的增强配置，不需要增强可以不配
 knife4j:

@@ -3,6 +3,7 @@ package io.crest.utils;
 
 import io.crest.exception.DEException;
 import io.crest.model.RSAModel;
+import io.crest.result.ResultCode;
 import io.crest.rsa.dao.entity.CoreRsa;
 import io.crest.rsa.manage.RsaManage;
 import jakarta.annotation.Resource;
@@ -145,11 +146,15 @@ public class RsaUtils {
     }
 
     public static String decryptStr(String data, String privateKey) {
+        if (StringUtils.isBlank(data) || StringUtils.isBlank(privateKey)) {
+            DEException.throwException(ResultCode.PARAM_IS_INVALID.code(), "加密参数格式无效");
+        }
         try {
             return decrypt(data, getPrivateKey(privateKey));
         } catch (Exception e) {
-            LogUtil.error(e.getMessage(), e);
-            throw new RuntimeException(e);
+            LogUtil.debug(StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName()));
+            DEException.throwException(ResultCode.PARAM_IS_INVALID.code(), "加密参数格式无效");
+            return "";
         }
     }
 

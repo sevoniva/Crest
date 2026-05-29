@@ -30,7 +30,7 @@ const flowLineTypeOptions = [
 ]
 const state = reactive({
   lineForm: {} as DeepPartial<ChartMiscAttr['flowMapConfig']['lineConfig']>,
-  basicStyleForm: {}
+  basicStyleForm: {} as ChartBasicStyle
 })
 const emit = defineEmits(['onChangeFlowMapLineForm', 'onBasicStyleChange'])
 
@@ -42,7 +42,7 @@ watch(
   { deep: true }
 )
 
-const changeStyle = prop => {
+const changeStyle = (prop?: string) => {
   state.basicStyleForm.colors[0] = state.lineForm.mapLineSourceColor
   state.basicStyleForm.colors[1] = state.lineForm.mapLineTargetColor
   emit('onBasicStyleChange', { data: state.basicStyleForm, requestData: false }, 'colors')

@@ -4,8 +4,21 @@ import { snapshotStoreWithOut } from '@/store/modules/data-visualization/snapsho
 
 import { storeToRefs } from 'pinia'
 import { onMounted, reactive } from 'vue'
+import { useI18n } from '@/hooks/web/useI18n'
 
 const state = reactive({})
+const { t } = useI18n()
+
+withDefaults(
+  defineProps<{
+    themes?: EditorTheme
+    dashboardActive?: boolean
+  }>(),
+  {
+    themes: 'dark',
+    dashboardActive: false
+  }
+)
 
 const dvMainStore = dvMainStoreWithOut()
 const snapshotStore = snapshotStoreWithOut()

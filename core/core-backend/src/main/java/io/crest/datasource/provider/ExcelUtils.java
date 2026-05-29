@@ -274,6 +274,7 @@ public class ExcelUtils {
 
     public ExcelFileData excelSaveAndParse(MultipartFile file, String createBy) throws DEException {
         String filename = file.getOriginalFilename();
+        FileUtils.validateUploadFilename(filename);
         List<ExcelSheetData> excelSheetDataList = null;
         try {
             excelSheetDataList = parseExcel(filename, file.getInputStream(), true, filename);
@@ -456,6 +457,7 @@ public class ExcelUtils {
         String filePath = null;
         try {
             String filename = file.getOriginalFilename();
+            FileUtils.validateUploadFilename(filename);
             String suffix = filename.substring(filename.lastIndexOf(".") + 1);
             ensureExcelDirectory();
             filePath = getExcelPath() + fileNameUUID + "." + suffix;

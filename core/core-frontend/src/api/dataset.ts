@@ -38,6 +38,8 @@ export interface ParamsDetail {
   datasetGroupId: string
   type: Array<string | number>
   variableName: string
+  params?: Field[]
+  [key: string]: any
 }
 
 export interface DatasetDetail {
@@ -53,6 +55,9 @@ export interface DatasetDetail {
   hasParameter?: boolean
   checkList: string[]
   list: Array<Field>
+  checkedFields?: Field[]
+  checkedFieldsMap?: Record<string, Field>
+  [key: string]: any
 }
 
 export interface FieldData {

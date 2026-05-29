@@ -18,7 +18,6 @@ import { iconFieldMap } from '@/components/icon-group/field-list'
 import { Icon } from '@/components/icon-custom'
 import { ElForm, ElMessage, ElMessageBox } from 'element-plus-secondary'
 import Cron from '@/components/cron/src/Cron.vue'
-import { boolean } from 'mathjs'
 import SheetTabs from '@/views/visualized/data/datasource/SheetTabs.vue'
 import { loadRemoteFile, save, update } from '@/api/datasource'
 import { Base64 } from 'js-base64'
@@ -70,7 +69,7 @@ const props = defineProps({
     type: Object
   },
   isSupportSetKey: {
-    type: boolean,
+    type: Boolean,
     required: true
   },
   activeStep: {
@@ -614,7 +613,7 @@ const saveExcelDs = (params, successCb, finallyCb) => {
     return
   }
 
-  let table = {}
+  let table: Record<string, any> = {}
   if (params) {
     form.value.name = params.name
   }

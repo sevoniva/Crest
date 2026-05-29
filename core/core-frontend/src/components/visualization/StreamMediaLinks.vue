@@ -6,7 +6,7 @@
           <el-radio-group v-model="state.streamMediaInfoTemp.videoType">
             <el-radio :label="'flv'">FLV</el-radio>
           </el-radio-group>
-          <span style="color: #909399; font-size: 8px; margin-left: 3px">
+          <span style="margin-left: 3px; font-size: 8px; color: #909399">
             Tips:{{ t('visualization.live_tips') }}
           </span>
         </el-form-item>

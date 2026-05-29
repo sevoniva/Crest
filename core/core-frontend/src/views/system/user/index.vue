@@ -36,7 +36,15 @@ const loadTable = async () => {
 }
 
 const resetForm = () => {
-  Object.assign(form, { id: null, account: '', name: '', email: '', phone: '', enable: true, roleIds: [2] })
+  Object.assign(form, {
+    id: null,
+    account: '',
+    name: '',
+    email: '',
+    phone: '',
+    enable: true,
+    roleIds: [2]
+  })
   roleId.value = 2
 }
 
@@ -49,7 +57,9 @@ const openCreate = () => {
 const openEdit = async row => {
   const res = await request.get({ url: `/user/queryById/${row.id}` })
   Object.assign(form, res.data || row)
-  form.roleIds = (res.data?.roleIds || row.roleItems?.map(role => String(role.id)) || ['2']).map(Number)
+  form.roleIds = (res.data?.roleIds || row.roleItems?.map(role => String(role.id)) || ['2']).map(
+    Number
+  )
   roleId.value = form.roleIds.some(item => Number(item) === 1) ? 1 : 2
   isEdit.value = true
   dialogVisible.value = true
@@ -102,7 +112,12 @@ onMounted(loadTable)
     <p class="router-title">用户管理</p>
     <div class="table-wrap">
       <div class="toolbar">
-        <el-input v-model="keyword" clearable placeholder="搜索账号、姓名或邮箱" @change="loadTable" />
+        <el-input
+          v-model="keyword"
+          clearable
+          placeholder="搜索账号、姓名或邮箱"
+          @change="loadTable"
+        />
         <el-button type="primary" @click="loadTable">查询</el-button>
         <el-button type="primary" @click="openCreate">新建用户</el-button>
       </div>
@@ -113,12 +128,16 @@ onMounted(loadTable)
         <el-table-column prop="phone" label="电话" min-width="140" />
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="row.enable ? 'success' : 'info'">{{ row.enable ? '启用' : '停用' }}</el-tag>
+            <el-tag :type="row.enable ? 'success' : 'info'">{{
+              row.enable ? '启用' : '停用'
+            }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="角色" width="120">
           <template #default="{ row }">
-            <el-tag :type="row.roleItems?.some(role => String(role.id) === '1') ? 'warning' : 'info'">
+            <el-tag
+              :type="row.roleItems?.some(role => String(role.id) === '1') ? 'warning' : 'info'"
+            >
               {{ row.roleItems?.some(role => String(role.id) === '1') ? '管理员' : '普通用户' }}
             </el-tag>
           </template>
@@ -131,9 +150,13 @@ onMounted(loadTable)
         <el-table-column label="操作" width="260" fixed="right">
           <template #default="{ row }">
             <el-button text type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button text type="primary" @click="toggleEnable(row)">{{ row.enable ? '停用' : '启用' }}</el-button>
+            <el-button text type="primary" @click="toggleEnable(row)">{{
+              row.enable ? '停用' : '启用'
+            }}</el-button>
             <el-button text type="primary" @click="resetPwd(row)">重置密码</el-button>
-            <el-button v-if="String(row.id) !== '1'" text type="danger" @click="remove(row)">删除</el-button>
+            <el-button v-if="String(row.id) !== '1'" text type="danger" @click="remove(row)"
+              >删除</el-button
+            >
           </template>
         </el-table-column>
       </el-table>
@@ -151,7 +174,11 @@ onMounted(loadTable)
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑用户' : '新建用户'" width="520px">
       <el-form label-position="top">
         <el-form-item label="账号" required>
-          <el-input v-model.trim="form.account" :disabled="isEdit && String(form.id) === '1'" maxlength="64" />
+          <el-input
+            v-model.trim="form.account"
+            :disabled="isEdit && String(form.id) === '1'"
+            maxlength="64"
+          />
         </el-form-item>
         <el-form-item label="姓名" required>
           <el-input v-model.trim="form.name" maxlength="64" />

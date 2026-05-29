@@ -482,7 +482,7 @@ const reUpload = e => {
   }
   uploadFileResult(file, fileUrl => {
     state.commonBackground.outerImage = fileUrl
-    state.fileList = [{ url: imgUrlTrans(state.commonBackground.outerImage) }]
+    state.fileList = [{ name: 'background', url: imgUrlTrans(state.commonBackground.outerImage) }]
     onBackgroundChange()
   })
 }
@@ -519,7 +519,7 @@ const init = () => {
   updateInnerPadding()
   updateBorderRadius()
   if (state.commonBackground.outerImage) {
-    state.fileList = [{ url: imgUrlTrans(state.commonBackground.outerImage) }]
+    state.fileList = [{ name: 'background', url: imgUrlTrans(state.commonBackground.outerImage) }]
   } else {
     state.fileList = []
   }

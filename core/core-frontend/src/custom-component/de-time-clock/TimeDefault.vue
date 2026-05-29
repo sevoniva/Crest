@@ -1,6 +1,6 @@
 <template>
   <div
-    style="width: 100%; height: 100%; display: flex; align-items: center"
+    style="display: flex; width: 100%; height: 100%; align-items: center"
     :style="{ 'justify-content': element.style.textAlign }"
   >
     <p>{{ state.nowDate }}</p>

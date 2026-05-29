@@ -21,7 +21,7 @@ const props = defineProps({
     required: true
   },
   threshold: {
-    type: Array,
+    type: Array as PropType<TableThreshold[]>,
     required: true
   }
 })
@@ -209,7 +209,7 @@ const targetOptions = [
   { label: t('chart.custom'), value: 'custom' }
 ]
 
-const state = reactive({
+const state = reactive<any>({
   thresholdArr: [] as TableThreshold[],
   fields: [],
   thresholdObj: {
@@ -414,7 +414,7 @@ const changeConditionItemType = item => {
     item.dynamicMaxField.summary = 'value'
   }
 }
-const getFieldOptions = () => {
+const getFieldOptions = (_fieldItem?: TableThreshold) => {
   return fieldOptions
 }
 

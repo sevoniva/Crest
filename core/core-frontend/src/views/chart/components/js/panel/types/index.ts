@@ -31,7 +31,7 @@ export abstract class AbstractChartView {
   abstract properties: EditorProperty[]
   abstract propertyInner: EditorPropertyInner
   abstract axis: AxisType[]
-  abstract axisConfig: AxisConfig
+  abstract axisConfig: any
   abstract selectorSpec: EditorSelectorSpec
   /**
    * 在新建和切换图表的时候处理默认值
@@ -77,7 +77,7 @@ export interface AntVDrawOptions<O> {
 }
 
 export abstract class AntVAbstractChartView extends AbstractChartView {
-  axisConfig: AxisConfig = {
+  axisConfig: any = {
     xAxis: {
       name: `${t('chart.drag_block_type_axis')} / ${t('chart.dimension')}`,
       type: 'd',

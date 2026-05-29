@@ -169,7 +169,7 @@
             >{{ t('visualization.hidden') }}</el-dropdown-item
           >
 
-                    <el-dropdown-item divided @click="deleteComponent" v-if="barShowCheck('delete')">{{
+          <el-dropdown-item divided @click="deleteComponent" v-if="barShowCheck('delete')">{{
             t('visualization.delete')
           }}</el-dropdown-item>
         </el-dropdown-menu>
@@ -449,10 +449,10 @@ const openMessageLoading = cb => {
       '查看进度，进行下载'
     ]),
     iconClass,
-    icon: h(RefreshLeft),
+    icon: h(RefreshLeft) as any,
     showClose: true,
     customClass
-  })
+  } as any)
 }
 
 const callbackExport = () => {

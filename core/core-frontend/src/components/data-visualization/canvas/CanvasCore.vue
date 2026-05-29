@@ -15,7 +15,7 @@ import MarkLine from './MarkLine.vue'
 import Area from './Area.vue'
 import eventBus from '@/utils/eventBus'
 import { changeStyleWithScale } from '@/utils/translate'
-import { ref, onMounted, computed, toRefs, nextTick, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, computed, toRefs, nextTick, onBeforeUnmount, watch, PropType } from 'vue'
 import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { composeStoreWithOut } from '@/store/modules/data-visualization/compose'
 import { contextmenuStoreWithOut } from '@/store/modules/data-visualization/contextmenu'
@@ -67,20 +67,20 @@ const props = defineProps({
     default: true
   },
   canvasStyleData: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   componentData: {
-    type: Array,
+    type: Array as PropType<any[]>,
     required: true
   },
   popComponentData: {
-    type: Array,
+    type: Array as PropType<any[]>,
     required: false,
     default: () => []
   },
   canvasViewInfo: {
-    type: Object,
+    type: Object as PropType<Record<string, any>>,
     required: true
   },
   canvasId: {
@@ -1420,7 +1420,7 @@ const handleDragOver = e => {
   }
   infoBox.value.moveItem.style.left = e.pageX
   infoBox.value.moveItem.style.top = e.pageY + mainScrollTop.value
-  onDragging(e, infoBox.value.moveItem, 0)
+  onDragging(e, infoBox.value.moveItem)
 }
 
 const getMoveItem = () => {

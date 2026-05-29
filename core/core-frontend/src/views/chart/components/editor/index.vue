@@ -87,8 +87,11 @@ const {
 } = storeToRefs(dvMainStore)
 const router = useRouter()
 let componentNameEdit = ref(false)
-let inputComponentName = ref({ id: null, name: null })
-let componentNameInput = ref(null)
+let inputComponentName = ref<{ id: string | number | null; name: string | null }>({
+  id: null,
+  name: null
+})
+let componentNameInput = ref<any>(null)
 
 const { t } = useI18n()
 const loading = ref(false)
@@ -152,7 +155,7 @@ const closeEditComponentName = () => {
   }
   view.value.title = inputComponentName.value.name
   if (view.value.type === 'VQuery') {
-    view.value.customStyle.component.title = inputComponentName.value.name
+    ;(view.value.customStyle as any).component.title = inputComponentName.value.name
   }
   if (curComponent.value) {
     curComponent.value.label = inputComponentName.value.name
@@ -216,7 +219,7 @@ const itemFormRules = reactive<FormRules>({
   ]
 })
 
-const state = reactive({
+const state = reactive<any>({
   extData: '',
   moveId: -1,
   dimension: [],
@@ -281,8 +284,9 @@ const getFields = (id, chartId, type) => {
     fieldLoading.value = true
     getFieldByDQ(id, chartId, { type: type })
       .then(res => {
-        state.dimension = (res.dimensionList as unknown as Field[]) || []
-        state.quota = (res.quotaList as unknown as Field[]) || []
+        const fieldRes = res as any
+        state.dimension = (fieldRes.dimensionList as unknown as Field[]) || []
+        state.quota = (fieldRes.quotaList as unknown as Field[]) || []
         state.dimensionData = JSON.parse(JSON.stringify(state.dimension))
         state.quotaData = JSON.parse(JSON.stringify(state.quota))
 
@@ -1931,7 +1935,9 @@ const drop = (ev: MouseEvent, type = 'xAxis') => {
     const obj = cloneDeep(arr[i])
     state.moveId = obj.id as unknown as number
     view.value[type] ??= []
-    const targetId = ev.srcElement.offsetParent?.querySelector('.node-id_private')?.dataset?.id
+    const targetId = (ev.srcElement as HTMLElement).offsetParent?.querySelector<HTMLElement>(
+      '.node-id_private'
+    )?.dataset?.id
     const index = view.value[type].findIndex(ele => ele.id === targetId && ele.id !== obj.id)
     let newDraggableIndex
     if (index !== -1) {
@@ -2014,8 +2020,7 @@ const chartStyleScroll = (val: any) => {
             :chart="view"
             :themes="themes"
           />
-          <template v-else-if="view.plugin?.isPlugin">
-                      </template>
+          <template v-else-if="view.plugin?.isPlugin"> </template>
           <template v-else>
             <chart-style
               v-if="chartStyleShow"
@@ -2186,8 +2191,7 @@ const chartStyleScroll = (val: any) => {
                           </template>
                         </el-popover>
                       </el-row>
-                      <template v-if="view.plugin?.isPlugin">
-                                              </template>
+                      <template v-if="view.plugin?.isPlugin"> </template>
                       <template v-else>
                         <!--xAxis-->
                         <template v-if="view.type !== 'multi-scatter'">
@@ -3396,8 +3400,7 @@ const chartStyleScroll = (val: any) => {
                       @scroll="chartStyleScroll"
                       class="drag_main_area"
                     >
-                      <template v-if="view.plugin?.isPlugin">
-                                              </template>
+                      <template v-if="view.plugin?.isPlugin"> </template>
                       <template v-else>
                         <chart-style
                           v-if="chartStyleShow"
@@ -3448,8 +3451,7 @@ const chartStyleScroll = (val: any) => {
                 >
                   <el-container direction="vertical">
                     <el-scrollbar class="drag_main_area">
-                      <template v-if="view.plugin?.isPlugin">
-                                              </template>
+                      <template v-if="view.plugin?.isPlugin"> </template>
                       <template v-else>
                         <senior
                           :chart="view"
@@ -4109,7 +4111,7 @@ const chartStyleScroll = (val: any) => {
     </el-dialog>
   </div>
   <FilterTree ref="filterTree" @filter-data="changeFilterData" />
-    <Teleport v-if="componentNameEdit" :to="'#component-name'">
+  <Teleport v-if="componentNameEdit" :to="'#component-name'">
     <input
       ref="componentNameInput"
       v-model="inputComponentName.name"

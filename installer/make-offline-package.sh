@@ -128,6 +128,7 @@ bash install.sh
 - \`DE_RUN_BASE\`：数据、日志和配置持久化目录
 - \`DE_APP_IMAGE\`：Crest 应用镜像，已固定为本包内镜像
 - \`DE_MYSQL_IMAGE\`：MySQL 镜像，已固定为本包内镜像
+- \`DE_INITIAL_PASSWORD\`：管理员初始密码；留空时安装脚本会随机生成并在安装完成后输出
 
 ## 镜像
 
@@ -140,7 +141,7 @@ bash install.sh
 ## 默认账号
 
 - 用户名：\`admin\`
-- 密码：\`admin\`
+- 密码：安装完成后终端输出的初始密码
 
 请在首次登录后修改默认密码。
 EOF

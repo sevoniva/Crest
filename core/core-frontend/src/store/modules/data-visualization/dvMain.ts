@@ -37,7 +37,7 @@ const { t } = useI18n()
 export const dvMainStore = defineStore('dataVisualization', {
   state: () => {
     return {
-      canvasAttachInfo: {}, // 仪表板附加信息
+      canvasAttachInfo: {} as Record<string, any>, // 仪表板附加信息
       fullscreenFlag: false, // 全屏启用标识
       staticResourcePath: '/static-resource/',
       canvasCollapse: {
@@ -55,21 +55,21 @@ export const dvMainStore = defineStore('dataVisualization', {
       editMode: 'preview', // 编辑器模式 edit preview
       mobileInPc: false,
       inMobile: false,
-      firstLoadMap: [],
+      firstLoadMap: [] as any[],
       canvasStyleData: { ...deepCopy(DEFAULT_CANVAS_STYLE_DATA_DARK), backgroundColor: null },
       appData: null, //应用信息
       // 当前展示画布缓存数据
       componentDataCache: null,
       // PC布局画布组件数据
-      pcComponentData: [],
+      pcComponentData: [] as any[],
       // 移动端布局画布组件数据
-      mobileComponentData: [],
+      mobileComponentData: [] as any[],
       isInEditor: false, // 是否在编辑器中，用于判断复制、粘贴组件时是否生效，如果在编辑器外，则无视这些操作
-      componentData: [], // 画布组件数据
-      curComponent: null,
-      curTabName: null, // 当前选中的tabName 大屏图层区域使用
-      curComponentIndex: null,
-      curCanvasScaleMap: {},
+      componentData: [] as any[], // 画布组件数据
+      curComponent: null as any,
+      curTabName: null as any, // 当前选中的tabName 大屏图层区域使用
+      curComponentIndex: null as any,
+      curCanvasScaleMap: {} as Record<string, any>,
       // 预览仪表板缩放信息
       previewCanvasScale: {
         scalePointWidth: 1,
@@ -86,21 +86,25 @@ export const dvMainStore = defineStore('dataVisualization', {
         name: null,
         pid: null,
         status: null,
+        creatorName: null,
+        createTime: null,
+        updateName: null,
+        updateTime: null,
         selfWatermarkStatus: null,
         watermarkInfo: {},
         type: null,
         mobileLayout: false
-      },
+      } as Record<string, any>,
       // 图表信息
-      canvasViewInfo: {},
+      canvasViewInfo: {} as Record<string, any>,
       // 图表展示数据信息
-      canvasViewDataInfo: {},
+      canvasViewDataInfo: {} as Record<string, any>,
       // 图表实例信息
-      canvasViewInstanceInfo: {},
+      canvasViewInstanceInfo: {} as Record<string, any>,
       // 图表原始数据，未被联动、查询、下钻过滤
-      canvasViewOriginDataInfo: {},
+      canvasViewOriginDataInfo: {} as Record<string, any>,
       // 图表最新请求信息
-      lastViewRequestInfo: {},
+      lastViewRequestInfo: {} as Record<string, any>,
       // 仪表板基础矩阵信息
       bashMatrixInfo: {
         baseWidth: 0,
@@ -109,25 +113,25 @@ export const dvMainStore = defineStore('dataVisualization', {
         baseMarginTop: 0
       },
       // 当前tab页内组件
-      curActiveTabInner: null,
+      curActiveTabInner: null as any,
       // 联动设置状态
       linkageSettingStatus: false,
       // 当前设置联动的组件
-      curLinkageView: null,
+      curLinkageView: null as any,
       // 和当前组件联动的目标组件
-      targetLinkageInfo: [],
+      targetLinkageInfo: [] as any[],
       // 当前仪表板联动 下钻 上卷等信息
-      nowPanelTrackInfo: {},
+      nowPanelTrackInfo: {} as Record<string, any>,
       // 当前仪表板的跳转信息基础信息
-      nowPanelJumpInfo: {},
+      nowPanelJumpInfo: {} as Record<string, any>,
       // 当前仪表板的跳转信息(只包括仪表板)
-      nowPanelJumpInfoTargetPanel: {},
+      nowPanelJumpInfoTargetPanel: {} as Record<string, any>,
       // 当前仪表板的外部参数信息 兼容多仪表板嵌入式div
-      nowPanelOuterParamsInfoV2: {},
+      nowPanelOuterParamsInfoV2: {} as Record<string, any>,
       // 当前仪表板的外部参数基础信息 兼容多仪表板嵌入式div
-      nowPanelOuterParamsBaseInfoV2: {},
+      nowPanelOuterParamsBaseInfoV2: {} as Record<string, any>,
       // 拖拽的组件信息
-      dragComponentInfo: null,
+      dragComponentInfo: null as any,
       // 移动端布局状态
       mobileLayoutStatus: false,
       // 公共链接状态(当前是否是公共链接打开)
@@ -156,37 +160,37 @@ export const dvMainStore = defineStore('dataVisualization', {
       // 系统管理菜单是否收缩
       isCollapse: false,
       // 图表是否编辑记录
-      panelViewEditInfo: {},
+      panelViewEditInfo: {} as Record<string, any>,
       // 仪表板图表明细
-      panelViewDetailsInfo: {},
+      panelViewDetailsInfo: {} as Record<string, any>,
       // 批量操作组件类型 单一类型 or mix 混合类型,如果类型是UserView 走图表批量逻辑，
       // mix 或者其他目前走 CommonAttr 公共属性处理逻辑
-      batchOptComponentType: null,
+      batchOptComponentType: null as any,
       // panel edit batch operation status
       batchOptStatus: false,
       // 隐藏组件打开状态
       hiddenListStatus: false,
       // 最后隐藏组件
-      lastHiddenComponent: [],
+      lastHiddenComponent: [] as any[],
       // Currently selected components
-      curBatchOptComponents: [],
+      curBatchOptComponents: [] as any[],
       // Currently selected Multiplexing components
-      curMultiplexingComponents: {},
-      mixProperties: [],
-      mixPropertiesInner: {},
-      batchOptComponentInfo: null,
-      batchOptComponents: {},
+      curMultiplexingComponents: {} as Record<string, any>,
+      mixProperties: [] as any[],
+      mixPropertiesInner: {} as Record<string, any>,
+      batchOptComponentInfo: null as any,
+      batchOptComponents: {} as Record<string, any>,
       // properties changed
       changeProperties: {
         customStyle: {},
         customAttr: {}
       },
-      allViewRender: [],
-      tabCollisionActiveId: null, // 当前在碰撞的Tab组件ID
-      tabMoveInActiveId: null, // 当前在移入的Tab ID
-      tabMoveOutActiveId: null, // 当前在移出的Tab ID
-      tabMoveOutComponentId: null, // 当前在移出Tab de组件ID
-      tabActiveTabNameMap: {}, // 编辑器中 tab组件中的活动tab页,
+      allViewRender: [] as any[],
+      tabCollisionActiveId: null as any, // 当前在碰撞的Tab组件ID
+      tabMoveInActiveId: null as any, // 当前在移入的Tab ID
+      tabMoveOutActiveId: null as any, // 当前在移出的Tab ID
+      tabMoveOutComponentId: null as any, // 当前在移出Tab de组件ID
+      tabActiveTabNameMap: {} as Record<string, any>, // 编辑器中 tab组件中的活动tab页,
       // 鼠标处于drag状态的坐标点
       mousePointShadowMap: {
         mouseX: 0,
@@ -195,18 +199,18 @@ export const dvMainStore = defineStore('dataVisualization', {
         height: 0
       },
       previewVisible: false,
-      previewComponentData: [],
-      currentCanvasNewId: [],
+      previewComponentData: [] as any[],
+      currentCanvasNewId: [] as any[],
       // 初始状态下当前默认的系统色 dvInfo.type ==== 'dashboard'?'light':'dark'
       curOriginThemes: 'light',
       // 基础网格信息
-      baseCellInfo: {},
+      baseCellInfo: {} as Record<string, any>,
       dataPrepareState: false, //数据准备状态
       multiplexingStyleAdapt: true, //复用样式跟随主题
       mainScrollTop: 0, //主画布运动量
       isIframe: false, // 当前是否在iframe中
       isPopWindow: false, // 当前是否在iframe弹框中
-      viewPageInfo: {} //表格分页信息
+      viewPageInfo: {} as Record<string, any> //表格分页信息
     }
   },
   actions: {
@@ -1692,7 +1696,7 @@ export const dvMainStore = defineStore('dataVisualization', {
         this.canvasState[key] = value
       }
     },
-    createInit(dvType, resourceId?, pid?, watermarkInfo?, preName) {
+    createInit(dvType, resourceId?, pid?, watermarkInfo?, preName?) {
       const optName =
         dvType === 'dashboard' ? t('visualization.new_dashboard') : t('visualization.new_screen')
       const name = preName ? preName : optName

@@ -820,7 +820,7 @@ const initOpenHandler = newWindow => {
     <outer-params-set ref="outerParamsSetRef"> </outer-params-set>
   </div>
   <de-fullscreen show-position="edit" ref="fullScreeRef"></de-fullscreen>
-    <de-app-apply
+  <de-app-apply
     ref="resourceAppOpt"
     :component-data="componentData"
     :dv-info="dvInfo"

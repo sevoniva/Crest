@@ -360,9 +360,9 @@ export class Line extends G2PlotChartView<LineOptions, G2Line> {
           }
           return p
         }, [])
-        cats.length > 0 && values.push(...cats)
-        optionTmp.meta = {
-          ...optionTmp.meta,
+        cats.length > 0 && values.push(...(cats as any[]))
+        ;(optionTmp as Record<string, any>).meta = {
+          ...(optionTmp as Record<string, any>).meta,
           category: {
             type: 'cat',
             values
@@ -379,7 +379,7 @@ export class Line extends G2PlotChartView<LineOptions, G2Line> {
       size = DEFAULT_LEGEND_STYLE.size
     }
 
-    optionTmp.legend.marker.style = style => {
+    ;((optionTmp.legend as Record<string, any>).marker as Record<string, any>).style = style => {
       return {
         r: size,
         fill: style.stroke
@@ -430,9 +430,9 @@ export class Line extends G2PlotChartView<LineOptions, G2Line> {
         })
         items.unshift(...tmp)
       }
-      optionTmp.legend.items = items
+      ;(optionTmp.legend as Record<string, any>).items = items
       if (xAxisExt?.customSort?.length > 0) {
-        delete optionTmp.meta?.category.values
+        delete (optionTmp as Record<string, any>).meta?.category.values
       }
     }
     return optionTmp

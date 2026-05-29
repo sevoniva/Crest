@@ -180,7 +180,7 @@ export class TableNormal extends S2ChartView<TableSheet> {
       conditions: this.configConditions(chart),
       tooltip: {
         getContainer: () => containerDom,
-        renderTooltip: sheet => new SortTooltip(sheet)
+        ...({ renderTooltip: sheet => new SortTooltip(sheet) } as Record<string, any>)
       },
       interaction: {
         hoverHighlight: !(basicStyle.showHoverStyle === false),
@@ -229,7 +229,7 @@ export class TableNormal extends S2ChartView<TableSheet> {
     // 自适应铺满
     if (basicStyle.tableColumnMode === 'adapt') {
       newChart.on(S2Event.LAYOUT_RESIZE_COL_WIDTH, () => {
-        newChart.store.set('lastLayoutResult', newChart.facet.layoutResult)
+        newChart.store.set('lastLayoutResult', (newChart.facet as Record<string, any>).layoutResult)
       })
       newChart.on(S2Event.LAYOUT_AFTER_HEADER_LAYOUT, (ev: LayoutResult) => {
         const lastLayoutResult = newChart.store.get('lastLayoutResult') as LayoutResult

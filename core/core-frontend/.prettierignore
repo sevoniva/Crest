@@ -2,5 +2,6 @@
 /dist/
 /dist*
 /public/*
+/vendor/
 /vite.config.ts
 /src/types/env.d.ts
