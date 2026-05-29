@@ -34,18 +34,20 @@ defineExpose({
 <style lang="less" scoped>
 .base-info-content {
   padding: 24px;
-  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
   background: #fff;
-  margin: 24px 24px 0 24px;
+  margin: 16px 24px 0 24px;
   position: relative;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 
   & + .base-info-content {
     margin-top: 16px;
   }
 
   .update-records-time {
-    color: #646a73;
-    font-family: var(--de-custom_font, 'PingFang');
+    color: #64748b;
+    font-family: var(--crest-font-sans);
     font-size: 14px;
     font-style: normal;
     font-weight: 400;
@@ -60,8 +62,8 @@ defineExpose({
   }
 
   .name {
-    color: #1f2329;
-    font-family: var(--de-custom_font, 'PingFang');
+    color: #0f172a;
+    font-family: var(--crest-font-sans);
     font-size: 16px;
     font-style: normal;
     font-weight: 500;
@@ -69,7 +71,8 @@ defineExpose({
     margin-left: 8px;
   }
   .time {
-    color: #8f959e;
+    color: #94a3b8;
+    font-family: var(--crest-font-mono);
     font-size: 14px;
     line-height: 22px;
     padding: 0 0 0 8px;

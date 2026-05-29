@@ -212,7 +212,7 @@ formatPwd()
 formatLabel()
 </script>
 
-<style lang="less" scope>
+<style lang="less" scoped>
 .setting-tip-btn {
   height: 24px !important;
   width: 24px !important;
@@ -223,8 +223,10 @@ formatLabel()
 }
 .info-template-container {
   padding: 24px 24px 8px 24px;
-  background: var(--ContentBG, #ffffff);
-  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   .info-template-header {
     display: flex;
     margin-top: -4px;
@@ -234,8 +236,8 @@ formatLabel()
       height: 24px;
       line-height: 23px;
       font-size: 16px;
-      font-weight: 500;
-      color: #1f2329;
+      font-weight: 700;
+      color: #0f172a;
     }
   }
   .info-template-content {
@@ -253,8 +255,8 @@ formatLabel()
         align-items: center;
         span {
           font-size: 14px;
-          color: #646a73;
-          font-weight: 400;
+          color: #64748b;
+          font-weight: 500;
         }
         i {
           margin-left: 2px;
@@ -264,7 +266,7 @@ formatLabel()
         line-height: 22px;
         span {
           font-size: 14px;
-          color: #1f2329;
+          color: #0f172a;
           font-weight: 400;
         }
 

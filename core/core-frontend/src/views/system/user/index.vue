@@ -121,7 +121,7 @@ onMounted(loadTable)
         <el-button type="primary" @click="loadTable">查询</el-button>
         <el-button type="primary" @click="openCreate">新建用户</el-button>
       </div>
-      <el-table v-loading="loading" :data="tableData" height="calc(100vh - 280px)">
+      <el-table v-loading="loading" :data="tableData" max-height="calc(100vh - 300px)">
         <el-table-column prop="account" label="账号" min-width="140" />
         <el-table-column prop="name" label="姓名" min-width="140" />
         <el-table-column prop="email" label="邮箱" min-width="180" show-overflow-tooltip />
@@ -209,13 +209,13 @@ onMounted(loadTable)
 
 <style lang="less" scoped>
 .user-manage {
-  height: 100%;
+  min-height: 100%;
 }
 .router-title {
   margin: 0 0 16px;
-  font-size: 20px;
-  font-weight: 500;
-  color: #1f2329;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
 }
 .toolbar {
   display: flex;
@@ -228,11 +228,14 @@ onMounted(loadTable)
   }
 }
 .table-wrap {
-  height: calc(100vh - 176px);
+  height: auto;
+  min-height: 0;
   margin-top: 12px;
   background: #fff;
-  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .pager {
   display: flex;

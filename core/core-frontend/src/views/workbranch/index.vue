@@ -258,15 +258,13 @@ const getSparkLastPoint = item => {
 <style lang="less" scoped>
 .workbranch {
   display: grid;
-  grid-template-columns: 336px minmax(0, 1fr);
+  grid-template-columns: clamp(320px, 18vw, 360px) minmax(0, 1fr);
   gap: 18px;
-  align-items: stretch;
-  width: 100vw;
-  height: calc(100vh - 60px);
-  max-width: 1500px;
-  padding: 22px 26px;
-  margin: 0 auto;
-  overflow: hidden;
+  align-items: start;
+  width: 100%;
+  min-height: calc(100vh - 60px);
+  padding: clamp(22px, 2vw, 32px) clamp(28px, 4vw, 72px);
+  overflow: auto;
   font-family: var(--crest-font-sans);
   background: #f8fafc;
   --workbranch-card-radius: 14px;
@@ -289,7 +287,7 @@ const getSparkLastPoint = item => {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    width: 336px;
+    width: 100%;
     min-height: 0;
 
     .main-color {
@@ -432,7 +430,6 @@ const getSparkLastPoint = item => {
 
     .quick-creation {
       display: flex;
-      flex: 1;
       flex-direction: column;
       min-height: 0;
       padding: 18px 22px 22px;
@@ -566,7 +563,8 @@ const getSparkLastPoint = item => {
 
   .workbranch-content {
     min-width: 0;
-    min-height: 0;
+    height: clamp(520px, calc(100vh - 220px), 640px);
+    min-height: 520px;
     overflow: hidden;
     border-radius: var(--workbranch-card-radius);
 
@@ -580,6 +578,25 @@ const getSparkLastPoint = item => {
         border-radius: inherit;
       }
     }
+  }
+}
+
+@media (max-width: 1180px) {
+  .workbranch {
+    grid-template-columns: 300px minmax(0, 1fr);
+    padding: 20px;
+  }
+}
+
+@media (max-width: 900px) {
+  .workbranch {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .workbranch .workbranch-content {
+    height: auto;
+    min-height: 520px;
   }
 }
 </style>

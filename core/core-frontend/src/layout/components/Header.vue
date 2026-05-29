@@ -177,18 +177,38 @@ onMounted(() => {
     width: 14px;
     height: 14px;
     margin: 0;
+    color: #334155 !important;
     transform: none;
   }
 
   :deep(.ed-menu--horizontal > .ed-sub-menu.is-opened .ed-sub-menu__title .ed-sub-menu__icon-arrow) {
     transform: rotate(180deg);
   }
+
+  :deep(.ed-menu--horizontal > .ed-sub-menu.is-active.is-active .ed-sub-menu__title),
+  :deep(.ed-menu--horizontal > .ed-sub-menu.is-opened .ed-sub-menu__title) {
+    color: #0f172a !important;
+    background: transparent !important;
+  }
+
+  :deep(.ed-menu--horizontal > .ed-sub-menu.is-active.is-active .ed-sub-menu__title .ed-sub-menu__icon-arrow),
+  :deep(.ed-menu--horizontal > .ed-sub-menu.is-opened .ed-sub-menu__title .ed-sub-menu__icon-arrow),
+  :deep(.ed-menu--horizontal > .ed-sub-menu:hover .ed-sub-menu__title .ed-sub-menu__icon-arrow) {
+    color: #334155 !important;
+    fill: #334155 !important;
+  }
+
+  :deep(.ed-menu--horizontal > .ed-sub-menu .ed-sub-menu__title .ed-sub-menu__icon-arrow svg),
+  :deep(.ed-menu--horizontal > .ed-sub-menu .ed-sub-menu__title .ed-sub-menu__icon-arrow path) {
+    fill: currentColor !important;
+  }
 }
 
 .logo {
-  width: 158px;
-  height: 34px;
-  margin-right: 42px;
+  flex: 0 0 188px;
+  width: 188px;
+  height: 44px;
+  margin-right: 46px;
   object-fit: contain;
   cursor: pointer;
 }

@@ -43,33 +43,47 @@ const backToMain = () => {
   font-family: var(--crest-font-sans, var(--de-custom_font, 'PingFang'));
 
   .logo {
-    width: 158px;
-    height: 34px;
+    flex: 0 0 188px;
+    width: 188px;
+    height: 44px;
     object-fit: contain;
   }
 
   .ed-divider {
-    margin: 0 24px;
+    height: 24px;
+    margin: 0 22px;
     border-color: #dbe4f0;
   }
   .system {
     color: #0f172a;
     font-size: 16px;
     font-style: normal;
-    font-weight: 500;
+    font-weight: 700;
     line-height: 24px;
   }
 
   .work-bar {
     margin-right: 20px;
+    gap: 6px;
+    height: 34px;
+    padding: 0 10px;
     color: #64748b;
     font-size: 14px;
     font-style: normal;
-    font-weight: 400;
+    font-weight: 600;
     line-height: 22px;
     cursor: pointer;
+    border-radius: 8px;
+    transition:
+      color 0.14s ease,
+      background 0.14s ease;
+
+    &:hover {
+      color: #0f172a;
+      background: #f1f5f9;
+    }
+
     .ed-icon {
-      margin-right: 4px;
       font-size: 16px;
     }
   }
@@ -83,11 +97,11 @@ const backToMain = () => {
   margin-bottom: 0.5px;
   display: flex;
   align-items: center;
-  height: 56px;
+  height: 60px;
   overflow: hidden;
-  background: linear-gradient(180deg, #edf2fb 0%, #ffffff 100%);
+  background: linear-gradient(180deg, #edf2fb 0%, #fafbfe 100%);
   border-bottom: 1px solid #e2e8f0;
-  padding: 0 24px;
+  padding: 0 28px;
 
   &::before {
     position: absolute;

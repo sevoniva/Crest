@@ -194,8 +194,9 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 20px;
-    font-weight: 500;
+    color: #0f172a;
+    font-size: 18px;
+    font-weight: 700;
     line-height: 28px;
     margin-bottom: 16px;
 
@@ -210,21 +211,24 @@ onMounted(() => {
     }
   }
   .font-content_overflow {
-    height: calc(100vh - 146px);
+    height: auto;
+    max-height: calc(100vh - 184px);
     overflow-y: auto;
   }
   .font-content_list {
     display: flex;
     flex-wrap: wrap;
-    row-gap: 16px;
-    justify-content: space-between;
+    gap: 16px;
+    justify-content: flex-start;
     .font-content_item {
-      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
       background: #fff;
-      width: calc(50% - 8px);
+      width: min(100%, 840px);
       position: relative;
       padding: 24px;
       padding-bottom: 16px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 
       .font-default {
         min-width: 68px;
@@ -261,7 +265,7 @@ onMounted(() => {
           min-width: 56px;
           height: 20px;
           border-radius: 2px;
-          background-color: var(--ed-color-primary-33, #3B82F633);
+          background-color: var(--ed-color-primary-33, #3b82f633);
           font-size: 12px;
           font-weight: 400;
           line-height: 20px;

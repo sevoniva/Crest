@@ -1,19 +1,11 @@
 <template>
-  <div class="user-center flex-align-center">
+  <div class="user-center">
     <div class="user-center-container">
-      <div class="user-tabs">
-        <div class="tabs-title flex-align-center">{{ t('commons.user_center') }}</div>
-        <el-divider />
-        <div class="list-item_primary active">
-          {{ t('user.change_password') }}
-        </div>
-      </div>
       <div class="user-info">
         <div class="base-info">
-          <div class="info-title flex-align-center">
-            <span class="title">
-              {{ t('user.change_password') }}
-            </span>
+          <div class="info-title">
+            <span class="section-label">{{ t('commons.user_center') }}</span>
+            <span class="title">{{ t('user.change_password') }}</span>
           </div>
           <update-pwd />
         </div>
@@ -29,42 +21,17 @@ const { t } = useI18n()
 <style lang="less" scoped>
 .user-center {
   width: 100%;
-  flex-direction: column;
-  padding-top: 24px;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
   .user-center-container {
-    display: flex;
+    width: min(100%, 720px);
     font-style: normal;
   }
 
-  .user-tabs {
-    width: 200px;
-    height: 201px;
-    border-radius: 6px;
-    background: #fff;
-    padding: 16px;
-    .list-item_primary {
-      padding: 9px 8px;
-    }
-
-    .ed-divider {
-      margin: 4px 0;
-      border-color: rgba(31, 35, 41, 0.15);
-    }
-
-    .tabs-title {
-      padding-left: 8px;
-      color: #8d9199;
-      font-size: 14px;
-      font-style: normal;
-      font-weight: 500;
-      line-height: 22px;
-      height: 40px;
-    }
-  }
   .user-info {
-    margin-left: 16px;
-    width: 864px;
-    height: 326px;
+    width: 100%;
 
     .base-info {
       & + .base-info {
@@ -109,8 +76,8 @@ const { t } = useI18n()
           }
         }
       }
-      padding: 20px 24px 24px 24px;
-      border-radius: 6px;
+      padding: 24px;
+      border-radius: 14px;
       background: #fff;
       .role {
         & + .role {
@@ -126,14 +93,22 @@ const { t } = useI18n()
         background: var(--ed-color-primary-33, rgba(59, 130, 246, 0.2));
       }
       .info-title {
-        .ed-button {
-          margin-left: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 18px;
+
+        .section-label {
+          color: #64748b;
+          font-size: 13px;
+          font-weight: 600;
+          line-height: 20px;
         }
 
         .title {
-          color: #1f2329;
-          font-size: 16px;
-          font-weight: 500;
+          color: #0f172a;
+          font-size: 18px;
+          font-weight: 700;
           line-height: 24px;
         }
       }
@@ -146,11 +121,11 @@ const { t } = useI18n()
     line-height: 22px;
     width: 100%;
     .label {
-      color: #646a73;
+      color: #64748b;
     }
     .value {
       margin-top: 4px;
-      color: #1f2329;
+      color: #0f172a;
     }
   }
   .mr12 {

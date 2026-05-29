@@ -82,14 +82,14 @@ let knowledgeLayoutCache = new Map<string, { x: number; y: number; degree: numbe
 const selectedNodeId = ref<string>()
 
 const typeMeta: Record<string, { label: string; color: string; level: number; symbol: string }> = {
-  datasource: { label: '数据源', color: '#f5a623', level: 0, symbol: 'roundRect' },
-  table: { label: '物理表', color: '#3b82f6', level: 1, symbol: 'roundRect' },
+  datasource: { label: '数据源', color: '#f5a623', level: 0, symbol: 'circle' },
+  table: { label: '物理表', color: '#3b82f6', level: 1, symbol: 'circle' },
   table_field: { label: '物理字段', color: '#60a5fa', level: 2, symbol: 'circle' },
   dataset_field: { label: '数据集字段', color: '#8b5cf6', level: 3, symbol: 'circle' },
-  dataset: { label: '数据集', color: '#6e62e8', level: 4, symbol: 'roundRect' },
+  dataset: { label: '数据集', color: '#6e62e8', level: 4, symbol: 'circle' },
   chart_field: { label: '图表字段', color: '#1fb6a6', level: 5, symbol: 'circle' },
-  chart: { label: '图表', color: '#10b981', level: 6, symbol: 'roundRect' },
-  dv: { label: '仪表板/大屏', color: '#10b981', level: 7, symbol: 'roundRect' }
+  chart: { label: '图表', color: '#10b981', level: 6, symbol: 'circle' },
+  dv: { label: '仪表板/大屏', color: '#10b981', level: 7, symbol: 'circle' }
 }
 
 const dashedEdgeTypes = new Set([
@@ -342,15 +342,13 @@ const getNodeVisual = (node: RelationNode, degree = 0) => {
       : node.type === 'dv'
       ? Math.min(isRenderHeavyGraph.value ? 60 : 74, 42 + degree * 1.8)
       : Math.min(isRenderHeavyGraph.value ? 56 : 68, 36 + degree * 1.8)
-    : node.type === 'dv'
-    ? [118, 42]
     : isField
     ? isDenseGraph.value
-      ? [18, 18]
-      : [62, 62]
-    : node.type === 'table'
-    ? [108, 40]
-    : [104, 40]
+      ? 20
+      : 34
+    : node.type === 'dv'
+    ? 66
+    : 58
 
   return {
     category: meta.label,
@@ -364,15 +362,15 @@ const getNodeVisual = (node: RelationNode, degree = 0) => {
       shadowOffsetY: 0,
       shadowColor: 'transparent'
     },
-    symbol: knowledgeMode ? 'circle' : meta.symbol,
+    symbol: 'circle',
     symbolSize,
     label: {
       show: showLabel,
       color:
-        knowledgeMode && isField ? '#334155' : knowledgeMode || !isField ? '#ffffff' : '#1f2329',
-      position: knowledgeMode && isField ? 'right' : 'inside',
-      distance: knowledgeMode && isField ? 6 : 0,
-      width: knowledgeMode ? (isField ? 96 : 82) : node.type === 'dv' ? 96 : isField ? 52 : 82,
+        (knowledgeMode || !isField) && !isDenseGraph.value ? '#ffffff' : '#334155',
+      position: isField || isDenseGraph.value ? 'right' : 'inside',
+      distance: isField || isDenseGraph.value ? 7 : 0,
+      width: knowledgeMode ? (isField ? 96 : 82) : isField ? 86 : 92,
       overflow: 'truncate',
       fontSize: selected ? 12 : isField ? 10 : 12,
       fontWeight: selected ? 700 : 600,

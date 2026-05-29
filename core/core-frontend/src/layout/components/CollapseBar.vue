@@ -55,17 +55,28 @@ onMounted(() => {
   height: 48px;
   padding: 14px 22px;
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 22px;
   display: flex;
   align-items: center;
+  overflow: hidden;
+  color: #64748b;
   background: #fff;
+  border-right: 1px solid #e2e8f0;
+  transition:
+    color 0.14s ease,
+    background 0.14s ease;
+
+  &:hover {
+    color: #0f172a;
+    background: #f8fafc;
+  }
 
   &::after {
     content: '';
     width: 100%;
     height: 1px;
-    background: #1f232926;
+    background: #e2e8f0;
     position: absolute;
     top: 0;
     left: 0;

@@ -65,17 +65,17 @@ onMounted(load)
 
 <style lang="less" scoped>
 .site-setting {
-  height: 100%;
+  min-height: 100%;
 }
 .router-title {
   margin: 0 0 16px;
-  font-size: 20px;
-  font-weight: 500;
-  color: #1f2329;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
 }
 .sys-setting-p {
   width: 100%;
-  height: calc(100vh - 176px);
+  height: auto;
   box-sizing: border-box;
   margin-top: 12px;
   overflow-y: auto;
@@ -84,19 +84,20 @@ onMounted(load)
   max-width: 720px;
   padding: 24px;
   background: #fff;
-  border: 1px solid #dee0e3;
-  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .setting-title {
   font-size: 16px;
-  font-weight: 500;
-  color: #1f2329;
+  font-weight: 700;
+  color: #0f172a;
 }
 .setting-desc,
 .form-tip {
   margin-top: 8px;
   font-size: 13px;
-  color: #646a73;
+  color: #64748b;
 }
 .site-form {
   margin-top: 24px;

@@ -848,11 +848,6 @@ const getEmptyDesc = (): string => {
   display: flex;
   justify-content: flex-end;
   gap: 2px;
-  opacity: 0;
-  transition: opacity 0.14s ease;
-}
-
-:deep(.ed-table__row:hover) .table-actions {
   opacity: 1;
 }
 

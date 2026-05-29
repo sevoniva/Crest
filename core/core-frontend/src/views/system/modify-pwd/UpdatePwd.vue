@@ -143,12 +143,24 @@ const save = () => {
 
 <style lang="less" scoped>
 .mt16 {
-  margin-top: 16px;
+  max-width: 520px;
+  margin-top: 0;
   .ed-form-item {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     :deep(label) {
       line-height: 22px !important;
+      color: #334155;
+      font-weight: 600;
     }
+  }
+
+  :deep(.ed-input__wrapper) {
+    height: 34px;
+  }
+
+  .ed-button {
+    min-width: 86px;
+    height: 34px;
   }
 }
 </style>

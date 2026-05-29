@@ -666,8 +666,11 @@ onBeforeUnmount(() => {
 
       <aside class="detail-panel">
         <div class="detail-block">
-          <div class="block-title">资源</div>
-          <el-table :data="resourceRows" height="240" size="small">
+          <div class="block-title">
+            <span>资源</span>
+            <small>{{ resourceRows.length }} 项</small>
+          </div>
+          <el-table class="detail-table" :data="resourceRows" height="240" size="small">
             <el-table-column label="类型" width="94">
               <template #default="{ row }">
                 <span class="type-dot-tag" :class="getTypeClass(row.type)">
@@ -681,8 +684,11 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="detail-block">
-          <div class="block-title">依赖</div>
-          <el-table :data="edgeRows" height="260" size="small">
+          <div class="block-title">
+            <span>依赖</span>
+            <small>{{ edgeRows.length }} 条</small>
+          </div>
+          <el-table class="detail-table" :data="edgeRows" height="260" size="small">
             <el-table-column label="上游" show-overflow-tooltip>
               <template #default="{ row }">
                 <div class="edge-cell">
@@ -950,22 +956,39 @@ onBeforeUnmount(() => {
 }
 
 .detail-panel {
-  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  padding: 14px;
   overflow: auto;
 }
 
 .detail-block {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
   min-height: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
 }
 
 .block-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 10px;
   font-size: 13px;
   font-weight: 700;
   color: #0f172a;
+
+  small {
+    color: #64748b;
+    font-family: var(--crest-font-mono);
+    font-size: 11.5px;
+    font-weight: 500;
+  }
 }
 
 .edge-cell {
@@ -1077,16 +1100,54 @@ onBeforeUnmount(() => {
   color: #334155;
   font-family: var(--crest-font-sans);
 
+  .ed-table__inner-wrapper::before {
+    display: none;
+  }
+
   th.ed-table__cell {
+    height: 36px;
+    padding: 8px 0;
     background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
     color: #94a3b8;
     font-family: var(--crest-font-mono);
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+
+  td.ed-table__cell {
+    height: 42px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
   }
 
   .ed-table__row:hover > td.ed-table__cell {
     background: #fafbfc;
+  }
+}
+
+.detail-table {
+  flex: 1;
+  min-height: 0;
+  border-radius: 8px;
+
+  :deep(.ed-table__body-wrapper) {
+    border-radius: 0 0 8px 8px;
+  }
+
+  :deep(.ed-scrollbar__bar.is-vertical) {
+    width: 5px;
+  }
+
+  :deep(.ed-empty) {
+    padding: 38px 0;
+  }
+
+  :deep(.ed-empty__description) {
+    margin-top: 4px;
+    color: #94a3b8;
+    font-size: 12px;
   }
 }
 

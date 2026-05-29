@@ -27,17 +27,18 @@ const activeName = ref('basic')
 </script>
 <style lang="less">
 .router-title {
-  color: #1f2329;
+  color: #0f172a;
   font-feature-settings: 'clig' off, 'liga' off;
-  font-family: var(--de-custom_font, 'PingFang');
-  font-size: 20px;
+  font-family: var(--crest-font-sans, var(--de-custom_font, 'PingFang'));
+  font-size: 18px;
   font-style: normal;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 28px;
 }
 .sys-setting-p {
   width: 100%;
-  height: calc(100vh - 176px);
+  height: auto;
+  max-height: calc(100vh - 184px);
   box-sizing: border-box;
   margin-top: 12px;
 }
@@ -47,7 +48,7 @@ const activeName = ref('basic')
   height: auto;
   overflow-y: auto;
   background: var(--ContentBG, #ffffff);
-  border-radius: 12px;
+  border-radius: 14px;
   &.basic-info_bg {
     background: none;
   }

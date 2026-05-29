@@ -11,6 +11,8 @@ import { useRoute } from 'vue-router_2'
 const route = useRoute()
 const systemMenu = computed(() => route.path.includes('system'))
 const settingMenu = computed(() => route.path.includes('sys-setting'))
+const userCenterPage = computed(() => route.path.includes('/modify-pwd'))
+const adminSurface = computed(() => settingMenu.value || userCenterPage.value)
 const isCollapse = ref(false)
 const setCollapse = () => {
   isCollapse.value = !isCollapse.value
@@ -18,7 +20,14 @@ const setCollapse = () => {
 </script>
 
 <template>
-  <div class="common-layout">
+  <div
+    class="common-layout"
+    :class="{
+      'is-with-sider': systemMenu || settingMenu,
+      'is-admin-surface': adminSurface,
+      'is-user-center-surface': userCenterPage
+    }"
+  >
     <HeaderSystem v-if="settingMenu" :title="''" />
     <Header v-else></Header>
     <el-container class="layout-container">
@@ -50,18 +59,29 @@ const setCollapse = () => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: #fff;
-  color: #1f2329;
+  background: #f8fafc;
+  color: #0f172a;
   min-width: 1000px;
   overflow-x: auto;
+  font-family: var(--crest-font-sans, var(--de-custom_font, 'PingFang'));
 
   .layout-container {
+    flex: 1;
+    min-height: 0;
+    background: #f8fafc;
+
     .layout-sidebar {
-      height: calc(100vh - 106px);
+      height: calc(100vh - 108px);
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      overflow-x: hidden;
     }
 
     .layout-sidebar-collapse {
       width: 64px;
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+      overflow-x: hidden;
     }
 
     .org-config-center {
@@ -70,10 +90,10 @@ const setCollapse = () => {
       display: flex;
       align-items: center;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       line-height: 22px;
-      color: #8f959e;
-      border-bottom: 1px solid #1f232926;
+      color: #64748b;
+      border-bottom: 1px solid #e2e8f0;
       position: sticky;
       top: 0;
       left: 0;
@@ -83,15 +103,227 @@ const setCollapse = () => {
 
     .layout-main {
       flex: 1;
-      background-color: var(--MainBG, #f5f6f7);
+      min-width: 0;
+      min-height: 0;
+      background-color: #f8fafc;
       padding: 0;
     }
 
     .with-sider {
-      padding: 16px 24px 24px 24px;
+      padding: 24px 28px 28px 28px;
     }
     .with-sider:has(.appearance-foot) {
       padding: 16px 24px 0px 24px !important;
+    }
+  }
+
+  &.is-user-center-surface {
+    .layout-main {
+      padding: clamp(24px, 2vw, 34px) clamp(28px, 4vw, 72px);
+    }
+  }
+
+  &.is-admin-surface {
+    .layout-sidebar {
+      width: 248px !important;
+      flex: 0 0 248px;
+    }
+
+    .layout-sidebar-collapse {
+      width: 64px !important;
+      flex: 0 0 64px;
+    }
+
+    &:has(.layout-sidebar) :deep(.de-collapse-bar) {
+      width: 248px !important;
+    }
+
+    &:has(.layout-sidebar-collapse) :deep(.de-collapse-bar) {
+      width: 64px !important;
+      padding-right: 0;
+      padding-left: 22px;
+    }
+
+    :deep(.router-title.router-title),
+    :deep(.route-title.route-title) {
+      margin: 0 0 16px;
+      color: #0f172a;
+      font-family: var(--crest-font-sans);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 28px;
+      letter-spacing: 0;
+    }
+
+    :deep(.sys-setting-p.sys-setting-p),
+    :deep(.table-wrap.table-wrap),
+    :deep(.font-content_overflow.font-content_overflow) {
+      height: auto;
+      max-height: calc(100vh - 184px);
+      margin-top: 12px;
+    }
+
+    :deep(.container-sys-param.container-sys-param),
+    :deep(.table-wrap.table-wrap),
+    :deep(.setting-panel.setting-panel),
+    :deep(.info-template-container.info-template-container),
+    :deep(.font-content_item.font-content_item),
+    :deep(.user-tabs.user-tabs),
+    :deep(.base-info.base-info) {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    :deep(.container-sys-param.basic-info_bg) {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    :deep(.toolbar.toolbar) {
+      align-items: center;
+      padding: 16px;
+      background: #ffffff;
+      border-bottom: 1px solid #f1f5f9;
+      border-radius: 14px 14px 0 0;
+    }
+
+    :deep(.pager.pager) {
+      padding: 12px 16px 16px;
+      background: #ffffff;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    :deep(.ed-tabs__header) {
+      margin: 0;
+    }
+
+    :deep(.ed-tabs__nav-wrap::after) {
+      display: none;
+    }
+
+    :deep(.ed-tabs__active-bar) {
+      height: 2px;
+      background: #3b82f6;
+      border-radius: 2px 2px 0 0;
+    }
+
+    :deep(.ed-tabs__item) {
+      height: 38px;
+      color: #64748b;
+      font-family: var(--crest-font-sans);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    :deep(.ed-tabs__item.is-active) {
+      color: #3b82f6;
+      font-weight: 700;
+    }
+
+    :deep(.ed-table) {
+      --ed-table-header-bg-color: #ffffff;
+      --ed-table-tr-bg-color: #ffffff;
+      color: #334155;
+      font-family: var(--crest-font-sans);
+      font-size: 13px;
+    }
+
+    :deep(.ed-table__inner-wrapper::before) {
+      display: none;
+    }
+
+    :deep(.ed-table th.ed-table__cell) {
+      padding: 10px 0;
+      color: #94a3b8;
+      font-family: var(--crest-font-mono);
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0;
+      background: #ffffff;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    :deep(.ed-table td.ed-table__cell) {
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    :deep(.ed-table__row:hover > td.ed-table__cell) {
+      background: #fafbfc;
+    }
+
+    :deep(.ed-table__empty-block) {
+      min-height: 180px;
+    }
+
+    :deep(.ed-input__wrapper),
+    :deep(.ed-select__wrapper) {
+      border-radius: 8px;
+      box-shadow: 0 0 0 1px #e2e8f0 inset;
+      transition:
+        box-shadow 0.14s ease,
+        background 0.14s ease;
+    }
+
+    :deep(.ed-input__wrapper.is-focus),
+    :deep(.ed-select__wrapper.is-focused) {
+      box-shadow:
+        0 0 0 1px #3b82f6 inset,
+        0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    :deep(.ed-button) {
+      border-radius: 8px;
+      font-family: var(--crest-font-sans);
+      font-weight: 600;
+    }
+
+    :deep(.ed-button--primary:not(.is-text)) {
+      background: #3b82f6;
+      border-color: #3b82f6;
+    }
+
+    :deep(.ed-button--primary:not(.is-text):hover),
+    :deep(.ed-button--primary:not(.is-text):focus) {
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+
+    :deep(.ed-button.is-text),
+    :deep(.ed-button--primary.is-text),
+    :deep(.ed-button--danger.is-text) {
+      height: auto;
+      padding: 0 4px;
+      background: transparent !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+    }
+
+    :deep(.ed-button--primary.is-text) {
+      color: #3b82f6;
+    }
+
+    :deep(.ed-button--primary.is-text:hover) {
+      color: #2563eb;
+      background: #eff6ff !important;
+    }
+
+    :deep(.ed-button--danger.is-text) {
+      color: #ef4444;
+    }
+
+    :deep(.ed-button--danger.is-text:hover) {
+      color: #dc2626;
+      background: #fef2f2 !important;
+    }
+
+    :deep(.ed-pagination .number.is-active) {
+      color: #ffffff;
+      background: #0f172a;
+      border-radius: 6px;
     }
   }
 }

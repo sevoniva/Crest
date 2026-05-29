@@ -101,7 +101,7 @@ onMounted(loadTable)
         <el-input v-model="keyword" clearable placeholder="搜索名称" @change="loadTable" />
         <el-button type="primary" @click="loadTable">查询</el-button>
       </div>
-      <el-table v-loading="loading" :data="tableData" height="calc(100vh - 280px)">
+      <el-table v-loading="loading" :data="tableData" max-height="calc(100vh - 300px)">
         <el-table-column prop="name" label="资源名称" min-width="220" show-overflow-tooltip />
         <el-table-column label="类型" width="120">
           <template #default="{ row }">{{ typeMap[row.type] || row.type }}</template>
@@ -168,13 +168,13 @@ onMounted(loadTable)
 
 <style lang="less" scoped>
 .share-manage {
-  height: 100%;
+  min-height: 100%;
 }
 .router-title {
   margin: 0 0 16px;
-  font-size: 20px;
-  font-weight: 500;
-  color: #1f2329;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
 }
 .toolbar {
   display: flex;
@@ -190,11 +190,14 @@ onMounted(loadTable)
   }
 }
 .table-wrap {
-  height: calc(100vh - 176px);
+  height: auto;
+  min-height: 0;
   margin-top: 12px;
   background: #fff;
-  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .pager {
   display: flex;

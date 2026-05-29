@@ -771,14 +771,6 @@ const filterNode = (value: string, data: BusiTreeNode) => {
   if (!value) return true
   return data.name?.toLowerCase().includes(value.toLowerCase())
 }
-const mouseenter = () => {
-  appStore.setArrowSide(true)
-}
-
-const mouseleave = () => {
-  appStore.setArrowSide(false)
-}
-
 const getMenuList = (val: boolean) => {
   return !val
     ? menuList
@@ -811,17 +803,10 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
     ></ArrowSide>
     <el-aside
       class="resource-area"
-      @mouseenter="mouseenter"
-      @mouseleave="mouseleave"
       :class="{ retract: !sideTreeStatus }"
       ref="node"
       :style="{ width: width + 'px' }"
     >
-      <ArrowSide
-        :isInside="!sideTreeStatus"
-        :style="{ left: (sideTreeStatus ? width - 12 : 0) + 'px' }"
-        @change-side-tree-status="changeSideTreeStatus"
-      ></ArrowSide>
       <div class="resource-tree">
         <div class="tree-header">
           <div class="icon-methods">
@@ -1068,7 +1053,6 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
                   :data="tableData"
                   @row-click="rowClick"
                   key="dataPreview"
-                  border
                   style="width: 100%; height: 100%"
                 >
                   <el-table-column
@@ -1432,5 +1416,244 @@ const proxyAllowDrop = throttle((arg1, arg2) => {
       display: inline-flex;
     }
   }
+}
+
+.dataset-manage {
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: var(--crest-font-sans);
+
+  .resource-area {
+    border-right: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    z-index: 4;
+
+    .resource-tree {
+      padding: 18px 12px 0;
+      background: #ffffff;
+
+      .tree-header {
+        padding: 0 4px 14px;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .icon-methods {
+        color: #0f172a;
+        font-weight: 700;
+        padding-bottom: 14px;
+
+        .title {
+          font-weight: 700;
+        }
+
+        .custom-icon.btn {
+          width: 34px;
+          height: 34px;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          background: #ffffff;
+          color: #3b82f6;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+          &:hover {
+            border-color: #bfdbfe;
+            background: #eff6ff;
+
+            &::after {
+              content: none;
+            }
+          }
+        }
+      }
+
+      .search-bar {
+        width: calc(100% - 42px);
+        padding-bottom: 0;
+      }
+    }
+  }
+
+  .dataset-content {
+    background: #f8fafc;
+
+    .dataset-info {
+      height: 88px;
+      margin: 22px 24px 0;
+      padding: 12px 18px 0;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+      .info-method {
+        color: #0f172a;
+        font-family: var(--crest-font-sans);
+        font-weight: 700;
+
+        .dataset-name {
+          font-size: 16px;
+          font-weight: 700;
+        }
+
+        .create-user {
+          color: #64748b;
+          font-family: var(--crest-font-sans);
+        }
+      }
+
+      .tab-border {
+        :deep(.ed-tabs__item) {
+          color: #64748b;
+          font-weight: 600;
+        }
+
+        :deep(.ed-tabs__item.is-active) {
+          color: #3b82f6;
+        }
+
+        :deep(.ed-tabs__active-bar) {
+          background: #3b82f6;
+        }
+
+        :deep(.ed-tabs__header::before),
+        :deep(.ed-tabs__header::after),
+        :deep(.ed-tabs__nav-wrap::after) {
+          display: none;
+        }
+      }
+    }
+
+    .dataset-table-info {
+      margin: 16px 24px 24px;
+      padding: 18px;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      height: calc(100% - 126px);
+    }
+  }
+}
+
+.filter-icon-span {
+  border: 1px solid #e2e8f0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  color: #334155;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+  &:hover {
+    color: #3b82f6;
+    border-color: #bfdbfe;
+    background: #eff6ff;
+  }
+}
+
+.custom-tree {
+  height: calc(100vh - 158px);
+  padding: 10px 0 0;
+}
+
+.custom-tree-node {
+  .label-tooltip {
+    color: #334155;
+    font-weight: 500;
+  }
+}
+
+:deep(.ed-input__wrapper) {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  background: #ffffff;
+
+  &:hover {
+    border-color: #bfdbfe;
+  }
+
+  &.is-focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+  }
+}
+
+:deep(.ed-tree) {
+  --ed-tree-node-hover-bg-color: #f8fafc;
+  color: #334155;
+  background: transparent;
+}
+
+:deep(.ed-tree-node__content) {
+  height: 36px;
+  margin-bottom: 4px;
+  border-radius: 10px;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+:deep(.ed-tree--highlight-current .ed-tree-node.is-current > .ed-tree-node__content) {
+  background: #eff6ff;
+  color: #3b82f6;
+  box-shadow: inset 3px 0 0 #3b82f6;
+
+  .label-tooltip {
+    color: #3b82f6;
+  }
+}
+
+:deep(.ed-button) {
+  border-radius: 10px;
+  font-family: var(--crest-font-sans);
+  font-weight: 600;
+}
+
+:deep(.ed-button:not(.ed-button--primary)) {
+  border-color: #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+
+  &:hover,
+  &:focus {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #3b82f6;
+  }
+}
+
+:deep(.ed-table),
+:deep(.ed-table-v2) {
+  color: #334155;
+  font-family: var(--crest-font-sans);
+}
+
+:deep(.ed-table__inner-wrapper::before),
+:deep(.ed-table__inner-wrapper::after) {
+  display: none;
+}
+
+:deep(.ed-table th.ed-table__cell),
+:deep(.ed-table-v2__header-cell) {
+  background: #ffffff !important;
+  color: #94a3b8;
+  font-family: var(--crest-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+:deep(.ed-table td.ed-table__cell) {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+:deep(.ed-table__row:hover > td.ed-table__cell) {
+  background: #fafbfc;
 }
 </style>
