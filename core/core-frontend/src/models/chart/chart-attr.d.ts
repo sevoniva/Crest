@@ -154,6 +154,7 @@ declare interface ChartBasicStyle {
      */
     color: string
   }[]
+  subColors?: string[]
   /**
    * 渐变
    */
@@ -637,7 +638,7 @@ declare interface TotalConfig {
   /**
    * 兼容旧版的判断
    */
-  subTotalsDimensionsNew: boolean
+  subTotalsDimensionsNew?: boolean
   /**
    * 总计汇总设置
    */

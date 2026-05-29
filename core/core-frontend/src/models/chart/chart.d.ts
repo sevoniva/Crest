@@ -34,6 +34,7 @@ declare interface Chart {
     }
     customCalc: any
     customSumResult?: Record<string, any>
+    [key: string]: any
   }
   xAxis?: Axis[]
   xAxisExt?: Axis[]
@@ -77,6 +78,7 @@ declare interface Chart {
   extColor: Axis[]
 
   fontFamily?: string
+  chartExtRequest?: Record<string, any>
 }
 declare type CustomAttr = DeepPartial<ChartAttr> | JSONString<DeepPartial<ChartAttr>>
 declare type CustomStyle = DeepPartial<ChartStyle> | JSONString<DeepPartial<ChartStyle>>
@@ -101,7 +103,7 @@ declare interface BaseFormatter {
   /**
    * 单位换算
    */
-  unitLanguage: 'ch' | 'en'
+  unitLanguage: string
   unit: number
   /**
    * 单位后缀
@@ -118,7 +120,7 @@ declare interface BaseFormatter {
   /**
    * 显示总出占比
    */
-  showTotalPercent: boolean
+  showTotalPercent?: boolean
 }
 
 /**

@@ -217,7 +217,7 @@ declare interface AxisLabel {
   /**
    * 长度限制
    */
-  lengthLimit: number
+  lengthLimit?: number
 }
 /**
  * 轴线条设置

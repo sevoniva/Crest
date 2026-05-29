@@ -16,15 +16,15 @@ const props = defineProps({
     required: true
   },
   line: {
-    type: Array,
+    type: Array as PropType<any[]>,
     required: true
   },
   quotaFields: {
-    type: Array,
+    type: Array as PropType<any[]>,
     required: true
   },
   quotaExtFields: {
-    type: Array,
+    type: Array as PropType<any[]>,
     required: true
   },
   useQuotaExt: {
@@ -38,7 +38,7 @@ const yAxisTypes = [
   { type: 'right', name: t('chart.drag_block_value_axis_right') }
 ]
 
-const state = reactive({
+const state = reactive<any>({
   lineArr: [],
   lineObj: {
     name: t('chart.assist_line'),

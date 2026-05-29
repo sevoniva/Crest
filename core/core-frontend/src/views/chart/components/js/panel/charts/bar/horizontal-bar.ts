@@ -151,7 +151,7 @@ export class HorizontalBar extends G2PlotChartView<BarOptions, Bar> {
         }
       })
     }
-    configPlotTooltipEvent(chart, newChart)
+    configPlotTooltipEvent(chart, newChart as any)
     configAxisLabelLengthLimit(chart, newChart)
     return newChart
   }
@@ -225,7 +225,7 @@ export class HorizontalBar extends G2PlotChartView<BarOptions, Bar> {
       barWidthRatio = 1
     }
     if (barWidthRatio) {
-      options.barWidthRatio = barWidthRatio
+      ;(options as any).barWidthRatio = barWidthRatio
     }
 
     return options
@@ -367,7 +367,7 @@ export class HorizontalStackBar extends HorizontalBar {
     options = { ...options, label }
     const { label: labelAttr } = parseJson(chart.customAttr)
     if (labelAttr.showStackQuota || labelAttr.showStackQuota === undefined) {
-      options.label.style.fill = labelAttr.color
+      ;(options.label as any).style.fill = labelAttr.color
       label = {
         ...options.label,
         formatter: function (data: Datum) {
@@ -399,7 +399,7 @@ export class HorizontalStackBar extends HorizontalBar {
         const total = values.reduce((a, b) => a + b.value, 0)
         const value = valueFormatter(total, formatterCfg)
         if (!options.annotations) {
-          options.annotations = []
+          ;(options as any).annotations = []
         }
         options.annotations.push({
           type: 'text',
@@ -454,15 +454,15 @@ export class HorizontalStackBar extends HorizontalBar {
       if (sort?.length) {
         // 用值域限定排序，有可能出现新数据但是未出现在图表上，所以这边要遍历一下子维度，加到后面，让新数据显示出来
         const data = options.data
-        const cats =
-          data?.reduce((p, n) => {
+        const cats: any[] =
+          (data as any[])?.reduce((p, n) => {
             const cat = n['category']
             if (cat && !p.includes(cat)) {
               p.push(cat)
             }
             return p
-          }, []) || []
-        const values = sort.reduce((p, n) => {
+          }, [] as any[]) || []
+        const values: any[] = sort.reduce((p, n) => {
           if (cats.includes(n)) {
             const index = cats.indexOf(n)
             if (index !== -1) {
@@ -471,9 +471,9 @@ export class HorizontalStackBar extends HorizontalBar {
             p.push(n)
           }
           return p
-        }, [])
+        }, [] as any[])
         cats.length > 0 && values.push(...cats)
-        options.meta = {
+        ;(options as any).meta = {
           ...options.meta,
           category: {
             type: 'cat',
@@ -531,7 +531,7 @@ export class HorizontalStackBar extends HorizontalBar {
       size = DEFAULT_LEGEND_STYLE.size
     }
 
-    optionTmp.legend.marker.style = style => {
+    ;(optionTmp.legend.marker as any).style = style => {
       return {
         r: size,
         fill: style.fill
@@ -547,7 +547,7 @@ export class HorizontalStackBar extends HorizontalBar {
           return p
         }, {}) || {}
       const dupCheck = new Set()
-      const colors = optionTmp.color ?? optionTmp.theme.styleSheet.paletteQualitative10
+      const colors = optionTmp.color ?? (optionTmp.theme as any).styleSheet.paletteQualitative10
       const items = optionTmp.data?.reduce((arr, item) => {
         if (!dupCheck.has(item.category)) {
           const fill = seriesMap[item.category]?.color ?? colors[dupCheck.size % colors.length]
@@ -581,7 +581,7 @@ export class HorizontalStackBar extends HorizontalBar {
         })
         items.unshift(...tmp)
       }
-      optionTmp.legend.items = items
+      ;(optionTmp.legend as any).items = items
       if (extStack?.customSort?.length > 0) {
         delete optionTmp.meta?.category.values
       }

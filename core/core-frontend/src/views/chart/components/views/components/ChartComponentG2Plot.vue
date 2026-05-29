@@ -265,20 +265,21 @@ const calcData = async (view, callback) => {
     const v = JSON.parse(JSON.stringify(view))
     getData(v)
       .then(async res => {
+        const dataRes = res as any
         if (res.code && res.code !== 0) {
           isError.value = true
           errMsg.value = res.msg
           callback?.()
         } else {
           chartData.value = res?.data as Partial<Chart['data']>
-          emit('onDrillFilters', res?.drillFilters)
-          if (!res?.drillFilters?.length) {
+          emit('onDrillFilters', dataRes?.drillFilters)
+          if (!dataRes?.drillFilters?.length) {
             dynamicAreaId.value = ''
             scope = null
             gadmName = null
           } else {
             const chartExtRequest = view.chartExtRequest || view.value?.chartExtRequest
-            const extra = chartExtRequest?.drill?.[res?.drillFilters?.length - 1].extra
+            const extra = chartExtRequest?.drill?.[dataRes?.drillFilters?.length - 1].extra
             dynamicAreaId.value = extra?.adcode + ''
             scope = extra?.scope
             gadmName = extra?.gadmName
@@ -301,7 +302,7 @@ const calcData = async (view, callback) => {
             }
           }
           dvMainStore.setViewDataDetails(view.id, res)
-          if (!res.drill && !res.chartExtRequest?.linkageFilters?.length) {
+          if (!dataRes.drill && !dataRes.chartExtRequest?.linkageFilters?.length) {
             dvMainStore.setViewOriginData(view.id, chartData.value)
             emitter.emit('chart-data-change')
           }
@@ -350,7 +351,7 @@ const renderChart = async (view, callback?) => {
   }
 }
 let myChart = null
-let g2Timer: number
+let g2Timer: ReturnType<typeof setTimeout>
 const renderG2Plot = async (chart, chartView: G2PlotChartView<any, any>) => {
   g2Timer && clearTimeout(g2Timer)
   g2Timer = setTimeout(async () => {
@@ -382,7 +383,7 @@ const country = ref('')
 let gadmName
 const chartContainer = ref<HTMLElement>(null)
 let scope
-let mapTimer: number
+let mapTimer: ReturnType<typeof setTimeout>
 const renderL7Plot = async (chart: ChartObj, chartView: any, callback) => {
   const map = parseJson(chart.customAttr).map
   let areaId = map.id
@@ -419,7 +420,7 @@ const renderL7Plot = async (chart: ChartObj, chartView: any, callback) => {
   }, 500)
 }
 
-let mapL7Timer: number
+let mapL7Timer: ReturnType<typeof setTimeout>
 const renderL7 = async (chart: ChartObj, chartView: any, callback) => {
   mapL7Timer && clearTimeout(mapL7Timer)
   mapL7Timer = setTimeout(async () => {

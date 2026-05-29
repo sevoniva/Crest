@@ -16,6 +16,13 @@ declare module '@antv/s2' {
     [key: string]: any
   }
 
+  interface S2Options<T = any, P = any, M = any> {
+    frozenColCount?: number
+    frozenRowCount?: number
+    frozenRowHeader?: boolean
+    [key: string]: any
+  }
+
   interface S2Theme {
     colCellAlignConfig?: Record<string, any>
     dataCellAlignConfig?: Record<string, any>

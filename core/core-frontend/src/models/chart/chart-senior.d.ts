@@ -156,6 +156,7 @@ declare interface ChartThreshold {
    * 折线阈值
    */
   lineThreshold: TableThreshold[]
+  lineLabelThreshold?: TableThreshold[]
 
   symbolicBubbleThreshold: TableThreshold[]
 }

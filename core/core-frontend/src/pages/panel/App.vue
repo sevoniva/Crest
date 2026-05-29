@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { shallowRef, defineAsyncComponent, onMounted, nextTick } from 'vue'
+import { shallowRef, defineAsyncComponent, onMounted, nextTick, ref } from 'vue'
 import { propTypes } from '@/utils/propTypes'
 import { useEmitt } from '@/hooks/web/useEmitt'
 

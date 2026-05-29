@@ -136,7 +136,9 @@ const containerId = 'container-' + showPosition.value + '-' + view.value.id + '-
 const viewTrack = ref(null)
 
 const calcData = (viewInfo: Chart, callback, resetPageInfo = true) => {
-  if (viewInfo.customAttr.basicStyle.tablePageStyle === 'general') {
+  const customAttr = viewInfo.customAttr as any
+  viewInfo.chartExtRequest ||= {}
+  if (customAttr.basicStyle.tablePageStyle === 'general') {
     if (state.currentPageSize !== 0) {
       viewInfo.chartExtRequest.pageSize = state.currentPageSize
       state.pageInfo.pageSize = state.currentPageSize
@@ -151,14 +153,15 @@ const calcData = (viewInfo: Chart, callback, resetPageInfo = true) => {
     const v = JSON.parse(JSON.stringify(viewInfo))
     getData(v)
       .then(res => {
+        const dataRes = res as any
         if (res.code && res.code !== 0) {
           isError.value = true
           errMsg.value = res.msg
         } else {
           chartData.value = res?.data as Partial<Chart['data']>
-          state.totalItems = res?.totalItems
+          state.totalItems = dataRes?.totalItems
           dvMainStore.setViewDataDetails(viewInfo.id, res)
-          emit('onDrillFilters', res?.drillFilters)
+          emit('onDrillFilters', dataRes?.drillFilters)
           renderChart(res as unknown as Chart, resetPageInfo)
         }
         callback?.()
@@ -196,14 +199,14 @@ const handleDefaultVal = (chart: Chart) => {
       tableHeader.tableHeaderColBgColor = tableHeader.tableHeaderBgColor
       tableHeader.tableHeaderColFontColor = tableHeader.tableHeaderFontColor
       tableHeader.tableTitleColFontSize = tableHeader.tableTitleFontSize
-      tableHeader.tableHeaderColAlign = tableHeader.tableHeaderAlign
+      ;(tableHeader as any).tableHeaderColAlign = tableHeader.tableHeaderAlign
       tableHeader.isColBolder = tableHeader.isBolder
       tableHeader.isColItalic = tableHeader.isItalic
 
       tableHeader.tableHeaderCornerBgColor = tableHeader.tableHeaderBgColor
       tableHeader.tableHeaderCornerFontColor = tableHeader.tableHeaderFontColor
       tableHeader.tableTitleCornerFontSize = tableHeader.tableTitleFontSize
-      tableHeader.tableHeaderCornerAlign = tableHeader.tableHeaderAlign
+      ;(tableHeader as any).tableHeaderCornerAlign = tableHeader.tableHeaderAlign
       tableHeader.isCornerBolder = tableHeader.isBolder
       tableHeader.isCornerItalic = tableHeader.isItalic
     }
@@ -225,11 +228,11 @@ const renderChart = (viewInfo: Chart, resetPageInfo: boolean) => {
   recursionTransObj(customStyleTrans, actualChart.customStyle, scale.value, terminal.value)
 
   setupPage(actualChart, resetPageInfo)
-  nextTick(() => debounceRender(resetPageInfo))
+  nextTick(() => debounceRender())
 }
 
 const debounceRender = debounce(() => {
-  myChart?.facet?.timer?.stop()
+  ;(myChart?.facet as any)?.timer?.stop()
   myChart?.facet?.cancelScrollFrame()
   myChart?.destroy()
   myChart?.getCanvasElement()?.remove()
@@ -275,7 +278,7 @@ const setupPage = (chart: ChartObj, resetPageInfo?: boolean) => {
 }
 
 const mouseMove = () => {
-  myChart?.facet?.timer?.stop()
+  ;(myChart?.facet as any)?.timer?.stop()
 }
 
 const mouseLeave = () => {
@@ -297,7 +300,7 @@ const initScroll = () => {
       !state.showPage
     ) {
       // 防止多次渲染
-      myChart.facet.timer?.stop()
+      ;(myChart.facet as any).timer?.stop()
       // 已滚动的距离
       let scrolledOffset = myChart.store.get('scrollY') || 0
       // 平滑滚动，兼容原有的滚动速率设置
@@ -632,8 +635,8 @@ const trackMenuCalc = itemId => {
 
 const resizeAction = resizeColumn => {
   // 从头开始滚动
-  if (myChart?.facet.timer) {
-    myChart?.facet.timer.stop()
+  if ((myChart?.facet as any)?.timer) {
+    ;(myChart?.facet as any).timer.stop()
     nextTick(initScroll)
   }
   if (showPosition.value !== 'canvas') {
@@ -668,9 +671,9 @@ const resize = (width, height) => {
   }
   timer = setTimeout(() => {
     if (!myChart?.facet) {
-      debounceRender(false)
+      debounceRender()
     } else {
-      myChart?.facet?.timer?.stop()
+      ;(myChart?.facet as any)?.timer?.stop()
       myChart?.changeSheetSize(width, height)
       myChart?.render()
     }
@@ -702,7 +705,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   try {
-    myChart?.facet.timer?.stop()
+    ;(myChart?.facet as any)?.timer?.stop()
     myChart?.destroy()
     myChart = null
     resizeObserver?.disconnect()

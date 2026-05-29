@@ -38,6 +38,21 @@ declare global {
     code: string | number
     data: T extends any ? T : T & any
     msg: string
+    [key: string]: any
+  }
+
+  interface EventTarget {
+    value?: any
+  }
+
+  interface ParentNode {
+    clientWidth?: number
+    clientHeight?: number
+  }
+
+  interface Element {
+    offsetWidth?: number
+    offsetHeight?: number
   }
 
   type DeepPartial<T> = {

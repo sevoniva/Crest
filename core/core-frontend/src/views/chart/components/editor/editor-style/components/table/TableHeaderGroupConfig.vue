@@ -12,18 +12,15 @@ import { dvMainStoreWithOut } from '@/store/modules/data-visualization/dvMain'
 import { formatterItem, valueFormatter } from '@/views/chart/components/js/formatter'
 import {
   BaseTooltip,
-  ColumnNode,
   S2DataConfig,
   S2Event,
   S2Options,
   TableSheet,
   TooltipShowOptions,
   ColCell,
-  Node,
   LayoutResult,
   TableDataCell,
-  TableColCell,
-  TextTheme
+  TableColCell
 } from '@antv/s2'
 import { ElMessageBox } from 'element-plus-secondary'
 import { cloneDeep, debounce, isEqual, isNumber } from 'lodash-es'
@@ -38,6 +35,7 @@ import {
 
 const { t } = useI18n()
 const dvMainStore = dvMainStoreWithOut()
+type ColumnNode = any
 const props = defineProps({
   chart: {
     type: Object as PropType<ChartObj>,
@@ -106,10 +104,10 @@ const menuGroupId = computed(() => {
 const containerId = computed(() => {
   return 'table-container-' + props.chart.id
 })
-let s2: TableSheet
+let s2: any
 class CustomDataCell extends TableDataCell {
-  protected getTextStyle(): TextTheme {
-    const textStyle = super.getTextStyle()
+  protected getTextStyle(): any {
+    const textStyle = super.getTextStyle() as any
     const dataCellAlignConfig = this.theme.dataCellAlignConfig
     if (dataCellAlignConfig) {
       const align = dataCellAlignConfig[this.meta.valueField]
@@ -117,15 +115,15 @@ class CustomDataCell extends TableDataCell {
         textStyle.textAlign = align
       }
     }
-    if (textStyle.textAlign === 'custom') {
+    if ((textStyle.textAlign as string) === 'custom') {
       textStyle.textAlign = 'left'
     }
     return textStyle
   }
 }
 class CustomColCell extends TableColCell {
-  protected getTextStyle(): TextTheme {
-    const textStyle = super.getTextStyle()
+  protected getTextStyle(): any {
+    const textStyle = super.getTextStyle() as any
     const colCellAlignConfig = this.theme.colCellAlignConfig
     if (colCellAlignConfig) {
       // 分组单元格居中
@@ -138,7 +136,7 @@ class CustomColCell extends TableColCell {
         textStyle.textAlign = align
       }
     }
-    if (textStyle.textAlign === 'custom') {
+    if ((textStyle.textAlign as string) === 'custom') {
       textStyle.textAlign = 'left'
     }
     return textStyle
@@ -152,7 +150,7 @@ const renderTable = (chart: ChartObj) => {
     realData = data.tableRow.slice(0, 10)
   }
   const { headerGroupConfig } = chart.customAttr.tableHeader
-  const meta = [...headerGroupConfig.meta]
+  const meta: any[] = [...headerGroupConfig.meta]
   const columns = headerGroupConfig.columns
   const axisMap = allAxis.value.reduce((pre, cur) => {
     pre[cur.dataeaseName] = cur
@@ -202,7 +200,7 @@ const renderTable = (chart: ChartObj) => {
     },
     meta,
     data: realData
-  }
+  } as any
   // options
   const s2Options: S2Options = {
     width: containerDom.getBoundingClientRect().width,
@@ -243,10 +241,10 @@ const renderTable = (chart: ChartObj) => {
     colCell: (meta, sheet, config) => {
       return new CustomColCell(meta, sheet, config)
     }
-  }
+  } as any
   s2 = new TableSheet(containerDom, s2DataConfig, s2Options)
   const { tableHeader, tableCell } = chart.customAttr
-  const theme = getCustomTheme(chart)
+  const theme = getCustomTheme(chart) as any
   if (tableHeader.tableHeaderAlign === 'custom') {
     theme.colCellAlignConfig =
       tableHeader.alignConfig?.reduce((pre, cur) => {
@@ -558,7 +556,7 @@ const renderTable = (chart: ChartObj) => {
       ) {
         return
       }
-      const parent = curMeta.parent as Node
+      const parent = curMeta.parent as any
       const lastIndex = parent.children.findIndex(item => item.key === lastMeta.key)
       const curIndex = parent.children.findIndex(item => item.key === curMeta.key)
       const startIndex = Math.min(lastIndex, curIndex)

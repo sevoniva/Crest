@@ -1696,7 +1696,7 @@ export const dvMainStore = defineStore('dataVisualization', {
         this.canvasState[key] = value
       }
     },
-    createInit(dvType, resourceId?, pid?, watermarkInfo?, preName) {
+    createInit(dvType, resourceId?, pid?, watermarkInfo?, preName?) {
       const optName =
         dvType === 'dashboard' ? t('visualization.new_dashboard') : t('visualization.new_screen')
       const name = preName ? preName : optName
