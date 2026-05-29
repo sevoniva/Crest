@@ -1,14 +1,11 @@
 <script lang="ts" setup>
-import crestLogoDark from '@/assets/img/crest-logo-horizontal-dark-192h.png'
+import crestLogo from '@/assets/svg/logo.svg?url'
 import icon_left_outlined from '@/assets/svg/icon_left_outlined.svg'
-import { computed } from 'vue'
 import { ElHeader } from 'element-plus-secondary'
 import { useRouter } from 'vue-router_2'
 import AccountOperator from '@/layout/components/AccountOperator.vue'
-import { useAppearanceStoreWithOut } from '@/store/modules/appearance'
 import { useI18n } from '@/hooks/web/useI18n'
 import { isDesktop } from '@/utils/ModelUtil'
-const appearanceStore = useAppearanceStoreWithOut()
 const { push } = useRouter()
 const { t } = useI18n()
 const desktop = isDesktop()
@@ -21,16 +18,11 @@ withDefaults(
 const backToMain = () => {
   push('/workbranch/index')
 }
-const navigateBg = computed(() => appearanceStore.getNavigateBg)
-const navigate = computed(() => appearanceStore.getNavigate)
 </script>
 
 <template>
-  <el-header
-    class="header-flex system-header"
-    :class="{ 'header-light': navigateBg && navigateBg === 'light' }"
-  >
-    <img class="logo" :src="navigate || crestLogoDark" alt="Crest" />
+  <el-header class="header-flex system-header">
+    <img class="logo" :src="crestLogo" alt="Crest" />
     <el-divider direction="vertical" />
     <span class="system">{{ title || t('commons.system_setting') }}</span>
     <div class="operate-setting">
@@ -48,7 +40,7 @@ const navigate = computed(() => appearanceStore.getNavigate)
 
 <style lang="less" scoped>
 .system-header {
-  font-family: var(--de-custom_font, 'PingFang');
+  font-family: var(--crest-font-sans, var(--de-custom_font, 'PingFang'));
 
   .logo {
     width: 158px;
@@ -58,10 +50,10 @@ const navigate = computed(() => appearanceStore.getNavigate)
 
   .ed-divider {
     margin: 0 24px;
-    border-color: rgba(255, 255, 255, 0.3);
+    border-color: #dbe4f0;
   }
   .system {
-    color: #fff;
+    color: #0f172a;
     font-size: 16px;
     font-style: normal;
     font-weight: 500;
@@ -70,7 +62,7 @@ const navigate = computed(() => appearanceStore.getNavigate)
 
   .work-bar {
     margin-right: 20px;
-    color: rgba(255, 255, 255, 0.8);
+    color: #64748b;
     font-size: 14px;
     font-style: normal;
     font-weight: 400;
@@ -86,27 +78,32 @@ const navigate = computed(() => appearanceStore.getNavigate)
     margin: 0 -7px 0 20px !important;
   }
 }
-.header-light {
-  background-color: #ffffff !important;
-  box-shadow: 0px 0.5px 0px 0px #1f232926 !important;
-  :deep(.work-bar) {
-    color: var(--ed-color-black) !important;
-  }
-  .ed-divider {
-    border-color: #1f232926 !important;
-  }
-
-  .system {
-    color: #000 !important;
-  }
-}
 .header-flex {
+  position: relative;
   margin-bottom: 0.5px;
   display: flex;
   align-items: center;
   height: 56px;
-  background-color: #050e21;
+  overflow: hidden;
+  background: linear-gradient(180deg, #edf2fb 0%, #ffffff 100%);
+  border-bottom: 1px solid #e2e8f0;
   padding: 0 24px;
+
+  &::before {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    content: '';
+    background-image: radial-gradient(circle at 1px 1px, #3b6fd0 1px, transparent 0);
+    background-size: 20px 20px;
+    opacity: 0.05;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+
   .operate-setting {
     margin-left: auto;
     display: flex;
@@ -123,15 +120,8 @@ const navigate = computed(() => appearanceStore.getNavigate)
   .operate-setting {
     .ed-icon {
       cursor: pointer;
-      color: rgba(255, 255, 255, 0.8);
+      color: #64748b;
       font-size: 20px;
-    }
-  }
-}
-.header-light {
-  .operate-setting {
-    .ed-icon {
-      color: #646a73 !important;
     }
   }
 }

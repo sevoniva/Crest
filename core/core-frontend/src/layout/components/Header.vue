@@ -76,20 +76,6 @@ onMounted(() => {
           </svg>
         </button>
       </el-tooltip>
-      <el-tooltip effect="dark" content="通知" placement="bottom">
-        <button class="top-action notice-action" type="button">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path
-              d="M6 9a6 6 0 1112 0v4l1.5 3h-15L6 13V9zM10 19a2 2 0 004 0"
-              stroke="currentColor"
-              stroke-width="1.7"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          <span class="notice-dot" />
-        </button>
-      </el-tooltip>
       <span class="top-divider" />
       <AccountOperator />
     </div>
@@ -212,17 +198,6 @@ onMounted(() => {
     color: #0f172a;
     background: #f1f5f9;
   }
-}
-
-.notice-dot {
-  position: absolute;
-  top: 7px;
-  right: 7px;
-  width: 7px;
-  height: 7px;
-  background: #ef4444;
-  border: 1.5px solid #ffffff;
-  border-radius: 50%;
 }
 
 .top-divider {
