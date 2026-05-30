@@ -13,6 +13,9 @@ public class SsoConfigRequest {
     @Schema(description = "身份提供方名称")
     private String providerName;
 
+    @Schema(description = "身份提供方类型")
+    private String providerType;
+
     @Schema(description = "客户端ID")
     private String clientId;
 
@@ -48,6 +51,9 @@ public class SsoConfigRequest {
 
     @Schema(description = "邮箱字段")
     private String emailAttribute;
+
+    @Schema(description = "跨应用统一标识字段")
+    private String unionIdAttribute;
 
     @Schema(description = "是否自动创建用户")
     private Boolean autoCreateUser;

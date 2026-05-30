@@ -82,12 +82,14 @@ public class SsoManage {
         vo.setTokenEndpoint(text(values, "tokenEndpoint", ""));
         vo.setUserInfoEndpoint(text(values, "userInfoEndpoint", ""));
         vo.setIssuer(text(values, "issuer", ""));
+        vo.setProviderType(text(values, "providerType", derivedProviderType(vo).name()));
         vo.setScope(text(values, "scope", DEFAULT_SCOPE));
         vo.setRedirectUri(text(values, "redirectUri", ""));
         vo.setUserIdAttribute(text(values, "userIdAttribute", DEFAULT_USER_ID_ATTRIBUTE));
         vo.setAccountAttribute(text(values, "accountAttribute", DEFAULT_ACCOUNT_ATTRIBUTE));
         vo.setNameAttribute(text(values, "nameAttribute", DEFAULT_NAME_ATTRIBUTE));
         vo.setEmailAttribute(text(values, "emailAttribute", DEFAULT_EMAIL_ATTRIBUTE));
+        vo.setUnionIdAttribute(text(values, "unionIdAttribute", ""));
         vo.setAutoCreateUser(bool(values, "autoCreateUser", true));
         vo.setAllowLocalLogin(bool(values, "allowLocalLogin", true));
         vo.setRequireHttps(bool(values, "requireHttps", true));
@@ -211,6 +213,7 @@ public class SsoManage {
         SsoConfigVO vo = new SsoConfigVO();
         vo.setEnabled(Boolean.TRUE.equals(request.getEnabled()));
         vo.setProviderName(StringUtils.defaultIfBlank(request.getProviderName(), DEFAULT_PROVIDER_NAME).trim());
+        vo.setProviderType(SsoProviderType.fromConfig(request.getProviderType()).name());
         vo.setClientId(StringUtils.trimToEmpty(request.getClientId()));
         vo.setAuthorizationEndpoint(StringUtils.trimToEmpty(request.getAuthorizationEndpoint()));
         vo.setTokenEndpoint(StringUtils.trimToEmpty(request.getTokenEndpoint()));
@@ -222,6 +225,7 @@ public class SsoManage {
         vo.setAccountAttribute(StringUtils.defaultIfBlank(request.getAccountAttribute(), DEFAULT_ACCOUNT_ATTRIBUTE).trim());
         vo.setNameAttribute(StringUtils.defaultIfBlank(request.getNameAttribute(), DEFAULT_NAME_ATTRIBUTE).trim());
         vo.setEmailAttribute(StringUtils.defaultIfBlank(request.getEmailAttribute(), DEFAULT_EMAIL_ATTRIBUTE).trim());
+        vo.setUnionIdAttribute(StringUtils.trimToEmpty(request.getUnionIdAttribute()));
         vo.setAutoCreateUser(request.getAutoCreateUser() == null || request.getAutoCreateUser());
         vo.setAllowLocalLogin(request.getAllowLocalLogin() == null || request.getAllowLocalLogin());
         vo.setRequireHttps(request.getRequireHttps() == null || request.getRequireHttps());
@@ -257,22 +261,24 @@ public class SsoManage {
         List<SettingItemVO> items = new ArrayList<>();
         add(items, "enabled", config.getEnabled(), 1);
         add(items, "providerName", config.getProviderName(), 2);
-        add(items, "clientId", config.getClientId(), 3);
-        add(items, "clientSecret", encryptedSecret, 4);
-        add(items, "authorizationEndpoint", config.getAuthorizationEndpoint(), 5);
-        add(items, "tokenEndpoint", config.getTokenEndpoint(), 6);
-        add(items, "userInfoEndpoint", config.getUserInfoEndpoint(), 7);
-        add(items, "issuer", config.getIssuer(), 8);
-        add(items, "scope", config.getScope(), 9);
-        add(items, "redirectUri", config.getRedirectUri(), 10);
-        add(items, "userIdAttribute", config.getUserIdAttribute(), 11);
-        add(items, "accountAttribute", config.getAccountAttribute(), 12);
-        add(items, "nameAttribute", config.getNameAttribute(), 13);
-        add(items, "emailAttribute", config.getEmailAttribute(), 14);
-        add(items, "autoCreateUser", config.getAutoCreateUser(), 15);
-        add(items, "allowLocalLogin", config.getAllowLocalLogin(), 16);
-        add(items, "requireHttps", config.getRequireHttps(), 17);
-        add(items, "logoutRedirectUrl", config.getLogoutRedirectUrl(), 18);
+        add(items, "providerType", config.getProviderType(), 3);
+        add(items, "clientId", config.getClientId(), 4);
+        add(items, "clientSecret", encryptedSecret, 5);
+        add(items, "authorizationEndpoint", config.getAuthorizationEndpoint(), 6);
+        add(items, "tokenEndpoint", config.getTokenEndpoint(), 7);
+        add(items, "userInfoEndpoint", config.getUserInfoEndpoint(), 8);
+        add(items, "issuer", config.getIssuer(), 9);
+        add(items, "scope", config.getScope(), 10);
+        add(items, "redirectUri", config.getRedirectUri(), 11);
+        add(items, "userIdAttribute", config.getUserIdAttribute(), 12);
+        add(items, "accountAttribute", config.getAccountAttribute(), 13);
+        add(items, "nameAttribute", config.getNameAttribute(), 14);
+        add(items, "emailAttribute", config.getEmailAttribute(), 15);
+        add(items, "unionIdAttribute", config.getUnionIdAttribute(), 16);
+        add(items, "autoCreateUser", config.getAutoCreateUser(), 17);
+        add(items, "allowLocalLogin", config.getAllowLocalLogin(), 18);
+        add(items, "requireHttps", config.getRequireHttps(), 19);
+        add(items, "logoutRedirectUrl", config.getLogoutRedirectUrl(), 20);
         return items;
     }
 
@@ -324,11 +330,18 @@ public class SsoManage {
                 config.getAccountAttribute(),
                 config.getNameAttribute(),
                 config.getEmailAttribute(),
-                null
+                config.getUnionIdAttribute()
         );
     }
 
     private SsoProviderType providerType(SsoConfigVO config) {
+        if (StringUtils.isNotBlank(config.getProviderType())) {
+            return SsoProviderType.fromConfig(config.getProviderType());
+        }
+        return derivedProviderType(config);
+    }
+
+    private SsoProviderType derivedProviderType(SsoConfigVO config) {
         if (Strings.CI.contains(config.getProviderName(), "casdoor")
                 || Strings.CI.contains(config.getIssuer(), "casdoor")) {
             return SsoProviderType.CASDOOR;

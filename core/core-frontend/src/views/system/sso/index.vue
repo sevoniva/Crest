@@ -8,6 +8,7 @@ const saving = ref(false)
 const form = reactive<any>({
   enabled: false,
   providerName: '统一身份认证',
+  providerType: 'OIDC_GENERIC',
   clientId: '',
   clientSecret: '',
   authorizationEndpoint: '',
@@ -20,6 +21,7 @@ const form = reactive<any>({
   accountAttribute: 'preferred_username',
   nameAttribute: 'name',
   emailAttribute: 'email',
+  unionIdAttribute: '',
   autoCreateUser: true,
   allowLocalLogin: true,
   requireHttps: true,
@@ -82,6 +84,15 @@ onMounted(loadConfig)
           <el-form-item label="身份提供方名称" required>
             <el-input v-model.trim="form.providerName" maxlength="64" />
           </el-form-item>
+          <el-form-item label="身份提供方类型" required>
+            <el-select v-model="form.providerType" class="full-width">
+              <el-option label="通用 OIDC" value="OIDC_GENERIC" />
+              <el-option label="Casdoor" value="CASDOOR" />
+              <el-option label="通用 OAuth2" value="OAUTH2_GENERIC" />
+              <el-option label="飞书" value="FEISHU" />
+              <el-option label="企业微信" value="WECOM" />
+            </el-select>
+          </el-form-item>
           <el-form-item label="Client ID" required>
             <el-input v-model.trim="form.clientId" maxlength="128" />
           </el-form-item>
@@ -135,6 +146,9 @@ onMounted(loadConfig)
           </el-form-item>
           <el-form-item label="邮箱字段">
             <el-input v-model.trim="form.emailAttribute" placeholder="email" />
+          </el-form-item>
+          <el-form-item label="统一标识字段">
+            <el-input v-model.trim="form.unionIdAttribute" placeholder="union_id / unionid，可选" />
           </el-form-item>
         </div>
 
@@ -223,6 +237,9 @@ onMounted(loadConfig)
   display: flex;
   width: 100%;
   gap: 12px;
+}
+.full-width {
+  width: 100%;
 }
 .sub-title {
   margin: 10px 0 18px;

@@ -1,5 +1,9 @@
 package io.crest.system.sso;
 
+import io.crest.exception.DEException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+
 public enum SsoProviderType {
     OIDC_GENERIC(true, false),
     CASDOOR(true, false),
@@ -21,5 +25,18 @@ public enum SsoProviderType {
 
     public boolean isEnterpriseApp() {
         return enterpriseApp;
+    }
+
+    public static SsoProviderType fromConfig(String value) {
+        if (StringUtils.isBlank(value)) {
+            return OIDC_GENERIC;
+        }
+        for (SsoProviderType type : values()) {
+            if (Strings.CI.equals(type.name(), value.trim())) {
+                return type;
+            }
+        }
+        DEException.throwException("不支持的身份提供方类型：" + value);
+        return OIDC_GENERIC;
     }
 }
