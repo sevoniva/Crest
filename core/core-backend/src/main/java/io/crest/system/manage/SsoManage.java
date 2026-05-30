@@ -18,6 +18,7 @@ import io.crest.system.sso.SsoClaimMapper;
 import io.crest.system.sso.SsoEndpointPolicy;
 import io.crest.system.sso.SsoIdentityProfile;
 import io.crest.system.sso.SsoLoginIdentityManage;
+import io.crest.system.sso.SsoProviderConfigManage;
 import io.crest.system.sso.SsoProviderType;
 import io.crest.utils.AesUtils;
 import io.crest.utils.CacheUtils;
@@ -61,6 +62,9 @@ public class SsoManage {
 
     @Resource
     private SsoLoginIdentityManage ssoLoginIdentityManage;
+
+    @Resource
+    private SsoProviderConfigManage ssoProviderConfigManage;
 
     public SsoStatusVO status() {
         SsoConfigVO config = config(null);
@@ -116,6 +120,7 @@ public class SsoManage {
         SsoConfigVO config = normalize(request);
         validateConfig(config, encryptedSecret);
         sysParameterManage.saveGroup(settingItems(config, encryptedSecret), KEY_PREFIX);
+        ssoProviderConfigManage.upsert(SsoProviderConfigManage.defaultProvider(config, encryptedSecret));
     }
 
     public void validate(SsoConfigRequest request) {
