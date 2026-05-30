@@ -18,6 +18,8 @@ import io.crest.system.sso.SsoIdentityDecision;
 import io.crest.system.sso.SsoIdentityProfile;
 import io.crest.utils.IDUtils;
 import io.crest.utils.Md5Utils;
+import io.crest.utils.PasswordEncoder;
+import io.crest.utils.PasswordValidator;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
@@ -78,13 +80,13 @@ public class CrestUserManage {
             jdbcTemplate.update("""
                     INSERT INTO crest_user(id, account, name, password_hash, enable, is_admin, origin, create_time, update_time)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, 1L, "admin", "管理员", Md5Utils.md5(initialPassword()), true, true, 0, now, now);
+                    """, 1L, "admin", "管理员", PasswordEncoder.encode(initialPassword()), true, true, 0, now, now);
         } else {
             String passwordHash = jdbcTemplate.queryForObject(
                     "SELECT password_hash FROM crest_user WHERE id = 1", String.class);
             if (Strings.CS.equals(passwordHash, LEGACY_ADMIN_PASSWORD_HASH)) {
                 jdbcTemplate.update("UPDATE crest_user SET password_hash = ?, is_admin = 1, enable = 1, update_time = ? WHERE id = 1",
-                        Md5Utils.md5(initialPassword()), System.currentTimeMillis());
+                        PasswordEncoder.encode(initialPassword()), System.currentTimeMillis());
             } else {
                 jdbcTemplate.update("UPDATE crest_user SET is_admin = 1, enable = 1 WHERE id = 1");
             }
@@ -116,7 +118,28 @@ public class CrestUserManage {
     }
 
     public boolean passwordMatches(CrestUser user, String rawPassword) {
-        return user != null && Strings.CS.equals(user.getPasswordHash(), Md5Utils.md5(rawPassword));
+        if (user == null || rawPassword == null) {
+            return false;
+        }
+
+        String storedHash = user.getPasswordHash();
+
+        // 1. 尝试新格式（PBKDF2）
+        if (storedHash != null && storedHash.contains(":")) {
+            return PasswordEncoder.matches(rawPassword, storedHash);
+        }
+
+        // 2. 兼容旧格式（MD5）
+        boolean matches = Strings.CS.equals(storedHash, Md5Utils.md5(rawPassword));
+
+        // 3. 如果匹配且是旧格式，自动升级到新格式
+        if (matches && PasswordEncoder.needsReEncoding(storedHash)) {
+            String newHash = PasswordEncoder.encode(rawPassword);
+            jdbcTemplate.update("UPDATE crest_user SET password_hash = ? WHERE id = ?",
+                    newHash, user.getId());
+        }
+
+        return matches;
     }
 
     public boolean isAdmin(Long uid) {
@@ -247,7 +270,7 @@ public class CrestUserManage {
                     origin, auth_type, external_id, create_time, update_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, id, creator.getAccount().trim(), creator.getName().trim(), creator.getEmail(),
-                creator.getPhonePrefix(), creator.getPhone(), Md5Utils.md5(initialPassword()),
+                creator.getPhonePrefix(), creator.getPhone(), PasswordEncoder.encode(initialPassword()),
                 creator.getEnable() == null || creator.getEnable(), hasAdminRole(creator.getRoleIds()),
                 0, AUTH_TYPE_LOCAL, null, now, now);
         return id;
@@ -303,7 +326,7 @@ public class CrestUserManage {
             DEException.throwException("单点登录用户不支持重置本地密码");
         }
         jdbcTemplate.update("UPDATE crest_user SET password_hash = ?, update_time = ? WHERE id = ?",
-                Md5Utils.md5(initialPassword()), System.currentTimeMillis(), id);
+                PasswordEncoder.encode(initialPassword()), System.currentTimeMillis(), id);
     }
 
     @Transactional
@@ -318,11 +341,12 @@ public class CrestUserManage {
         if (!passwordMatches(user, oldPwd)) {
             DEException.throwException("原密码不正确");
         }
-        if (StringUtils.length(newPwd) < 5 || StringUtils.length(newPwd) > 32) {
-            DEException.throwException("密码长度为 5-32 位");
-        }
+
+        // 使用密码策略验证器
+        PasswordValidator.validate(newPwd);
+
         jdbcTemplate.update("UPDATE crest_user SET password_hash = ?, update_time = ? WHERE id = ?",
-                Md5Utils.md5(newPwd), System.currentTimeMillis(), id);
+                PasswordEncoder.encode(newPwd), System.currentTimeMillis(), id);
     }
 
     public UserFormVO toForm(CrestUser user) {

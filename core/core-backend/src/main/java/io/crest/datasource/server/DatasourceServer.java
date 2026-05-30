@@ -958,6 +958,9 @@ public class DatasourceServer implements DatasourceApi {
     }
 
     public ExcelFileData loadRemoteFile(RemoteExcelRequest remoteExcelRequest) throws DEException, IOException {
+        // SSRF 防护：验证 URL 安全性
+        SsrfProtection.validateUrl(remoteExcelRequest.getUrl());
+
         remoteExcelRequest.setUserName(decodeBase64RequestValue(remoteExcelRequest.getUserName(), "远程 Excel 用户名"));
         remoteExcelRequest.setPasswd(decodeBase64RequestValue(remoteExcelRequest.getPasswd(), "远程 Excel 密码"));
         ExcelFileData excelFileData = new ExcelUtils().parseRemoteExcel(remoteExcelRequest);
