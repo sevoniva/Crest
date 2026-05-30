@@ -27,6 +27,7 @@ public class WhitelistUtils {
             "/login/localLogin",
             "/apisix/check",
             "/actuator/health",
+            "/dekey",
             "/index.html",
             "/model",
             "/swagger-resources",

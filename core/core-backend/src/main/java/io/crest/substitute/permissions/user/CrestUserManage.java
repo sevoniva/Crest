@@ -263,6 +263,11 @@ public class CrestUserManage {
         if (queryByAccount(creator.getAccount()) != null) {
             DEException.throwException("账号已存在");
         }
+
+        // 使用初始密码并验证策略
+        String password = initialPassword();
+        PasswordValidator.validate(password);
+
         long id = IDUtils.snowID();
         long now = System.currentTimeMillis();
         jdbcTemplate.update("""
@@ -270,7 +275,7 @@ public class CrestUserManage {
                     origin, auth_type, external_id, create_time, update_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, id, creator.getAccount().trim(), creator.getName().trim(), creator.getEmail(),
-                creator.getPhonePrefix(), creator.getPhone(), PasswordEncoder.encode(initialPassword()),
+                creator.getPhonePrefix(), creator.getPhone(), PasswordEncoder.encode(password),
                 creator.getEnable() == null || creator.getEnable(), hasAdminRole(creator.getRoleIds()),
                 0, AUTH_TYPE_LOCAL, null, now, now);
         return id;

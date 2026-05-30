@@ -9,22 +9,23 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * 安全测试：验证敏感端点已从白名单移除
  *
- * 修复漏洞：SAST-02, PT-01（加密密钥端点泄露）
+ * 修复漏洞：PT-01（/symmetricKey 密钥泄露）
+ * 注意：/dekey 保留在白名单中，因为登录流程需要 RSA 公钥
  */
 class WhitelistSecurityTest {
-
-    @Test
-    @DisplayName("敏感端点 /dekey 不应在白名单中")
-    void dekeyShouldNotBeInWhitelist() {
-        assertFalse(WhitelistUtils.WHITE_PATH.contains("/dekey"),
-                "/dekey 端点仍在白名单中，会导致 RSA 公钥泄露");
-    }
 
     @Test
     @DisplayName("敏感端点 /symmetricKey 不应在白名单中")
     void symmetricKeyShouldNotBeInWhitelist() {
         assertFalse(WhitelistUtils.WHITE_PATH.contains("/symmetricKey"),
                 "/symmetricKey 端点仍在白名单中，会导致 AES 密钥泄露");
+    }
+
+    @Test
+    @DisplayName("/dekey 应在白名单中（登录流程需要）")
+    void dekeyShouldBeInWhitelist() {
+        assertTrue(WhitelistUtils.WHITE_PATH.contains("/dekey"),
+                "/dekey 端点不在白名单中，登录流程将无法工作");
     }
 
     @Test
