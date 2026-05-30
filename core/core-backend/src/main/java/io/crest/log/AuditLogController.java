@@ -1,6 +1,8 @@
 package io.crest.log;
 
 import io.crest.auth.DePermit;
+import io.crest.constant.LogOT;
+import io.crest.constant.LogST;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,7 @@ public class AuditLogController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @DeLog(ot = LogOT.READ, st = LogST.DATA)
     @Operation(summary = "查询审计日志")
     @DePermit("m:read")
     @PostMapping("/pager/{goPage}/{pageSize}")

@@ -27,6 +27,7 @@ import io.crest.commons.constants.DataVisualizationConstants;
 import io.crest.commons.constants.OptConstants;
 import io.crest.constant.CommonConstants;
 import io.crest.constant.LogOT;
+import io.crest.constant.LogST;
 import io.crest.dataset.dao.auto.entity.CoreDatasetGroup;
 import io.crest.dataset.dao.auto.entity.CoreDatasetTable;
 import io.crest.dataset.dao.auto.entity.CoreDatasetTableField;
@@ -871,6 +872,7 @@ public class DataVisualizationServer implements DataVisualizationApi {
         }
     }
 
+    @DeLog(ot = LogOT.READ, st = LogST.PANEL)
     @Override
     public List<BusiNodeVO> tree(BusiNodeRequest request) {
         if (StringUtils.isEmpty(request.getResourceTable())) {

@@ -770,6 +770,7 @@ public class DatasourceServer implements DatasourceApi {
                 cron, new Date(System.currentTimeMillis()), null, new JobDataMap());
     }
 
+    @DeLog(ot = LogOT.READ, st = LogST.DATASOURCE)
     @Override
     public List<BusiNodeVO> tree(BusiNodeRequest request) throws DEException {
         return dataSourceManage.tree(request);

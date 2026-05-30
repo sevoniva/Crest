@@ -46,6 +46,7 @@ public class SubstituteUserServer {
     @Resource
     private CrestUserManage crestUserManage;
 
+    @DeLog(ot = LogOT.READ, st = LogST.USER)
     @GetMapping("/info")
     public CurUserVO info() {
         Long uid = currentUserId();
@@ -61,6 +62,7 @@ public class SubstituteUserServer {
         return result;
     }
 
+    @DeLog(ot = LogOT.READ, st = LogST.USER)
     @GetMapping("/personInfo")
     public UserFormVO personInfo() {
         Long uid = currentUserId();
@@ -78,12 +80,14 @@ public class SubstituteUserServer {
         return curIpVO;
     }
 
+    @DeLog(ot = LogOT.READ, st = LogST.USER)
     @PostMapping("/pager/{goPage}/{pageSize}")
     public IPage<UserGridVO> pager(@PathVariable("goPage") int goPage, @PathVariable("pageSize") int pageSize, @RequestBody UserGridRequest request) {
         CrestPermissionUtils.requireAdmin();
         return crestUserManage.pager(goPage, pageSize, request);
     }
 
+    @DeLog(ot = LogOT.READ, st = LogST.USER, id = "#p0")
     @GetMapping("/queryById/{id}")
     public UserFormVO queryById(@PathVariable("id") Long id) {
         CrestPermissionUtils.requireAdmin();
@@ -138,6 +142,7 @@ public class SubstituteUserServer {
         crestUserManage.modifyPwd(uid, request.getPwd(), request.getNewPwd());
     }
 
+    @DeLog(ot = LogOT.READ, st = LogST.USER)
     @GetMapping("/queryByAccount/{account}")
     public CurUserVO queryByAccount(@PathVariable("account") String account) {
         return crestUserManage.toCurrent(crestUserManage.queryByAccount(account));
@@ -148,6 +153,7 @@ public class SubstituteUserServer {
         return List.of();
     }
 
+    @DeLog(ot = LogOT.MODIFY, st = LogST.USER)
     @PostMapping("/switchLanguage")
     public void switchLanguage(@RequestBody LangSwitchRequest request) {
         String lang = request.getLang();

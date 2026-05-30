@@ -72,6 +72,7 @@ public class DatasetTreeServer implements DatasetTreeApi {
     }
 
 
+    @DeLog(ot = LogOT.READ, st = LogST.DATASET)
     public List<BusiNodeVO> tree(BusiNodeRequest request) {
         return datasetGroupManage.tree(request);
     }
