@@ -172,11 +172,27 @@ public class DeLogAspect {
     private String getOperationDescription(LogOT operationType, String resourceType, ProceedingJoinPoint point) {
         String methodName = point.getSignature().getName();
         String typeName = operationType.name();
+        HttpServletRequest request = ServletUtils.request();
+        String requestUrl = request != null ? request.getRequestURI() : "";
 
-        // 根据操作类型和资源类型生成描述
+        // 根据请求URL生成更详细的描述
+        if (requestUrl.contains("/login/localLogin")) return "用户登录系统";
+        if (requestUrl.contains("/logout")) return "用户退出系统";
+        if (requestUrl.contains("/resetPwd")) return "重置用户密码";
+        if (requestUrl.contains("/modifyPwd")) return "修改用户密码";
+        if (requestUrl.contains("/enable")) return "变更用户状态";
+        if (requestUrl.contains("/switchLanguage")) return "切换系统语言";
+        if (requestUrl.contains("/pager")) return "查询" + getResourceDesc(resourceType) + "列表";
+        if (requestUrl.contains("/queryById")) return "查看" + getResourceDesc(resourceType) + "详情";
+        if (requestUrl.contains("/queryByAccount")) return "按账号查询用户";
+        if (requestUrl.contains("/info")) return "获取当前用户信息";
+        if (requestUrl.contains("/personInfo")) return "获取个人信息";
+        if (requestUrl.contains("/tree")) return "获取" + getResourceDesc(resourceType) + "目录";
+        if (requestUrl.contains("/overview")) return "查看数据血缘关系";
+
+        // 默认描述
         String resourceDesc = getResourceDesc(resourceType);
         String actionDesc = getActionDesc(typeName);
-
         return actionDesc + resourceDesc;
     }
 
@@ -190,14 +206,15 @@ public class DeLogAspect {
             case "VIEW": return "图表";
             case "ROLE": return "角色";
             case "ORG": return "组织";
+            case "DATA": return "数据";
             default: return resourceType;
         }
     }
 
     private String getActionDesc(String operationType) {
         switch (operationType) {
-            case "CREATE": return "创建";
-            case "MODIFY": return "修改";
+            case "CREATE": return "新建";
+            case "MODIFY": return "编辑";
             case "DELETE": return "删除";
             case "READ": return "查看";
             case "LOGIN": return "登录";

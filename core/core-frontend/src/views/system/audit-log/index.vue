@@ -7,7 +7,6 @@ const loading = ref(false)
 const tableData = ref<any[]>([])
 const pager = reactive({ currentPage: 1, pageSize: 15, total: 0 })
 
-// 筛选条件
 const filters = reactive({
   operationType: '',
   resourceType: '',
@@ -16,7 +15,6 @@ const filters = reactive({
   endTime: ''
 })
 
-// 操作类型选项
 const operationTypes = [
   { label: '全部', value: '' },
   { label: '登录', value: 'LOGIN' },
@@ -27,7 +25,6 @@ const operationTypes = [
   { label: '下载', value: 'DOWNLOAD' }
 ]
 
-// 资源类型选项
 const resourceTypes = [
   { label: '全部', value: '' },
   { label: '用户', value: 'USER' },
@@ -37,7 +34,6 @@ const resourceTypes = [
   { label: '数据大屏', value: 'SCREEN' }
 ]
 
-// 操作类型标签颜色
 const getOperationTypeTag = (type: string) => {
   const map: Record<string, string> = {
     LOGIN: 'primary',
@@ -50,21 +46,19 @@ const getOperationTypeTag = (type: string) => {
   return map[type] || 'info'
 }
 
-// 操作类型中文
 const getOperationTypeLabel = (type: string) => {
   const map: Record<string, string> = {
-    LOGIN: '登录',
-    CREATE: '创建',
-    MODIFY: '修改',
+    LOGIN: '登录系统',
+    CREATE: '新建',
+    MODIFY: '编辑',
     DELETE: '删除',
+    READ: '查看',
     EXPORT: '导出',
-    DOWNLOAD: '下载',
-    READ: '读取'
+    DOWNLOAD: '下载'
   }
   return map[type] || type
 }
 
-// 资源类型中文
 const getResourceTypeLabel = (type: string) => {
   const map: Record<string, string> = {
     USER: '用户',
@@ -73,13 +67,32 @@ const getResourceTypeLabel = (type: string) => {
     PANEL: '仪表板',
     SCREEN: '数据大屏',
     VIEW: '图表',
-    ROLE: '角色',
-    ORG: '组织'
+    DATA: '数据'
   }
   return map[type] || type
 }
 
-// 加载数据
+const getOperationDesc = (row: any) => {
+  const op = row.operation_type
+  const res = row.resource_type
+  const url = row.request_url || ''
+
+  if (op === 'LOGIN') return '用户登录系统'
+  if (op === 'CREATE') return `新建${getResourceTypeLabel(res)}`
+  if (op === 'DELETE') return `删除${getResourceTypeLabel(res)}`
+  if (op === 'MODIFY') {
+    if (url.includes('resetPwd')) return '重置用户密码'
+    if (url.includes('modifyPwd')) return '修改密码'
+    if (url.includes('enable')) return '变更用户状态'
+    if (url.includes('switchLanguage')) return '切换语言'
+    return `编辑${getResourceTypeLabel(res)}`
+  }
+  if (op === 'READ') return `查看${getResourceTypeLabel(res)}`
+  if (op === 'EXPORT') return `导出${getResourceTypeLabel(res)}`
+  if (op === 'DOWNLOAD') return `下载${getResourceTypeLabel(res)}`
+  return row.resource_name || '-'
+}
+
 const loadTable = async () => {
   loading.value = true
   try {
@@ -100,7 +113,6 @@ const loadTable = async () => {
   }
 }
 
-// 重置筛选
 const resetFilters = () => {
   filters.operationType = ''
   filters.resourceType = ''
@@ -110,11 +122,6 @@ const resetFilters = () => {
   loadTable()
 }
 
-// 导出
-const exportData = async () => {
-  // TODO: 实现导出功能
-}
-
 onMounted(loadTable)
 </script>
 
@@ -122,67 +129,25 @@ onMounted(loadTable)
   <div class="audit-log-manage">
     <p class="router-title">审计日志</p>
     <div class="table-wrap">
-      <!-- 筛选栏 -->
       <div class="toolbar">
-        <div class="filter-group">
-          <el-select
-            v-model="filters.operationType"
-            placeholder="操作类型"
-            clearable
-            style="width: 120px"
-          >
-            <el-option
-              v-for="item in operationTypes"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-          <el-select
-            v-model="filters.resourceType"
-            placeholder="资源类型"
-            clearable
-            style="width: 120px"
-          >
-            <el-option
-              v-for="item in resourceTypes"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-          <el-input
-            v-model="filters.operatorAccount"
-            placeholder="操作人账号"
-            clearable
-            style="width: 150px"
-          />
-          <el-date-picker
-            v-model="filters.startTime"
-            type="datetime"
-            placeholder="开始时间"
-            format="YYYY-MM-DD HH:mm:ss"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            style="width: 180px"
-          />
-          <el-date-picker
-            v-model="filters.endTime"
-            type="datetime"
-            placeholder="结束时间"
-            format="YYYY-MM-DD HH:mm:ss"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            style="width: 180px"
-          />
-        </div>
-        <div class="action-group">
-          <el-button type="primary" @click="loadTable">查询</el-button>
-          <el-button @click="resetFilters">重置</el-button>
-        </div>
+        <el-select v-model="filters.operationType" placeholder="操作类型" clearable>
+          <el-option v-for="item in operationTypes" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+        <el-select v-model="filters.resourceType" placeholder="资源类型" clearable>
+          <el-option v-for="item in resourceTypes" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+        <el-input v-model="filters.operatorAccount" placeholder="操作人" clearable />
+        <el-date-picker v-model="filters.startTime" type="datetime" placeholder="开始时间" format="YYYY-MM-DD HH:mm:ss" value-format="YYYY-MM-DD HH:mm:ss" />
+        <el-date-picker v-model="filters.endTime" type="datetime" placeholder="结束时间" format="YYYY-MM-DD HH:mm:ss" value-format="YYYY-MM-DD HH:mm:ss" />
+        <el-button type="primary" @click="loadTable">查询</el-button>
+        <el-button @click="resetFilters">重置</el-button>
       </div>
-
-      <!-- 表格 -->
-      <el-table v-loading="loading" :data="tableData" max-height="calc(100vh - 340px)">
-        <el-table-column prop="id" label="ID" width="80" />
+      <el-table v-loading="loading" :data="tableData" max-height="calc(100vh - 300px)">
+        <el-table-column label="操作时间" width="170">
+          <template #default="{ row }">
+            {{ row.operation_time ? dayjs(row.operation_time).format('YYYY-MM-DD HH:mm:ss') : '-' }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作类型" width="100">
           <template #default="{ row }">
             <el-tag :type="getOperationTypeTag(row.operation_type)" size="small">
@@ -190,38 +155,33 @@ onMounted(loadTable)
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="操作描述" min-width="180">
+          <template #default="{ row }">
+            {{ getOperationDesc(row) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="operator_account" label="操作人" width="100" />
+        <el-table-column prop="operator_ip" label="IP地址" width="130" />
         <el-table-column label="资源类型" width="100">
           <template #default="{ row }">
             {{ getResourceTypeLabel(row.resource_type) }}
           </template>
         </el-table-column>
         <el-table-column prop="resource_id" label="资源ID" width="120" show-overflow-tooltip />
-        <el-table-column
-          prop="resource_name"
-          label="操作描述"
-          min-width="150"
-          show-overflow-tooltip
-        />
-        <el-table-column prop="operator_account" label="操作人" width="120" />
-        <el-table-column prop="operator_ip" label="IP地址" width="150" />
-        <el-table-column prop="request_method" label="请求方法" width="80" />
-        <el-table-column prop="request_url" label="请求URL" min-width="200" show-overflow-tooltip />
-        <el-table-column label="响应状态" width="100">
+        <el-table-column prop="request_url" label="请求地址" min-width="200" show-overflow-tooltip />
+        <el-table-column label="状态" width="80">
           <template #default="{ row }">
             <el-tag :type="row.response_code === 200 ? 'success' : 'danger'" size="small">
-              {{ row.response_code }}
+              {{ row.response_code === 200 ? '成功' : '失败' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="duration" label="耗时(ms)" width="80" />
-        <el-table-column label="操作时间" width="180">
+        <el-table-column prop="duration" label="耗时" width="80">
           <template #default="{ row }">
-            {{ row.operation_time ? dayjs(row.operation_time).format('YYYY-MM-DD HH:mm:ss') : '-' }}
+            {{ row.duration ? row.duration + 'ms' : '-' }}
           </template>
         </el-table-column>
       </el-table>
-
-      <!-- 分页 -->
       <div class="pager">
         <el-pagination
           v-model:current-page="pager.currentPage"
@@ -237,53 +197,43 @@ onMounted(loadTable)
   </div>
 </template>
 
-<style scoped lang="less">
+<style lang="less" scoped>
 .audit-log-manage {
-  padding: 16px;
-  height: 100%;
+  min-height: 100%;
+}
+.router-title {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.toolbar {
   display: flex;
-  flex-direction: column;
-
-  .router-title {
-    font-size: 16px;
-    font-weight: 500;
-    margin-bottom: 16px;
-    color: var(--deTextPrimary, #1f2329);
+  gap: 12px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 12px 12px 0 0;
+  .ed-input {
+    width: 150px;
   }
-
-  .table-wrap {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: var(--deCardBg, #fff);
-    border-radius: 4px;
-    padding: 16px;
+  .ed-select {
+    width: 120px;
   }
-
-  .toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    gap: 8px;
-
-    .filter-group {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .action-group {
-      display: flex;
-      gap: 8px;
-    }
-  }
-
-  .pager {
-    margin-top: 16px;
-    display: flex;
-    justify-content: flex-end;
-  }
+}
+.table-wrap {
+  height: auto;
+  min-height: 0;
+  margin-top: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 16px 16px;
+  background: #fff;
 }
 </style>
