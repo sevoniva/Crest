@@ -41,4 +41,11 @@ class WhitelistSecurityTest {
         assertTrue(WhitelistUtils.WHITE_PATH.contains("/actuator/health"),
                 "健康检查端点应在白名单中");
     }
+
+    @Test
+    @DisplayName("/symmetricKey 不应在白名单中（通过match方法验证）")
+    void symmetricKeyShouldNotMatch() {
+        assertFalse(WhitelistUtils.match("/de2api/symmetricKey"),
+                "/symmetricKey 应该需要认证");
+    }
 }

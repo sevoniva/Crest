@@ -52,18 +52,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NullPointerException.class)
     public ResultMessage noUserExceptionHandler(Exception e) {
         String message = e.getMessage();
-        LogUtil.info(message);
+        LogUtil.info("NullPointerException: " + message);
         if (Strings.CS.contains(message, "Cannot invoke \"io.crest.auth.bo.TokenUserBO.getUserId()\" because \"user\" is null")) {
             return new ResultMessage(ResultCode.USER_NOT_LOGGED_IN.code(), ResultCode.USER_NOT_LOGGED_IN.message());
         }
-        return new ResultMessage(ResultCode.PARAM_IS_BLANK.code(), message);
+        // 不泄露内部错误信息
+        return new ResultMessage(ResultCode.PARAM_IS_BLANK.code(), "参数错误");
     }
 
     @ExceptionHandler(Exception.class)
     public ResultMessage exceptionHandler(Exception e) {
-        String message = StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName());
-        LogUtil.error(message, e);
-        return new ResultMessage(ResultCode.SYSTEM_INNER_ERROR.code(), message);
+        // 记录完整错误日志
+        LogUtil.error("系统内部错误: " + e.getMessage(), e);
+        // 返回通用错误消息，不泄露内部信息
+        return new ResultMessage(ResultCode.SYSTEM_INNER_ERROR.code(), "系统内部错误，请联系管理员");
     }
 
 }

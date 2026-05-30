@@ -16,6 +16,7 @@ import io.crest.substitute.permissions.user.model.SsoUserProfile;
 import io.crest.system.sso.SsoIdentityAction;
 import io.crest.system.sso.SsoIdentityDecision;
 import io.crest.system.sso.SsoIdentityProfile;
+import io.crest.utils.AuthUtils;
 import io.crest.utils.IDUtils;
 import io.crest.utils.Md5Utils;
 import io.crest.utils.PasswordEncoder;
@@ -264,6 +265,15 @@ public class CrestUserManage {
             DEException.throwException("账号已存在");
         }
 
+        // RBAC权限检查：只有管理员可以创建管理员账户
+        boolean requestAdminRole = hasAdminRole(creator.getRoleIds());
+        if (requestAdminRole) {
+            Long currentUserId = AuthUtils.getUser() != null ? AuthUtils.getUser().getUserId() : null;
+            if (currentUserId == null || !isAdmin(currentUserId)) {
+                DEException.throwException("只有管理员可以创建管理员账户");
+            }
+        }
+
         // 使用初始密码并验证策略
         String password = initialPassword();
         PasswordValidator.validate(password);
@@ -287,6 +297,15 @@ public class CrestUserManage {
         if (user == null) {
             DEException.throwException("用户不存在");
         }
+
+        // RBAC权限检查：只有系统管理员可以编辑管理员账户
+        if (Boolean.TRUE.equals(user.getAdmin())) {
+            Long currentUserId = AuthUtils.getUser() != null ? AuthUtils.getUser().getUserId() : null;
+            if (currentUserId == null || !AuthUtils.isSysAdmin(currentUserId)) {
+                DEException.throwException("只有系统管理员可以编辑管理员账户");
+            }
+        }
+
         validate(editor.getAccount(), editor.getName());
         if (AUTH_TYPE_SSO.equalsIgnoreCase(user.getAuthType()) && !Strings.CS.equals(user.getAccount(), editor.getAccount().trim())) {
             DEException.throwException("单点登录用户账号由身份提供方维护");
@@ -309,6 +328,16 @@ public class CrestUserManage {
         if (id == 1L) {
             DEException.throwException("内置管理员不能删除");
         }
+
+        // RBAC权限检查：只有系统管理员可以删除管理员账户
+        CrestUser targetUser = queryById(id);
+        if (targetUser != null && Boolean.TRUE.equals(targetUser.getAdmin())) {
+            Long currentUserId = AuthUtils.getUser() != null ? AuthUtils.getUser().getUserId() : null;
+            if (currentUserId == null || !AuthUtils.isSysAdmin(currentUserId)) {
+                DEException.throwException("只有系统管理员可以删除管理员账户");
+            }
+        }
+
         jdbcTemplate.update("DELETE FROM crest_user WHERE id = ?", id);
     }
 
@@ -317,6 +346,16 @@ public class CrestUserManage {
         if (request.getId() == 1L && Boolean.FALSE.equals(request.getEnable())) {
             DEException.throwException("内置管理员不能停用");
         }
+
+        // RBAC权限检查：只有系统管理员可以启用/禁用管理员账户
+        CrestUser targetUser = queryById(request.getId());
+        if (targetUser != null && Boolean.TRUE.equals(targetUser.getAdmin())) {
+            Long currentUserId = AuthUtils.getUser() != null ? AuthUtils.getUser().getUserId() : null;
+            if (currentUserId == null || !AuthUtils.isSysAdmin(currentUserId)) {
+                DEException.throwException("只有系统管理员可以修改管理员状态");
+            }
+        }
+
         jdbcTemplate.update("UPDATE crest_user SET enable = ?, update_time = ? WHERE id = ?",
                 request.getEnable(), System.currentTimeMillis(), request.getId());
     }

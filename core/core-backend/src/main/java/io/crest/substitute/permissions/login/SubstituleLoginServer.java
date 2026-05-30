@@ -13,6 +13,7 @@ import io.crest.system.manage.SsoManage;
 import io.crest.utils.LogUtil;
 import io.crest.utils.RsaUtils;
 import jakarta.annotation.Resource;
+import java.util.Date;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
@@ -71,9 +72,16 @@ public class SubstituleLoginServer {
         Algorithm algorithm = Algorithm.HMAC256(secret);
         Long userId = bo.getUserId();
         Long defaultOid = bo.getDefaultOid();
+
+        // Token过期时间：24小时
+        long expirationMillis = 24 * 60 * 60 * 1000L;
+        Date expiresAt = new Date(System.currentTimeMillis() + expirationMillis);
+
         JWTCreator.Builder builder = JWT.create();
-        builder.withClaim("uid", userId).withClaim("oid", defaultOid);
+        builder.withClaim("uid", userId)
+               .withClaim("oid", defaultOid)
+               .withExpiresAt(expiresAt);
         String token = builder.sign(algorithm);
-        return new TokenVO(token, 0L);
+        return new TokenVO(token, expirationMillis);
     }
 }
