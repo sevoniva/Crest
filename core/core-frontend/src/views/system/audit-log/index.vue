@@ -125,13 +125,38 @@ onMounted(loadTable)
       <!-- 筛选栏 -->
       <div class="toolbar">
         <div class="filter-group">
-          <el-select v-model="filters.operationType" placeholder="操作类型" clearable style="width: 120px">
-            <el-option v-for="item in operationTypes" :key="item.value" :label="item.label" :value="item.value" />
+          <el-select
+            v-model="filters.operationType"
+            placeholder="操作类型"
+            clearable
+            style="width: 120px"
+          >
+            <el-option
+              v-for="item in operationTypes"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
-          <el-select v-model="filters.resourceType" placeholder="资源类型" clearable style="width: 120px">
-            <el-option v-for="item in resourceTypes" :key="item.value" :label="item.label" :value="item.value" />
+          <el-select
+            v-model="filters.resourceType"
+            placeholder="资源类型"
+            clearable
+            style="width: 120px"
+          >
+            <el-option
+              v-for="item in resourceTypes"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
-          <el-input v-model="filters.operatorAccount" placeholder="操作人账号" clearable style="width: 150px" />
+          <el-input
+            v-model="filters.operatorAccount"
+            placeholder="操作人账号"
+            clearable
+            style="width: 150px"
+          />
           <el-date-picker
             v-model="filters.startTime"
             type="datetime"
@@ -171,7 +196,12 @@ onMounted(loadTable)
           </template>
         </el-table-column>
         <el-table-column prop="resource_id" label="资源ID" width="120" show-overflow-tooltip />
-        <el-table-column prop="resource_name" label="操作描述" min-width="150" show-overflow-tooltip />
+        <el-table-column
+          prop="resource_name"
+          label="操作描述"
+          min-width="150"
+          show-overflow-tooltip
+        />
         <el-table-column prop="operator_account" label="操作人" width="120" />
         <el-table-column prop="operator_ip" label="IP地址" width="150" />
         <el-table-column prop="request_method" label="请求方法" width="80" />
