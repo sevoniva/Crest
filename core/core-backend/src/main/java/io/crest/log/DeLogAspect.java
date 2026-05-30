@@ -3,6 +3,7 @@ package io.crest.log;
 import io.crest.constant.LogOT;
 import io.crest.constant.LogST;
 import io.crest.utils.AuthUtils;
+import io.crest.utils.CommonBeanFactory;
 import io.crest.utils.LogUtil;
 import io.crest.utils.ServletUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,6 +49,21 @@ public class DeLogAspect {
 
         // 获取操作人信息
         Long operatorId = AuthUtils.getUser() != null ? AuthUtils.getUser().getUserId() : null;
+        String operatorName = null;
+        String operatorAccount = null;
+        if (operatorId != null) {
+            try {
+                // 从数据库查询用户信息
+                io.crest.substitute.permissions.user.model.CrestUser user =
+                    CommonBeanFactory.getBean(io.crest.substitute.permissions.user.CrestUserManage.class).queryById(operatorId);
+                if (user != null) {
+                    operatorName = user.getName();
+                    operatorAccount = user.getAccount();
+                }
+            } catch (Exception e) {
+                LogUtil.debug("获取用户信息失败: " + e.getMessage());
+            }
+        }
 
         // 解析资源ID
         String resourceId = null;
@@ -79,13 +95,13 @@ public class DeLogAspect {
             long duration = System.currentTimeMillis() - startTime;
 
             // 获取资源名称（从方法名推断）
-            String resourceName = point.getSignature().getName();
+            String resourceName = getOperationDescription(operationType, resourceType, point);
 
             // 异步记录审计日志
             auditLogService.log(
                     operationType, resourceType, resourceId, resourceName,
                     requestMethod, requestUrl,
-                    operatorId, null, null, clientIp,
+                    operatorId, operatorName, operatorAccount, clientIp,
                     duration, responseCode, responseMsg
             );
         }
@@ -142,6 +158,52 @@ public class DeLogAspect {
             return ip;
         }
 
-        return request.getRemoteAddr();
+        ip = request.getRemoteAddr();
+        // 将 IPv6 本地地址转换为 IPv4
+        if ("0:0:0:0:0:0:0:1".equals(ip) || "::1".equals(ip)) {
+            return "127.0.0.1";
+        }
+        return ip;
+    }
+
+    /**
+     * 获取操作描述
+     */
+    private String getOperationDescription(LogOT operationType, String resourceType, ProceedingJoinPoint point) {
+        String methodName = point.getSignature().getName();
+        String typeName = operationType.name();
+
+        // 根据操作类型和资源类型生成描述
+        String resourceDesc = getResourceDesc(resourceType);
+        String actionDesc = getActionDesc(typeName);
+
+        return actionDesc + resourceDesc;
+    }
+
+    private String getResourceDesc(String resourceType) {
+        switch (resourceType) {
+            case "USER": return "用户";
+            case "DATASOURCE": return "数据源";
+            case "DATASET": return "数据集";
+            case "PANEL": return "仪表板";
+            case "SCREEN": return "数据大屏";
+            case "VIEW": return "图表";
+            case "ROLE": return "角色";
+            case "ORG": return "组织";
+            default: return resourceType;
+        }
+    }
+
+    private String getActionDesc(String operationType) {
+        switch (operationType) {
+            case "CREATE": return "创建";
+            case "MODIFY": return "修改";
+            case "DELETE": return "删除";
+            case "READ": return "查看";
+            case "LOGIN": return "登录";
+            case "EXPORT": return "导出";
+            case "DOWNLOAD": return "下载";
+            default: return operationType;
+        }
     }
 }
