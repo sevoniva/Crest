@@ -6,7 +6,10 @@ import com.auth0.jwt.algorithms.Algorithm;
 import io.crest.api.permissions.login.dto.PwdLoginDTO;
 import io.crest.auth.bo.TokenUserBO;
 import io.crest.auth.vo.TokenVO;
+import io.crest.constant.LogOT;
+import io.crest.constant.LogST;
 import io.crest.exception.DEException;
+import io.crest.log.DeLog;
 import io.crest.substitute.permissions.user.CrestUserManage;
 import io.crest.substitute.permissions.user.model.CrestUser;
 import io.crest.system.manage.SsoManage;
@@ -30,6 +33,7 @@ public class SubstituleLoginServer {
     @Resource
     private SsoManage ssoManage;
 
+    @DeLog(ot = LogOT.LOGIN, st = LogST.USER)
     @PostMapping("/login/localLogin")
     public TokenVO localLogin(@RequestBody PwdLoginDTO dto) {
 
