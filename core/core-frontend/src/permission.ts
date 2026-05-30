@@ -25,7 +25,7 @@ const { start, done } = useNProgress()
 const { open } = useLoading()
 const { loadStart, loadDone } = usePageLoading()
 
-const whiteList = ['/login', '/chart-view', '/admin-login', '/401'] // 不重定向白名单
+const whiteList = ['/login', '/sso/callback', '/chart-view', '/admin-login', '/401'] // 不重定向白名单
 const embeddedWindowWhiteList = ['/dvCanvas', '/dashboard', '/preview', '/dataset-embedded-form']
 const embeddedRouteWhiteList = ['/dataset-embedded', '/dataset-form', '/dataset-embedded-form']
 
@@ -70,6 +70,11 @@ router.beforeEach(async (to, from, next) => {
   const defaultSort = await getDefaultSettings()
   wsCache.set('TreeSort-backend', defaultSort['basic.defaultSort'] ?? '1')
   wsCache.set('open-backend', defaultSort['basic.defaultOpen'] ?? '0')
+  if (to.path === '/sso/callback') {
+    permissionStore.setCurrentPath(to.path)
+    next()
+    return
+  }
   if (wsCache.get('user.token') || isDesktop) {
     if (!userStore.getUid) {
       await userStore.setUser()

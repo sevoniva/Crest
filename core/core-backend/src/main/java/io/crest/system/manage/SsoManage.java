@@ -13,9 +13,12 @@ import io.crest.auth.vo.TokenVO;
 import io.crest.constant.AuthConstant;
 import io.crest.constant.CacheConstant;
 import io.crest.exception.DEException;
-import io.crest.substitute.permissions.user.CrestUserManage;
 import io.crest.substitute.permissions.user.model.CrestUser;
-import io.crest.substitute.permissions.user.model.SsoUserProfile;
+import io.crest.system.sso.SsoClaimMapper;
+import io.crest.system.sso.SsoEndpointPolicy;
+import io.crest.system.sso.SsoIdentityProfile;
+import io.crest.system.sso.SsoLoginIdentityManage;
+import io.crest.system.sso.SsoProviderType;
 import io.crest.utils.AesUtils;
 import io.crest.utils.CacheUtils;
 import io.crest.utils.HttpClientConfig;
@@ -34,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -58,7 +60,7 @@ public class SsoManage {
     private SysParameterManage sysParameterManage;
 
     @Resource
-    private CrestUserManage crestUserManage;
+    private SsoLoginIdentityManage ssoLoginIdentityManage;
 
     public SsoStatusVO status() {
         SsoConfigVO config = config(null);
@@ -168,8 +170,8 @@ public class SsoManage {
                 throw new IllegalStateException("令牌响应中缺少 access_token");
             }
             Map<String, Object> claims = fetchUserInfo(config.getUserInfoEndpoint(), accessToken);
-            SsoUserProfile profile = profile(config, claims);
-            CrestUser user = crestUserManage.createOrUpdateSsoUser(profile, Boolean.TRUE.equals(config.getAutoCreateUser()));
+            SsoIdentityProfile profile = profile(config, claims);
+            CrestUser user = ssoLoginIdentityManage.resolve(profile, Boolean.TRUE.equals(config.getAutoCreateUser()), config.getProviderName());
             TokenVO tokenVO = generate(user);
             String ticket = IDUtils.randomID(48);
             CacheUtils.put(CacheConstant.UserCacheConstant.SSO_TICKET_CACHE, ticket, tokenVO, 1L, TimeUnit.MINUTES);
@@ -248,24 +250,7 @@ public class SsoManage {
     }
 
     private void validateEndpoint(String value, Boolean requireHttps, String name) {
-        try {
-            URI uri = URI.create(value);
-            String scheme = uri.getScheme();
-            if (!Strings.CI.equalsAny(scheme, "https", "http")) {
-                DEException.throwException(name + "必须是 HTTP 或 HTTPS 地址");
-            }
-            if (Boolean.TRUE.equals(requireHttps)
-                    && !Strings.CI.equals(scheme, "https")
-                    && !isLocalHost(uri.getHost())) {
-                DEException.throwException(name + "生产环境必须使用 HTTPS");
-            }
-        } catch (IllegalArgumentException e) {
-            DEException.throwException(name + "格式无效");
-        }
-    }
-
-    private boolean isLocalHost(String host) {
-        return Strings.CI.equalsAny(host, "localhost", "127.0.0.1", "::1");
+        SsoEndpointPolicy.validateEndpoint(value, requireHttps, name);
     }
 
     private List<SettingItemVO> settingItems(SsoConfigVO config, String encryptedSecret) {
@@ -330,40 +315,25 @@ public class SsoManage {
         return result;
     }
 
-    private SsoUserProfile profile(SsoConfigVO config, Map<String, Object> claims) {
-        SsoUserProfile profile = new SsoUserProfile();
-        profile.setExternalId(requiredClaim(claims, config.getUserIdAttribute(), "用户唯一标识字段"));
-        String account = StringUtils.defaultIfBlank(claim(claims, config.getAccountAttribute()), profile.getExternalId());
-        if (account.length() > 64 || !account.matches("^[A-Za-z0-9._@-]+$")) {
-            throw new IllegalStateException("单点登录账号只支持 64 位以内的字母、数字、点、下划线、横线和 @");
-        }
-        profile.setAccount(account);
-        profile.setName(StringUtils.defaultIfBlank(claim(claims, config.getNameAttribute()), account));
-        profile.setEmail(claim(claims, config.getEmailAttribute()));
-        return profile;
+    private SsoIdentityProfile profile(SsoConfigVO config, Map<String, Object> claims) {
+        return SsoClaimMapper.map(
+                1L,
+                providerType(config),
+                claims,
+                config.getUserIdAttribute(),
+                config.getAccountAttribute(),
+                config.getNameAttribute(),
+                config.getEmailAttribute(),
+                null
+        );
     }
 
-    private String requiredClaim(Map<String, Object> claims, String name, String label) {
-        String value = claim(claims, name);
-        if (StringUtils.isBlank(value)) {
-            throw new IllegalStateException(label + "没有返回：" + name);
+    private SsoProviderType providerType(SsoConfigVO config) {
+        if (Strings.CI.contains(config.getProviderName(), "casdoor")
+                || Strings.CI.contains(config.getIssuer(), "casdoor")) {
+            return SsoProviderType.CASDOOR;
         }
-        return value;
-    }
-
-    @SuppressWarnings("unchecked")
-    private String claim(Map<String, Object> claims, String name) {
-        if (claims == null || StringUtils.isBlank(name)) {
-            return null;
-        }
-        Object current = claims;
-        for (String part : name.split("\\.")) {
-            if (!(current instanceof Map<?, ?> map)) {
-                return null;
-            }
-            current = ((Map<String, Object>) map).get(part);
-        }
-        return asText(current);
+        return SsoProviderType.OIDC_GENERIC;
     }
 
     private String asText(Object value) {
@@ -402,12 +372,12 @@ public class SsoManage {
     }
 
     private void redirectTicket(HttpServletRequest request, HttpServletResponse response, String ticket, String redirect) throws IOException {
-        response.sendRedirect(request.getContextPath() + "/#/login?ssoTicket=" + encode(ticket) + "&redirect=" + encode(redirect));
+        response.sendRedirect(request.getContextPath() + "/#/sso/callback?ticket=" + encode(ticket) + "&redirect=" + encode(redirect));
     }
 
     private void redirectError(HttpServletRequest request, HttpServletResponse response, String message) {
         try {
-            response.sendRedirect(request.getContextPath() + "/#/login?ssoError=" + encode(StringUtils.defaultIfBlank(message, "单点登录失败")));
+            response.sendRedirect(request.getContextPath() + "/#/sso/callback?error=" + encode(StringUtils.defaultIfBlank(message, "单点登录失败")));
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }

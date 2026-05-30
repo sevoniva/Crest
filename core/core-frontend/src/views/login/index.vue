@@ -150,6 +150,10 @@ const saveLoginToken = (data: any) => {
   userStore.setExp(exp)
   userStore.setTime(Date.now())
 }
+const hasSsoCallbackQuery = () => {
+  const query = router.currentRoute.value.query
+  return !!(query.ssoTicket || query.ssoError)
+}
 const loadSsoStatus = async () => {
   try {
     const res = await ssoStatusApi()
@@ -177,6 +181,7 @@ const consumeSsoTicket = async () => {
   try {
     const res = await ssoTokenApi(query.ssoTicket as string)
     saveLoginToken(res.data)
+    await userStore.setUser()
     router.push(getCurLocation())
     return true
   } catch {
@@ -281,11 +286,11 @@ const handlerFail = () => {
 }
 onMounted(async () => {
   loadArrearance()
-  duringLogin.value = false
-  await loadSsoStatus()
-  if (await consumeSsoTicket()) {
+  if (hasSsoCallbackQuery() && (await consumeSsoTicket())) {
     return
   }
+  await loadSsoStatus()
+  duringLogin.value = false
   if (localStorage.getItem('DE-GATEWAY-FLAG')) {
     const msg = localStorage.getItem('DE-GATEWAY-FLAG')
     loginErrorMsg.value = decodeURIComponent(msg)

@@ -13,6 +13,9 @@ import io.crest.api.permissions.user.vo.UserGridRoleItem;
 import io.crest.exception.DEException;
 import io.crest.substitute.permissions.user.model.CrestUser;
 import io.crest.substitute.permissions.user.model.SsoUserProfile;
+import io.crest.system.sso.SsoIdentityAction;
+import io.crest.system.sso.SsoIdentityDecision;
+import io.crest.system.sso.SsoIdentityProfile;
 import io.crest.utils.IDUtils;
 import io.crest.utils.Md5Utils;
 import jakarta.annotation.PostConstruct;
@@ -162,6 +165,32 @@ public class CrestUserManage {
                 WHERE id = ?
                 """, account, name, email, AUTH_TYPE_SSO, profile.getExternalId(), 2, now, now, user.getId());
         return queryById(user.getId());
+    }
+
+    @Transactional
+    public CrestUser applySsoIdentity(SsoIdentityDecision decision) {
+        SsoIdentityProfile profile = decision.getProfile();
+        String account = profile.getAccount();
+        String name = profile.getName();
+        String email = StringUtils.trimToNull(profile.getEmail());
+        long now = System.currentTimeMillis();
+        if (SsoIdentityAction.CREATE_USER.equals(decision.getAction())) {
+            long id = IDUtils.snowID();
+            jdbcTemplate.update("""
+                    INSERT INTO crest_user(id, account, name, email, phone_prefix, phone, password_hash, enable, is_admin,
+                        origin, auth_type, external_id, last_login_time, create_time, update_time)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, id, account, name, email, null, null, Md5Utils.md5(IDUtils.randomID(32)),
+                    true, false, 2, AUTH_TYPE_SSO, profile.getExternalSubject(), now, now, now);
+            return queryById(id);
+        }
+        Long userId = decision.getUserId();
+        jdbcTemplate.update("""
+                UPDATE crest_user
+                SET account = ?, name = ?, email = ?, auth_type = ?, external_id = ?, origin = ?, last_login_time = ?, update_time = ?
+                WHERE id = ?
+                """, account, name, email, AUTH_TYPE_SSO, profile.getExternalSubject(), 2, now, now, userId);
+        return queryById(userId);
     }
 
     @Transactional
