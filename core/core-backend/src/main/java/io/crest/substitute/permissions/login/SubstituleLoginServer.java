@@ -67,6 +67,24 @@ public class SubstituleLoginServer {
     }
 
 
+    @GetMapping("/login/refresh")
+    public TokenVO refresh() {
+        // 获取当前用户
+        io.crest.auth.bo.TokenUserBO userBO = io.crest.utils.AuthUtils.getUser();
+        if (userBO == null) {
+            DEException.throwException("用户未登录");
+        }
+
+        // 查询用户信息用于生成新Token
+        io.crest.substitute.permissions.user.model.CrestUser user = crestUserManage.queryById(userBO.getUserId());
+        if (user == null) {
+            DEException.throwException("用户不存在");
+        }
+
+        return generate(userBO, user.getPasswordHash());
+    }
+
+    @DeLog(ot = LogOT.LOGIN, st = LogST.USER)
     @GetMapping("/logout")
     public void logout() {
         LogUtil.info("substitule logout");

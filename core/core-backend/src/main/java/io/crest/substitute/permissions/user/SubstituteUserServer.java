@@ -14,8 +14,11 @@ import io.crest.api.permissions.user.vo.UserFormVO;
 import io.crest.api.permissions.user.vo.UserGridVO;
 import io.crest.api.permissions.user.vo.UserItem;
 import io.crest.auth.bo.TokenUserBO;
+import io.crest.constant.LogOT;
+import io.crest.constant.LogST;
 import io.crest.exception.DEException;
 import io.crest.i18n.Lang;
+import io.crest.log.DeLog;
 import io.crest.result.ResultCode;
 import io.crest.substitute.permissions.user.model.CrestUser;
 import io.crest.utils.AuthUtils;
@@ -87,24 +90,28 @@ public class SubstituteUserServer {
         return crestUserManage.toForm(crestUserManage.queryById(id));
     }
 
+    @DeLog(ot = LogOT.CREATE, st = LogST.USER)
     @PostMapping("/create")
     public Long create(@RequestBody UserCreator creator) {
         CrestPermissionUtils.requireAdmin();
         return crestUserManage.create(creator);
     }
 
+    @DeLog(ot = LogOT.MODIFY, st = LogST.USER, id = "#p0.id")
     @PostMapping("/edit")
     public void edit(@RequestBody UserEditor editor) {
         CrestPermissionUtils.requireAdmin();
         crestUserManage.edit(editor);
     }
 
+    @DeLog(ot = LogOT.DELETE, st = LogST.USER, id = "#p0")
     @PostMapping("/delete/{id}")
     public void delete(@PathVariable("id") Long id) {
         CrestPermissionUtils.requireAdmin();
         crestUserManage.delete(id);
     }
 
+    @DeLog(ot = LogOT.MODIFY, st = LogST.USER, id = "#p0.id")
     @PostMapping("/enable")
     public void enable(@RequestBody EnableSwitchRequest request) {
         CrestPermissionUtils.requireAdmin();
@@ -117,12 +124,14 @@ public class SubstituteUserServer {
         return "";
     }
 
+    @DeLog(ot = LogOT.MODIFY, st = LogST.USER, id = "#p0")
     @PostMapping("/resetPwd/{id}")
     public void resetPwd(@PathVariable("id") Long id) {
         CrestPermissionUtils.requireAdmin();
         crestUserManage.resetPwd(id);
     }
 
+    @DeLog(ot = LogOT.MODIFY, st = LogST.USER)
     @PostMapping("/modifyPwd")
     public void modifyPwd(@RequestBody ModifyPwdRequest request) {
         Long uid = ObjectUtils.isEmpty(request.getUid()) ? AuthUtils.getUser().getUserId() : request.getUid();
