@@ -34,6 +34,7 @@ import io.crest.i18n.Translator;
 import io.crest.model.BusiNodeRequest;
 import io.crest.model.BusiNodeVO;
 import io.crest.operation.manage.CoreOptRecentManage;
+import io.crest.substitute.permissions.auth.PlatformPermissionManage;
 import io.crest.system.manage.CoreUserManage;
 import io.crest.utils.*;
 import jakarta.annotation.Resource;
@@ -89,6 +90,9 @@ public class DatasetGroupManage {
     private RelationApi relationManage;
     @Autowired(required = false)
     private PluginManageApi pluginManage;
+
+    @Resource
+    private PlatformPermissionManage platformPermissionManage;
 
     private static final String leafType = "dataset";
 
@@ -175,12 +179,20 @@ public class DatasetGroupManage {
         CoreDatasetGroup coreDatasetGroup = BeanUtils.copyBean(new CoreDatasetGroup(), datasetGroupInfoDTO);
         coreDatasetGroup.setLastUpdateTime(System.currentTimeMillis());
         coreDatasetGroupMapper.updateById(coreDatasetGroup);
+        platformPermissionManage.upsertResource("dataset", String.valueOf(coreDatasetGroup.getId()),
+                AuthUtils.getUser().getDefaultOid(), AuthUtils.getUser().getUserId(), coreDatasetGroup.getName(),
+                coreDatasetGroup.getCreateTime(), coreDatasetGroup.getLastUpdateTime());
         coreOptRecentManage.saveOpt(datasetGroupInfoDTO.getId(), OptConstants.OPT_RESOURCE_TYPE.DATASET, OptConstants.OPT_TYPE.UPDATE);
     }
     public void innerSave(DatasetGroupInfoDTO datasetGroupInfoDTO) {
         checkName(datasetGroupInfoDTO);
         CoreDatasetGroup coreDatasetGroup = BeanUtils.copyBean(new CoreDatasetGroup(), datasetGroupInfoDTO);
         coreDatasetGroupMapper.insert(coreDatasetGroup);
+        if (Strings.CI.equals(coreDatasetGroup.getNodeType(), "dataset")) {
+            platformPermissionManage.upsertResource("dataset", String.valueOf(coreDatasetGroup.getId()),
+                    AuthUtils.getUser().getDefaultOid(), AuthUtils.getUser().getUserId(), coreDatasetGroup.getName(),
+                    coreDatasetGroup.getCreateTime(), coreDatasetGroup.getLastUpdateTime());
+        }
         coreOptRecentManage.saveOpt(coreDatasetGroup.getId(), OptConstants.OPT_RESOURCE_TYPE.DATASET, OptConstants.OPT_TYPE.NEW);
     }
     public DatasetGroupInfoDTO move(DatasetGroupInfoDTO datasetGroupInfoDTO) {
@@ -199,6 +211,9 @@ public class DatasetGroupManage {
         datasetGroupInfoDTO.setUpdateBy(AuthUtils.getUser().getUserId() + "");
         coreDatasetGroup.setLastUpdateTime(time);
         coreDatasetGroupMapper.updateById(coreDatasetGroup);
+        platformPermissionManage.upsertResource("dataset", String.valueOf(coreDatasetGroup.getId()),
+                AuthUtils.getUser().getDefaultOid(), AuthUtils.getUser().getUserId(), coreDatasetGroup.getName(),
+                coreDatasetGroup.getCreateTime(), coreDatasetGroup.getLastUpdateTime());
         coreOptRecentManage.saveOpt(coreDatasetGroup.getId(), OptConstants.OPT_RESOURCE_TYPE.DATASET, OptConstants.OPT_TYPE.UPDATE);
         return datasetGroupInfoDTO;
     }
@@ -246,6 +261,10 @@ public class DatasetGroupManage {
         String info = CommunityUtils.getInfo();
         if (StringUtils.isNotBlank(info)) {
             queryWrapper.notExists(String.format(info, "core_dataset_group.id"));
+        }
+        String scopeSql = platformPermissionManage.resourceScopeSql("dataset", "core_dataset_group.id", "core_dataset_group.create_by", null);
+        if (StringUtils.isNotBlank(scopeSql)) {
+            queryWrapper.apply(scopeSql);
         }
         queryWrapper.orderByDesc("create_time");
         List<DataSetNodePO> pos = coreDataSetExtMapper.query(queryWrapper);

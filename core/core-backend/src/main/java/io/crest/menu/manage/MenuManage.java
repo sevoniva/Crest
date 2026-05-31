@@ -7,12 +7,13 @@ import io.crest.i18n.Translator;
 import io.crest.menu.bo.MenuTreeNode;
 import io.crest.menu.dao.auto.entity.CoreMenu;
 import io.crest.menu.dao.auto.mapper.CoreMenuMapper;
+import io.crest.substitute.permissions.auth.PlatformPermissionManage;
 import io.crest.utils.BeanUtils;
-import io.crest.utils.CrestPermissionUtils;
+import io.crest.utils.AuthUtils;
 import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -31,12 +32,18 @@ public class MenuManage {
     private final static int ROOTID = 0;
 
     private static final Set<Long> INTERNAL_LITE_MENU_IDS = Set.of(
-            1L, 2L, 3L, 4L, 5L, 6L, 11L, 12L, 15L, 16L, 64L, 66L, 67L, 68L, 69L, 71L, 72L
+            1L, 2L, 3L, 4L, 5L, 6L, 11L, 12L, 15L, 16L, 64L, 66L, 67L, 68L, 69L, 71L, 72L, 73L, 74L, 75L
     );
-    private static final Set<Long> ADMIN_MENU_IDS = Set.of(15L, 16L, 64L, 67L, 68L, 69L, 71L, 72L);
+    private static final Set<Long> ADMIN_MENU_IDS = Set.of(15L, 16L, 64L, 67L, 68L, 69L, 71L, 72L, 73L, 74L, 75L);
 
     @Resource
     private CoreMenuMapper coreMenuMapper;
+
+    @Resource
+    private PlatformPermissionManage platformPermissionManage;
+
+    @Resource
+    private JdbcTemplate jdbcTemplate;
 
     @Value("${crest.internal-lite.enabled:false}")
     private boolean internalLiteEnabled;
@@ -44,8 +51,10 @@ public class MenuManage {
         List<CoreMenu> menus = internalLiteEnabled
                 ? coreMenus.stream().filter(menu -> INTERNAL_LITE_MENU_IDS.contains(menu.getId())).toList()
                 : coreMenus;
-        if (!CrestPermissionUtils.currentUserIsAdmin()) {
-            menus = menus.stream().filter(menu -> !ADMIN_MENU_IDS.contains(menu.getId())).toList();
+        Long uid = AuthUtils.getUser() == null ? null : AuthUtils.getUser().getUserId();
+        if (!platformPermissionManage.isSystemAdmin(uid)) {
+            Set<Long> allowedMenuIds = allowedMenuIds(uid);
+            menus = menus.stream().filter(menu -> allowedMenuIds.contains(menu.getId()) || !Boolean.TRUE.equals(menu.getAuth())).toList();
         }
         List<MenuTreeNode> menuTreeNodes = new ArrayList<>(menus.stream().map(menu -> BeanUtils.copyBean(new MenuTreeNode(), menu)).toList());
         menuTreeNodes.sort(Comparator.comparing(MenuTreeNode::getMenuSort));
@@ -124,5 +133,20 @@ public class MenuManage {
                 || coreMenu.getId().equals(80L)
                 || coreMenu.getId().equals(90L)
                 || coreMenu.getPid().equals(70L);
+    }
+
+    private Set<Long> allowedMenuIds(Long uid) {
+        if (uid == null) {
+            return Set.of();
+        }
+        List<Long> roleIds = platformPermissionManage.roleIds(uid, platformPermissionManage.defaultOrgId(uid));
+        if (roleIds.isEmpty()) {
+            return Set.of();
+        }
+        String ids = roleIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+        return jdbcTemplate.queryForList("""
+                SELECT DISTINCT menu_id FROM crest_role_menu_permission
+                WHERE rid IN (%s)
+                """.formatted(ids), Long.class).stream().collect(Collectors.toSet());
     }
 }

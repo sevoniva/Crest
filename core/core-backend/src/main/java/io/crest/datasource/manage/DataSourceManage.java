@@ -20,6 +20,7 @@ import io.crest.i18n.Translator;
 import io.crest.model.BusiNodeRequest;
 import io.crest.model.BusiNodeVO;
 import io.crest.operation.manage.CoreOptRecentManage;
+import io.crest.substitute.permissions.auth.PlatformPermissionManage;
 import io.crest.utils.AuthUtils;
 import io.crest.utils.BeanUtils;
 import io.crest.utils.CommunityUtils;
@@ -41,6 +42,9 @@ public class DataSourceManage {
 
     @Resource
     private DataSourceExtMapper dataSourceExtMapper;
+
+    @Resource
+    private PlatformPermissionManage platformPermissionManage;
 
     @Resource
     private CoreDatasourceMapper coreDatasourceMapper;
@@ -103,6 +107,10 @@ public class DataSourceManage {
         if (StringUtils.isNotBlank(info)) {
             queryWrapper.notExists(String.format(info, "core_datasource.id"));
         }
+        String scopeSql = platformPermissionManage.resourceScopeSql("datasource", "core_datasource.id", "core_datasource.create_by", null);
+        if (StringUtils.isNotBlank(scopeSql)) {
+            queryWrapper.apply(scopeSql);
+        }
         queryWrapper.orderByDesc("create_time");
         List<DatasourceNodeBO> nodes = new ArrayList<>();
         List<DataSourceNodePO> pos = dataSourceExtMapper.selectList(queryWrapper);
@@ -118,6 +126,9 @@ public class DataSourceManage {
         BeanUtils.copyBean(coreDatasource, dataSourceDTO);
         checkName(dataSourceDTO);
         coreDatasourceMapper.insert(coreDatasource);
+        platformPermissionManage.upsertResource("datasource", String.valueOf(coreDatasource.getId()),
+                AuthUtils.getUser().getDefaultOid(), AuthUtils.getUser().getUserId(), coreDatasource.getName(),
+                coreDatasource.getCreateTime(), coreDatasource.getUpdateTime());
         coreOptRecentManage.saveOpt(coreDatasource.getId(), OptConstants.OPT_RESOURCE_TYPE.DATASOURCE, OptConstants.OPT_TYPE.NEW);
     }
 
@@ -162,6 +173,9 @@ public class DataSourceManage {
         coreDatasource.setUpdateBy(AuthUtils.getUser().getUserId());
         coreDatasource.setTaskStatus(TaskStatus.WaitingForExecution.name());
         coreDatasourceMapper.update(coreDatasource, updateWrapper);
+        platformPermissionManage.upsertResource("datasource", String.valueOf(coreDatasource.getId()),
+                AuthUtils.getUser().getDefaultOid(), AuthUtils.getUser().getUserId(), coreDatasource.getName(),
+                coreDatasource.getCreateTime(), coreDatasource.getUpdateTime());
         coreOptRecentManage.saveOpt(coreDatasource.getId(), OptConstants.OPT_RESOURCE_TYPE.DATASOURCE, OptConstants.OPT_TYPE.UPDATE);
     }
     public void innerEditName(CoreDatasource coreDatasource) {

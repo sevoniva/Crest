@@ -9,6 +9,7 @@ import io.crest.auth.vo.TokenVO;
 import io.crest.constant.LogOT;
 import io.crest.constant.LogST;
 import io.crest.exception.DEException;
+import io.crest.substitute.permissions.auth.PlatformPermissionManage;
 import io.crest.log.DeLog;
 import io.crest.substitute.permissions.user.CrestUserManage;
 import io.crest.substitute.permissions.user.model.CrestUser;
@@ -32,6 +33,9 @@ public class SubstituleLoginServer {
 
     @Resource
     private SsoManage ssoManage;
+
+    @Resource
+    private PlatformPermissionManage platformPermissionManage;
 
     @DeLog(ot = LogOT.LOGIN, st = LogST.USER)
     @PostMapping("/login/localLogin")
@@ -61,7 +65,7 @@ public class SubstituleLoginServer {
         }
         TokenUserBO tokenUserBO = new TokenUserBO();
         tokenUserBO.setUserId(user.getId());
-        tokenUserBO.setDefaultOid(1L);
+        tokenUserBO.setDefaultOid(platformPermissionManage.defaultOrgId(user.getId()));
         crestUserManage.markLoginSuccess(user.getId());
         return generate(tokenUserBO, user.getPasswordHash());
     }

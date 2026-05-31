@@ -13,6 +13,7 @@ import io.crest.auth.vo.TokenVO;
 import io.crest.constant.AuthConstant;
 import io.crest.constant.CacheConstant;
 import io.crest.exception.DEException;
+import io.crest.substitute.permissions.auth.PlatformPermissionManage;
 import io.crest.substitute.permissions.user.model.CrestUser;
 import io.crest.system.sso.SsoClaimMapper;
 import io.crest.system.sso.SsoEndpointPolicy;
@@ -65,6 +66,9 @@ public class SsoManage {
 
     @Resource
     private SsoProviderConfigManage ssoProviderConfigManage;
+
+    @Resource
+    private PlatformPermissionManage platformPermissionManage;
 
     public SsoStatusVO status() {
         SsoConfigVO config = config(null);
@@ -361,7 +365,7 @@ public class SsoManage {
     private TokenVO generate(CrestUser user) {
         TokenUserBO bo = new TokenUserBO();
         bo.setUserId(user.getId());
-        bo.setDefaultOid(1L);
+        bo.setDefaultOid(platformPermissionManage.defaultOrgId(user.getId()));
         Algorithm algorithm = Algorithm.HMAC256(user.getPasswordHash());
         JWTCreator.Builder builder = JWT.create();
         String token = builder.withClaim("uid", bo.getUserId()).withClaim("oid", bo.getDefaultOid()).sign(algorithm);

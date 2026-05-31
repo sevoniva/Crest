@@ -430,7 +430,7 @@ export class StackArea extends Area {
     return {
       ...options,
       smooth: true,
-      point: false,
+      point: false as any,
       line: {
         style: ({ category }) => ({
           stroke: hexColorToRGBA(colorByStage.get(category) || '#dff7ff', 92),

@@ -10,7 +10,7 @@ const tableData = ref<any[]>([])
 const pager = reactive({ currentPage: 1, pageSize: 15, total: 0 })
 const dialogVisible = ref(false)
 const isEdit = ref(false)
-const roleId = ref(2)
+const roleOptions = ref<any[]>([])
 const form = reactive<any>({
   id: null,
   account: '',
@@ -40,6 +40,11 @@ const loadTable = async () => {
   }
 }
 
+const loadRoles = async () => {
+  const res = await request.post({ url: '/role/byCurOrg', data: {} })
+  roleOptions.value = res.data || []
+}
+
 const resetForm = () => {
   Object.assign(form, {
     id: null,
@@ -51,7 +56,6 @@ const resetForm = () => {
     roleIds: [2],
     authType: 'LOCAL'
   })
-  roleId.value = 2
 }
 
 const openCreate = () => {
@@ -66,7 +70,6 @@ const openEdit = async row => {
   form.roleIds = (res.data?.roleIds || row.roleItems?.map(role => String(role.id)) || ['2']).map(
     Number
   )
-  roleId.value = form.roleIds.some(item => Number(item) === 1) ? 1 : 2
   isEdit.value = true
   dialogVisible.value = true
 }
@@ -76,7 +79,6 @@ const save = async () => {
     ElMessage.warning('账号和姓名不能为空')
     return
   }
-  form.roleIds = [roleId.value]
   await request.post({ url: isEdit.value ? '/user/edit' : '/user/create', data: form })
   ElMessage.success(isEdit.value ? '用户已更新' : '用户已创建')
   dialogVisible.value = false
@@ -110,7 +112,9 @@ const remove = async row => {
   await loadTable()
 }
 
-onMounted(loadTable)
+onMounted(async () => {
+  await Promise.all([loadTable(), loadRoles()])
+})
 </script>
 
 <template>
@@ -213,10 +217,20 @@ onMounted(loadTable)
           <el-input v-model.trim="form.phone" maxlength="32" />
         </el-form-item>
         <el-form-item label="角色">
-          <el-radio-group v-model="roleId" :disabled="String(form.id) === '1'">
-            <el-radio-button :label="1">管理员</el-radio-button>
-            <el-radio-button :label="2">普通用户</el-radio-button>
-          </el-radio-group>
+          <el-select
+            v-model="form.roleIds"
+            multiple
+            class="full-width"
+            :disabled="String(form.id) === '1'"
+            placeholder="请选择角色"
+          >
+            <el-option
+              v-for="role in roleOptions"
+              :key="role.id"
+              :label="role.name"
+              :value="Number(role.id)"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="状态">
           <el-switch v-model="form.enable" />
@@ -265,5 +279,8 @@ onMounted(loadTable)
   justify-content: flex-end;
   padding: 12px 16px 16px;
   background: #fff;
+}
+.full-width {
+  width: 100%;
 }
 </style>

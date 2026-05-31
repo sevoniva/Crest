@@ -2,6 +2,7 @@ package io.crest.substitute.permissions.user;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.alibaba.excel.EasyExcel;
 import io.crest.api.permissions.user.dto.EnableSwitchRequest;
 import io.crest.api.permissions.user.dto.UserCreator;
 import io.crest.api.permissions.user.dto.UserEditor;
@@ -10,9 +11,13 @@ import io.crest.api.permissions.user.vo.CurUserVO;
 import io.crest.api.permissions.user.vo.UserFormVO;
 import io.crest.api.permissions.user.vo.UserGridVO;
 import io.crest.api.permissions.user.vo.UserGridRoleItem;
+import io.crest.api.permissions.user.vo.UserImportVO;
+import io.crest.api.permissions.user.vo.UserItem;
 import io.crest.exception.DEException;
+import io.crest.substitute.permissions.auth.PlatformPermissionManage;
 import io.crest.substitute.permissions.user.model.CrestUser;
 import io.crest.substitute.permissions.user.model.SsoUserProfile;
+import io.crest.substitute.permissions.user.model.UserImportRow;
 import io.crest.system.sso.SsoIdentityAction;
 import io.crest.system.sso.SsoIdentityDecision;
 import io.crest.system.sso.SsoIdentityProfile;
@@ -30,7 +35,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -48,6 +55,9 @@ public class CrestUserManage {
 
     @Resource
     private JdbcTemplate jdbcTemplate;
+
+    @Resource
+    private PlatformPermissionManage platformPermissionManage;
 
     @Value("${crest.user.initial-password:}")
     private String configuredInitialPassword;
@@ -82,6 +92,8 @@ public class CrestUserManage {
                     INSERT INTO crest_user(id, account, name, password_hash, enable, is_admin, origin, create_time, update_time)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, 1L, "admin", "管理员", PasswordEncoder.encode(initialPassword()), true, true, 0, now, now);
+            platformPermissionManage.bindUserToOrg(1L, PlatformPermissionManage.ROOT_ORG_ID, true);
+            platformPermissionManage.bindUserToRole(1L, PlatformPermissionManage.ROOT_ORG_ID, PlatformPermissionManage.SYSTEM_ADMIN_ROLE_ID);
         } else {
             String passwordHash = jdbcTemplate.queryForObject(
                     "SELECT password_hash FROM crest_user WHERE id = 1", String.class);
@@ -174,6 +186,8 @@ public class CrestUserManage {
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, id, account, name, email, null, null, Md5Utils.md5(IDUtils.randomID(32)),
                     true, false, 2, AUTH_TYPE_SSO, profile.getExternalId(), now, now, now);
+            platformPermissionManage.bindUserToOrg(id, PlatformPermissionManage.ROOT_ORG_ID, true);
+            platformPermissionManage.bindUserToRole(id, PlatformPermissionManage.ROOT_ORG_ID, PlatformPermissionManage.MEMBER_ROLE_ID);
             return queryById(id);
         }
         if (Boolean.FALSE.equals(user.getEnable())) {
@@ -206,6 +220,8 @@ public class CrestUserManage {
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, id, account, name, email, null, null, Md5Utils.md5(IDUtils.randomID(32)),
                     true, false, 2, AUTH_TYPE_SSO, profile.getExternalSubject(), now, now, now);
+            platformPermissionManage.bindUserToOrg(id, PlatformPermissionManage.ROOT_ORG_ID, true);
+            platformPermissionManage.bindUserToRole(id, PlatformPermissionManage.ROOT_ORG_ID, PlatformPermissionManage.MEMBER_ROLE_ID);
             return queryById(id);
         }
         Long userId = decision.getUserId();
@@ -258,6 +274,90 @@ public class CrestUserManage {
         return page;
     }
 
+    public List<UserItem> usersByCurrentOrg(String keyword) {
+        Long oid = AuthUtils.getUser() == null ? PlatformPermissionManage.ROOT_ORG_ID : AuthUtils.getUser().getDefaultOid();
+        List<Object> args = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+                SELECT u.id, u.name, u.account
+                FROM crest_user u
+                INNER JOIN crest_user_org uo ON uo.uid = u.id
+                WHERE uo.oid = ? AND u.enable = 1
+                """);
+        args.add(oid);
+        if (StringUtils.isNotBlank(keyword)) {
+            sql.append(" AND (u.name LIKE ? OR u.account LIKE ? OR u.email LIKE ?)");
+            String like = "%" + keyword.trim() + "%";
+            args.add(like);
+            args.add(like);
+            args.add(like);
+        }
+        sql.append(" ORDER BY u.create_time DESC");
+        return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> {
+            UserItem item = new UserItem();
+            item.setId(rs.getLong("id"));
+            item.setName(rs.getString("name"));
+            item.setAccount(rs.getString("account"));
+            return item;
+        }, args.toArray());
+    }
+
+    @Transactional
+    public UserImportVO importUsers(MultipartFile file) throws Exception {
+        if (file == null || file.isEmpty()) {
+            DEException.throwException("导入文件不能为空");
+        }
+        List<UserImportRow> rows = readImportRows(file);
+        int success = 0;
+        int failed = 0;
+        for (UserImportRow row : rows) {
+            if (row == null || StringUtils.isBlank(row.getAccount()) || StringUtils.isBlank(row.getName())) {
+                failed++;
+                continue;
+            }
+            try {
+                UserCreator creator = new UserCreator();
+                creator.setAccount(row.getAccount().trim());
+                creator.setName(row.getName().trim());
+                creator.setEmail(StringUtils.trimToNull(row.getEmail()));
+                creator.setPhone(StringUtils.trimToNull(row.getPhone()));
+                creator.setEnable(true);
+                creator.setRoleIds(List.of(PlatformPermissionManage.MEMBER_ROLE_ID));
+                create(creator);
+                success++;
+            } catch (Exception ignored) {
+                failed++;
+            }
+        }
+        return new UserImportVO("user-import", success, failed);
+    }
+
+    private List<UserImportRow> readImportRows(MultipartFile file) throws Exception {
+        String filename = StringUtils.defaultString(file.getOriginalFilename()).toLowerCase();
+        if (filename.endsWith(".xlsx") || filename.endsWith(".xls")) {
+            return EasyExcel.read(file.getInputStream())
+                    .head(UserImportRow.class)
+                    .sheet()
+                    .doReadSync();
+        }
+        String text = new String(file.getBytes(), StandardCharsets.UTF_8);
+        String[] rows = text.replace("\r", "").split("\n");
+        List<UserImportRow> result = new ArrayList<>();
+        for (int i = 0; i < rows.length; i++) {
+            String row = rows[i].trim();
+            if (StringUtils.isBlank(row) || (i == 0 && row.contains("账号"))) {
+                continue;
+            }
+            String[] cols = row.split(",", -1);
+            UserImportRow importRow = new UserImportRow();
+            importRow.setAccount(cols.length > 0 ? StringUtils.trimToNull(cols[0]) : null);
+            importRow.setName(cols.length > 1 ? StringUtils.trimToNull(cols[1]) : null);
+            importRow.setEmail(cols.length > 2 ? StringUtils.trimToNull(cols[2]) : null);
+            importRow.setPhone(cols.length > 3 ? StringUtils.trimToNull(cols[3]) : null);
+            result.add(importRow);
+        }
+        return result;
+    }
+
     @Transactional
     public Long create(UserCreator creator) {
         validate(creator.getAccount(), creator.getName());
@@ -288,6 +388,8 @@ public class CrestUserManage {
                 creator.getPhonePrefix(), creator.getPhone(), PasswordEncoder.encode(password),
                 creator.getEnable() == null || creator.getEnable(), hasAdminRole(creator.getRoleIds()),
                 0, AUTH_TYPE_LOCAL, null, now, now);
+        platformPermissionManage.bindUserToOrg(id, PlatformPermissionManage.ROOT_ORG_ID, true);
+        platformPermissionManage.replaceUserRoles(id, creator.getRoleIds());
         return id;
     }
 
@@ -321,6 +423,7 @@ public class CrestUserManage {
                 """, editor.getAccount().trim(), editor.getName().trim(), editor.getEmail(),
                 editor.getPhonePrefix(), editor.getPhone(), editor.getEnable() == null || editor.getEnable(),
                 editor.getId() == 1L || hasAdminRole(editor.getRoleIds()), System.currentTimeMillis(), editor.getId());
+        platformPermissionManage.replaceUserRoles(editor.getId(), editor.getRoleIds());
     }
 
     @Transactional
@@ -339,6 +442,8 @@ public class CrestUserManage {
         }
 
         jdbcTemplate.update("DELETE FROM crest_user WHERE id = ?", id);
+        jdbcTemplate.update("DELETE FROM crest_user_org WHERE uid = ?", id);
+        jdbcTemplate.update("DELETE FROM crest_user_role WHERE uid = ?", id);
     }
 
     @Transactional
@@ -408,7 +513,7 @@ public class CrestUserManage {
         vo.setExternalId(user.getExternalId());
         vo.setLastLoginTime(user.getLastLoginTime());
         vo.setModel(AUTH_TYPE_SSO.equalsIgnoreCase(user.getAuthType()) ? "sso" : "local");
-        vo.setRoleIds(Boolean.TRUE.equals(user.getAdmin()) ? List.of("1") : List.of("2"));
+        vo.setRoleIds(platformPermissionManage.userRoleIdStrings(user.getId()));
         return vo;
     }
 
@@ -426,10 +531,7 @@ public class CrestUserManage {
         vo.setExternalId(user.getExternalId());
         vo.setLastLoginTime(user.getLastLoginTime());
         vo.setCreateTime(user.getCreateTime());
-        UserGridRoleItem role = new UserGridRoleItem();
-        role.setId(Boolean.TRUE.equals(user.getAdmin()) ? 1L : 2L);
-        role.setName(Boolean.TRUE.equals(user.getAdmin()) ? "管理员" : "普通用户");
-        vo.setRoleItems(List.of(role));
+        vo.setRoleItems(platformPermissionManage.userRoleItems(user.getId()));
         return vo;
     }
 
@@ -438,7 +540,7 @@ public class CrestUserManage {
         CurUserVO vo = new CurUserVO();
         vo.setId(user.getId());
         vo.setName(user.getName());
-        vo.setOid(1L);
+        vo.setOid(platformPermissionManage.defaultOrgId(user.getId()));
         vo.setLanguage("zh-CN");
         return vo;
     }

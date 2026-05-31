@@ -17,6 +17,7 @@ import io.crest.model.BusiNodeRequest;
 import io.crest.model.BusiNodeVO;
 import io.crest.operation.manage.CoreOptRecentManage;
 import io.crest.share.manage.ShareManage;
+import io.crest.substitute.permissions.auth.PlatformPermissionManage;
 import io.crest.system.manage.CoreUserManage;
 import io.crest.utils.*;
 import io.crest.visualization.dao.auto.entity.DataVisualizationInfo;
@@ -77,6 +78,9 @@ public class CoreVisualizationManage {
 
     @Resource
     private ShareManage shareManage;
+
+    @Resource
+    private PlatformPermissionManage platformPermissionManage;
     public List<BusiNodeVO> tree(BusiNodeRequest request) {
         List<VisualizationNodeBO> nodes = new ArrayList<>();
         if (ObjectUtils.isEmpty(request.getLeaf()) || !request.getLeaf()) {
@@ -90,6 +94,12 @@ public class CoreVisualizationManage {
         String info = CommunityUtils.getInfo();
         if (StringUtils.isNotBlank(info)) {
             queryWrapper.notExists(String.format(info, "data_visualization_info.id"));
+        }
+        String resourceType = "dataV".equalsIgnoreCase(request.getBusiFlag()) ? "screen" : "panel";
+        String scopeSql = platformPermissionManage.resourceScopeSql(resourceType, "data_visualization_info.id",
+                "data_visualization_info.create_by", "data_visualization_info.org_id");
+        if (StringUtils.isNotBlank(scopeSql)) {
+            queryWrapper.apply(scopeSql);
         }
         // 如果是编辑界面 只展示已发布的资源
         if (CommonConstants.RESOURCE_TABLE.SNAPSHOT.equals(request.getResourceTable())) {
@@ -144,6 +154,7 @@ public class CoreVisualizationManage {
         // 删除图表信息
         extDataVisualizationMapper.deleteViewsBatch(delIds, CommonConstants.RESOURCE_TABLE.CORE);
         extDataVisualizationMapper.deleteViewsBatch(delIds, CommonConstants.RESOURCE_TABLE.SNAPSHOT);
+        delIds.forEach(delId -> platformPermissionManage.deleteResource(resourceType(info.getType()), String.valueOf(delId)));
 
         coreOptRecentManage.saveOpt(id, OptConstants.OPT_RESOURCE_TYPE.VISUALIZATION, OptConstants.OPT_TYPE.DELETE);
     }
@@ -192,6 +203,9 @@ public class CoreVisualizationManage {
         SnapshotDataVisualizationInfo snapshotVisualizationInfo = new SnapshotDataVisualizationInfo();
         BeanUtils.copyBean(snapshotVisualizationInfo, visualizationInfo);
         snapshotMapper.insert(snapshotVisualizationInfo);
+        platformPermissionManage.upsertResource(resourceType(visualizationInfo.getType()), String.valueOf(visualizationInfo.getId()),
+                visualizationInfo.getOrgId(), AuthUtils.getUser().getUserId(), visualizationInfo.getName(),
+                visualizationInfo.getCreateTime(), visualizationInfo.getUpdateTime());
         coreOptRecentManage.saveOpt(visualizationInfo.getId(), OptConstants.OPT_RESOURCE_TYPE.VISUALIZATION, OptConstants.OPT_TYPE.NEW);
         return visualizationInfo.getId();
     }
@@ -217,7 +231,14 @@ public class CoreVisualizationManage {
         coreVisualizationInfo.setUpdateBy(AuthUtils.getUser().getUserId().toString());
         coreVisualizationInfo.setVersion(3);
         mapper.updateById(coreVisualizationInfo);
+        platformPermissionManage.upsertResource(resourceType(visualizationInfo.getType()), String.valueOf(visualizationInfo.getId()),
+                AuthUtils.getUser().getDefaultOid(), AuthUtils.getUser().getUserId(), visualizationInfo.getName(),
+                visualizationInfo.getCreateTime(), visualizationInfo.getUpdateTime());
         coreOptRecentManage.saveOpt(visualizationInfo.getId(), OptConstants.OPT_RESOURCE_TYPE.VISUALIZATION, OptConstants.OPT_TYPE.UPDATE);
+    }
+
+    private String resourceType(String type) {
+        return Strings.CI.equals(type, "dataV") ? "screen" : "panel";
     }
 
     private void requireName(DataVisualizationInfo visualizationInfo) {

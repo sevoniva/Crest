@@ -12,6 +12,7 @@ import io.crest.api.permissions.user.vo.CurIpVO;
 import io.crest.api.permissions.user.vo.CurUserVO;
 import io.crest.api.permissions.user.vo.UserFormVO;
 import io.crest.api.permissions.user.vo.UserGridVO;
+import io.crest.api.permissions.user.vo.UserImportVO;
 import io.crest.api.permissions.user.vo.UserItem;
 import io.crest.auth.bo.TokenUserBO;
 import io.crest.constant.LogOT;
@@ -21,8 +22,10 @@ import io.crest.i18n.Lang;
 import io.crest.log.DeLog;
 import io.crest.result.ResultCode;
 import io.crest.substitute.permissions.user.model.CrestUser;
+import io.crest.substitute.permissions.user.model.UserImportRow;
 import io.crest.utils.AuthUtils;
 import io.crest.utils.CacheUtils;
+import io.crest.utils.CommonExcelUtils;
 import io.crest.utils.CrestPermissionUtils;
 import io.crest.utils.IPUtils;
 import jakarta.annotation.Resource;
@@ -32,7 +35,10 @@ import org.apache.commons.lang3.Strings;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static io.crest.constant.CacheConstant.UserCacheConstant.USER_COMMUNITY_LANGUAGE;
@@ -149,8 +155,43 @@ public class SubstituteUserServer {
     }
 
     @PostMapping("/byCurOrg")
-    public List<UserItem> byCurOrg() {
-        return List.of();
+    public List<UserItem> byCurOrg(@RequestBody(required = false) UserGridRequest request) {
+        return crestUserManage.usersByCurrentOrg(request == null ? null : request.getKeyword());
+    }
+
+    @PostMapping("/batchImport")
+    public UserImportVO batchImport(@RequestParam("file") MultipartFile file) throws Exception {
+        CrestPermissionUtils.requireAdmin();
+        return crestUserManage.importUsers(file);
+    }
+
+    @PostMapping("/batchDel")
+    public void batchDel(@RequestBody List<Long> ids) {
+        CrestPermissionUtils.requireAdmin();
+        if (ids != null) {
+            ids.forEach(crestUserManage::delete);
+        }
+    }
+
+    @PostMapping("/excelTemplate")
+    public void excelTemplate(HttpServletResponse response) throws Exception {
+        CrestPermissionUtils.requireAdmin();
+        UserImportRow row = new UserImportRow();
+        row.setAccount("user01");
+        row.setName("张三");
+        row.setEmail("user01@example.com");
+        row.setPhone("13800000000");
+        CommonExcelUtils.writeExcel(response, List.of(row), UserImportRow.class, List.of(), "user-import-template", "用户导入模板");
+    }
+
+    @GetMapping("/errorRecord/{key}")
+    public void errorRecord(@PathVariable("key") String key, HttpServletResponse response) throws Exception {
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getOutputStream().write("导入失败记录请根据返回数量检查源文件。".getBytes(StandardCharsets.UTF_8));
+    }
+
+    @GetMapping("/clearErrorRecord/{key}")
+    public void clearErrorRecord(@PathVariable("key") String key) {
     }
 
     @DeLog(ot = LogOT.MODIFY, st = LogST.USER)
