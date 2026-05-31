@@ -2,7 +2,6 @@ package io.crest.api.permissions.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.crest.api.permissions.variable.dto.SysVariableValueItem;
-import io.crest.utils.XssProtection;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -18,13 +17,6 @@ public class UserCreator implements Serializable {
     private static final long serialVersionUID = 5231186463604221044L;
     @Schema(description = "名称", requiredMode = Schema.RequiredMode.REQUIRED)
     private String name;
-
-    /**
-     * 设置名称时进行 XSS 清理
-     */
-    public void setName(String name) {
-        this.name = XssProtection.sanitize(name);
-    }
     @Schema(description = "账号", requiredMode = Schema.RequiredMode.REQUIRED)
     private String account;
     @Schema(description = "邮箱", requiredMode = Schema.RequiredMode.REQUIRED)

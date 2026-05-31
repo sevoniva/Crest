@@ -7,7 +7,6 @@ import org.apache.commons.lang3.Strings;
 import org.springframework.core.env.Environment;
 
 import java.util.List;
-import java.util.Objects;
 
 import static io.crest.result.ResultCode.INTERFACE_ADDRESS_INVALID;
 
@@ -18,7 +17,8 @@ public class WhitelistUtils {
 
     public static String getContextPath() {
         if (StringUtils.isBlank(contextPath)) {
-            contextPath = Objects.requireNonNull(CommonBeanFactory.getBean(Environment.class)).getProperty("server.servlet.context-path", String.class);
+            Environment environment = CommonBeanFactory.getBean(Environment.class);
+            contextPath = environment == null ? "" : environment.getProperty("server.servlet.context-path", String.class);
         }
         return contextPath;
     }

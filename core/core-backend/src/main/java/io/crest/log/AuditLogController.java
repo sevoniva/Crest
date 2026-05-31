@@ -3,6 +3,9 @@ package io.crest.log;
 import io.crest.auth.DePermit;
 import io.crest.constant.LogOT;
 import io.crest.constant.LogST;
+import io.crest.exception.DEException;
+import io.crest.result.ResultCode;
+import io.crest.utils.AuthUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +38,7 @@ public class AuditLogController {
             @PathVariable("pageSize") int pageSize,
             @RequestBody(required = false) Map<String, Object> request) {
 
+        requireSystemAdmin();
         int offset = (goPage - 1) * pageSize;
 
         // 构建查询条件
@@ -96,6 +100,7 @@ public class AuditLogController {
     @DePermit("m:read")
     @GetMapping("/statistics")
     public Map<String, Object> statistics() {
+        requireSystemAdmin();
         Map<String, Object> stats = new HashMap<>();
 
         // 今日操作数
@@ -122,7 +127,14 @@ public class AuditLogController {
     @DePermit("m:read")
     @GetMapping("/operationTypes")
     public List<Map<String, Object>> operationTypes() {
+        requireSystemAdmin();
         return jdbcTemplate.queryForList(
                 "SELECT DISTINCT operation_type as value, operation_type as label FROM core_audit_log ORDER BY operation_type");
+    }
+
+    private void requireSystemAdmin() {
+        if (!AuthUtils.isSysAdmin()) {
+            DEException.throwException(ResultCode.PERMISSION_NO_ACCESS.code(), "仅系统管理员可访问审计日志");
+        }
     }
 }

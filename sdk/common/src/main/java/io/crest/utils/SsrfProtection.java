@@ -8,7 +8,7 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Locale;
 
 /**
  * SSRF 防护工具类
@@ -36,13 +36,6 @@ public class SsrfProtection {
             "169.254.169.254",
             "metadata.google.internal",
             "metadata.goog"
-    );
-
-    /**
-     * 私有 IP 正则表达式
-     */
-    private static final Pattern PRIVATE_IP_PATTERN = Pattern.compile(
-            "^(10\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.|192\\.168\\.)"
     );
 
     /**
@@ -74,39 +67,24 @@ public class SsrfProtection {
             }
 
             // 3. 检查黑名单主机
-            String hostLower = host.toLowerCase();
-            if (BLOCKED_HOSTS.contains(hostLower)) {
+            String normalizedHost = normalizeHost(host);
+            if (BLOCKED_HOSTS.contains(normalizedHost)) {
                 throw new DEException(ResultCode.PARAM_IS_INVALID.code(),
                         "不允许访问内部地址: " + host);
             }
 
-            // 4. 检查是否为 IP 地址
-            if (isIpAddress(host)) {
-                // 检查私有 IP
-                if (PRIVATE_IP_PATTERN.matcher(host).matches()) {
-                    throw new DEException(ResultCode.PARAM_IS_INVALID.code(),
-                            "不允许访问私有网络地址: " + host);
+            // 4. 解析主机名并检查所有解析结果，避免非标准 IP 表示法和 DNS 指向内网的绕过。
+            try {
+                InetAddress[] addresses = InetAddress.getAllByName(normalizedHost);
+                for (InetAddress address : addresses) {
+                    if (isBlockedAddress(address)) {
+                        throw new DEException(ResultCode.PARAM_IS_INVALID.code(),
+                                "不允许访问内部网络地址: " + host);
+                    }
                 }
-
-                // 解析 IP 并检查是否为回环/链路本地地址
-                try {
-                    InetAddress address = InetAddress.getByName(host);
-                    if (address.isLoopbackAddress()) {
-                        throw new DEException(ResultCode.PARAM_IS_INVALID.code(),
-                                "不允许访问回环地址");
-                    }
-                    if (address.isLinkLocalAddress()) {
-                        throw new DEException(ResultCode.PARAM_IS_INVALID.code(),
-                                "不允许访问链路本地地址");
-                    }
-                    if (address.isSiteLocalAddress()) {
-                        throw new DEException(ResultCode.PARAM_IS_INVALID.code(),
-                                "不允许访问站点本地地址");
-                    }
-                } catch (UnknownHostException e) {
-                    throw new DEException(ResultCode.PARAM_IS_INVALID.code(),
-                            "无法解析主机名: " + host);
-                }
+            } catch (UnknownHostException e) {
+                throw new DEException(ResultCode.PARAM_IS_INVALID.code(),
+                        "无法解析主机名: " + host);
             }
 
             // 5. 检查端口（可选，阻止常见内部服务端口）
@@ -129,10 +107,34 @@ public class SsrfProtection {
         }
     }
 
-    /**
-     * 判断字符串是否为 IP 地址
-     */
-    private static boolean isIpAddress(String host) {
-        return host.matches("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$");
+    private static String normalizeHost(String host) {
+        String normalized = host.trim().toLowerCase(Locale.ROOT);
+        if (normalized.startsWith("[") && normalized.endsWith("]")) {
+            normalized = normalized.substring(1, normalized.length() - 1);
+        }
+        if (normalized.endsWith(".")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        return normalized;
+    }
+
+    private static boolean isBlockedAddress(InetAddress address) {
+        if (address.isAnyLocalAddress()
+                || address.isLoopbackAddress()
+                || address.isLinkLocalAddress()
+                || address.isSiteLocalAddress()
+                || address.isMulticastAddress()) {
+            return true;
+        }
+        byte[] bytes = address.getAddress();
+        if (bytes.length == 4) {
+            int first = bytes[0] & 0xff;
+            int second = bytes[1] & 0xff;
+            return first == 0
+                    || first == 127
+                    || first == 169 && second == 254
+                    || first == 100 && second >= 64 && second <= 127;
+        }
+        return bytes.length == 16 && (bytes[0] & 0xfe) == 0xfc;
     }
 }

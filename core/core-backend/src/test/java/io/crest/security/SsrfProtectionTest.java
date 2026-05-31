@@ -19,6 +19,9 @@ class SsrfProtectionTest {
     @ParameterizedTest
     @ValueSource(strings = {
             "http://127.0.0.1/",
+            "http://127.1/",
+            "http://2130706433/",
+            "http://[::1]/",
             "http://localhost/",
             "http://0.0.0.0/",
             "http://169.254.169.254/latest/meta-data/",
@@ -37,13 +40,13 @@ class SsrfProtectionTest {
     @Test
     @DisplayName("应允许访问外部 HTTP 地址")
     void shouldAllowExternalHttp() {
-        assertDoesNotThrow(() -> SsrfProtection.validateUrl("http://example.com/"));
+        assertDoesNotThrow(() -> SsrfProtection.validateUrl("http://93.184.216.34/"));
     }
 
     @Test
     @DisplayName("应允许访问外部 HTTPS 地址")
     void shouldAllowExternalHttps() {
-        assertDoesNotThrow(() -> SsrfProtection.validateUrl("https://example.com/"));
+        assertDoesNotThrow(() -> SsrfProtection.validateUrl("https://93.184.216.34/"));
     }
 
     @Test
