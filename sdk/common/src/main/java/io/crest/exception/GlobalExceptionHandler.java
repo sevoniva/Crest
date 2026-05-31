@@ -14,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
@@ -47,6 +48,13 @@ public class GlobalExceptionHandler {
         String message = StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName());
         LogUtil.debug(message);
         return new ResultMessage(ResultCode.RESOURCE_NOT_FOUND.code(), message);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    public ResultMessage methodNotSupportedExceptionHandler(HttpRequestMethodNotSupportedException e) {
+        LogUtil.debug(StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName()));
+        return new ResultMessage(HttpStatus.METHOD_NOT_ALLOWED.value(), "请求方法不支持");
     }
 
     @ExceptionHandler(NullPointerException.class)
