@@ -11,6 +11,9 @@ import io.crest.api.permissions.auth.vo.PermissionItem;
 import io.crest.api.permissions.auth.vo.PermissionVO;
 import io.crest.api.permissions.auth.vo.ResourceItemVO;
 import io.crest.api.permissions.auth.vo.ResourceVO;
+import io.crest.constant.LogOT;
+import io.crest.constant.LogST;
+import io.crest.log.DeLog;
 import io.crest.utils.IDUtils;
 import jakarta.annotation.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -124,6 +127,7 @@ public class SubstituleAuthServer implements AuthApi {
     }
 
     @Override
+    @DeLog(ot = LogOT.AUTHORIZE, st = LogST.DATA, id = "#p0.id")
     public void saveBusiPer(BusiPerEditor editor) {
         platformPermissionManage.requireSystemAdmin();
         String targetType = targetType(editor.getType());
@@ -141,6 +145,7 @@ public class SubstituleAuthServer implements AuthApi {
     }
 
     @Override
+    @DeLog(ot = LogOT.AUTHORIZE, st = LogST.DATA)
     public void saveBusiTargetPer(BusiTargetPerCreator creator) {
         platformPermissionManage.requireSystemAdmin();
         if (creator.getPermissions() == null || creator.getIds() == null) {
@@ -160,6 +165,7 @@ public class SubstituleAuthServer implements AuthApi {
     }
 
     @Override
+    @DeLog(ot = LogOT.AUTHORIZE, st = LogST.MENU, id = "#p0.id")
     public void saveMenuPer(MenuPerEditor editor) {
         platformPermissionManage.requireSystemAdmin();
         jdbcTemplate.update("DELETE FROM crest_role_menu_permission WHERE rid = ?", editor.getId());
@@ -176,6 +182,7 @@ public class SubstituleAuthServer implements AuthApi {
     }
 
     @Override
+    @DeLog(ot = LogOT.AUTHORIZE, st = LogST.MENU)
     public void saveMenuTargetPer(MenuTargetPerCreator creator) {
         platformPermissionManage.requireSystemAdmin();
         if (creator.getPermissions() == null || creator.getIds() == null) {

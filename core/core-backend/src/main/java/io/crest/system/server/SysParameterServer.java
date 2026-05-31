@@ -5,9 +5,12 @@ import io.crest.api.system.request.SQLBotConfigCreator;
 import io.crest.api.system.vo.SQLBotConfigVO;
 import io.crest.api.system.vo.SettingItemVO;
 import io.crest.api.system.vo.ShareBaseVO;
+import io.crest.constant.LogOT;
+import io.crest.constant.LogST;
 import io.crest.constant.StaticResourceConstants;
 import io.crest.constant.SystemSettingConstants;
 import io.crest.exception.DEException;
+import io.crest.log.DeLog;
 import io.crest.system.dao.auto.entity.CoreSysSetting;
 import io.crest.system.manage.SysParameterManage;
 import io.crest.utils.CrestPermissionUtils;
@@ -49,6 +52,7 @@ public class SysParameterServer implements SysParameterApi {
     }
 
     @Override
+    @DeLog(ot = LogOT.MODIFY, st = LogST.DATA)
     public void saveBasicSetting(List<SettingItemVO> settingItemVOS) {
         CrestPermissionUtils.requireAdmin();
         sysParameterManage.saveBasic(settingItemVOS);
@@ -141,6 +145,7 @@ public class SysParameterServer implements SysParameterApi {
     }
 
     @Override
+    @DeLog(ot = LogOT.MODIFY, st = LogST.DATA)
     public void saveSqlBotConfig(SQLBotConfigCreator creator) {
         assertFullModeFeature();
         sysParameterManage.saveSqlBotConfig(creator);

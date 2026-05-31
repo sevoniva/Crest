@@ -71,7 +71,7 @@ onMounted(loadTable)
 <template>
   <div class="manage-page">
     <p class="router-title">角色管理</p>
-    <section class="content-card">
+    <section class="content-card role-card">
       <div class="card-head">
         <div class="head-main">
           <div class="head-title">角色列表</div>
@@ -160,5 +160,10 @@ onMounted(loadTable)
 }
 .manage-table {
   padding: 8px 8px 12px;
+}
+.role-card {
+  .card-head {
+    border-bottom: 0;
+  }
 }
 </style>

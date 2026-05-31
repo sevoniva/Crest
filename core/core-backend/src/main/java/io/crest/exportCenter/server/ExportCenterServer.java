@@ -3,9 +3,12 @@ package io.crest.exportCenter.server;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.crest.api.exportCenter.ExportCenterApi;
+import io.crest.constant.LogOT;
+import io.crest.constant.LogST;
 import io.crest.exception.DEException;
 import io.crest.exportCenter.manage.ExportCenterManage;
 import io.crest.exportCenter.util.ExportCenterUtils;
+import io.crest.log.DeLog;
 import io.crest.model.ExportTaskDTO;
 import io.crest.result.ResultMessage;
 import io.crest.utils.JsonUtil;
@@ -41,21 +44,25 @@ public class ExportCenterServer implements ExportCenterApi {
     }
 
     @Override
+    @DeLog(id = "#p0", ot = LogOT.DELETE, st = LogST.DATA)
     public void delete(String id) {
         exportCenterManage.delete(id);
     }
 
     @Override
+    @DeLog(ot = LogOT.DELETE, st = LogST.DATA)
     public void delete(List<String> ids) {
         exportCenterManage.delete(ids);
     }
 
     @Override
+    @DeLog(ot = LogOT.CLEAR, st = LogST.DATA)
     public void deleteAll(String type) {
         exportCenterManage.deleteAll(type);
     }
 
     @Override
+    @DeLog(id = "#p0", ot = LogOT.DOWNLOAD, st = LogST.DATA)
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void download(String id, String ticket, HttpServletResponse response) throws Exception {
         try {
@@ -77,11 +84,13 @@ public class ExportCenterServer implements ExportCenterApi {
     }
 
     @Override
+    @DeLog(id = "#p0", ot = LogOT.DOWNLOAD, st = LogST.DATA)
     public String generateDownloadUri(String id) throws Exception {
         return exportCenterManage.generateDownloadUri(id);
     }
 
     @Override
+    @DeLog(id = "#p0", ot = LogOT.MODIFY, st = LogST.DATA)
     public void retry(String id) {
         exportCenterManage.retry(id);
     }

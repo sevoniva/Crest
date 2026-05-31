@@ -11,6 +11,9 @@ import io.crest.api.permissions.role.dto.UnmountUserRequest;
 import io.crest.api.permissions.role.vo.ExternalUserVO;
 import io.crest.api.permissions.role.vo.RoleDetailVO;
 import io.crest.api.permissions.role.vo.RoleVO;
+import io.crest.constant.LogOT;
+import io.crest.constant.LogST;
+import io.crest.log.DeLog;
 import io.crest.model.KeywordRequest;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,21 +34,25 @@ public class SubstituteRoleServer implements RoleApi {
     }
 
     @Override
+    @DeLog(ot = LogOT.CREATE, st = LogST.ROLE)
     public Long create(RoleCreator creator) {
         return crestRoleManage.create(creator);
     }
 
     @Override
+    @DeLog(ot = LogOT.MODIFY, st = LogST.ROLE, id = "#p0.id")
     public void edit(RoleEditor editor) {
         crestRoleManage.edit(editor);
     }
 
     @Override
+    @DeLog(ot = LogOT.BIND, st = LogST.ROLE, id = "#p0.rid")
     public void mountUser(MountUserRequest request) {
         crestRoleManage.mountUsers(request.getRid(), request.getUids());
     }
 
     @Override
+    @DeLog(ot = LogOT.BIND, st = LogST.ROLE, id = "#p0.rid")
     public void mountExternalUser(MountExternalUserRequest request) {
         crestRoleManage.mountUsers(request.getRid(), List.of(request.getUid()));
     }
@@ -56,6 +63,7 @@ public class SubstituteRoleServer implements RoleApi {
     }
 
     @Override
+    @DeLog(ot = LogOT.UNBIND, st = LogST.ROLE, id = "#p0.rid")
     public void unMountUser(UnmountUserRequest request) {
         crestRoleManage.unmountUser(request.getRid(), request.getUid());
     }
@@ -79,6 +87,7 @@ public class SubstituteRoleServer implements RoleApi {
     }
 
     @Override
+    @DeLog(ot = LogOT.DELETE, st = LogST.ROLE, id = "#p0")
     public void delete(Long rid) {
         crestRoleManage.delete(rid);
     }
@@ -89,6 +98,7 @@ public class SubstituteRoleServer implements RoleApi {
     }
 
     @Override
+    @DeLog(ot = LogOT.CREATE, st = LogST.ROLE, id = "#p0.copyId")
     public void copy(RoleCopyRequest request) {
         RoleDetailVO detail = crestRoleManage.detail(request.getCopyId());
         RoleCreator creator = new RoleCreator();

@@ -15,8 +15,6 @@ import io.crest.api.export.BaseExportApi;
 import io.crest.auth.bo.TokenUserBO;
 import io.crest.auth.config.SubstituleLoginConfig;
 import io.crest.commons.utils.ExcelWatermarkUtils;
-import io.crest.constant.LogOT;
-import io.crest.constant.LogST;
 import io.crest.dataset.manage.*;
 import io.crest.exception.DEException;
 import io.crest.exportCenter.dao.auto.entity.CoreExportDownloadTask;
@@ -25,7 +23,6 @@ import io.crest.exportCenter.dao.auto.mapper.CoreExportDownloadTaskMapper;
 import io.crest.exportCenter.dao.auto.mapper.CoreExportTaskMapper;
 import io.crest.exportCenter.dao.ext.mapper.ExportTaskExtMapper;
 import io.crest.i18n.Translator;
-import io.crest.log.DeLog;
 import io.crest.model.ExportTaskDTO;
 import io.crest.system.manage.SysParameterManage;
 import io.crest.utils.*;
@@ -330,7 +327,6 @@ public class ExportCenterManage implements BaseExportApi {
         }
     }
 
-    @DeLog(id = "#p0", ot = LogOT.DOWNLOAD, st = LogST.DATA)
     public String generateDownloadUri(String id) {
         CoreExportTask exportTask = getCurrentUserExportTask(id);
         long createTime = System.currentTimeMillis();

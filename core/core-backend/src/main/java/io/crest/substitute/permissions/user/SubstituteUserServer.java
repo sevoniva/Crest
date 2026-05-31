@@ -160,12 +160,14 @@ public class SubstituteUserServer {
     }
 
     @PostMapping("/batchImport")
+    @DeLog(ot = LogOT.UPLOADFILE, st = LogST.USER)
     public UserImportVO batchImport(@RequestParam("file") MultipartFile file) throws Exception {
         CrestPermissionUtils.requireAdmin();
         return crestUserManage.importUsers(file);
     }
 
     @PostMapping("/batchDel")
+    @DeLog(ot = LogOT.DELETE, st = LogST.USER)
     public void batchDel(@RequestBody List<Long> ids) {
         CrestPermissionUtils.requireAdmin();
         if (ids != null) {
@@ -174,6 +176,7 @@ public class SubstituteUserServer {
     }
 
     @PostMapping("/excelTemplate")
+    @DeLog(ot = LogOT.DOWNLOAD, st = LogST.USER)
     public void excelTemplate(HttpServletResponse response) throws Exception {
         CrestPermissionUtils.requireAdmin();
         UserImportRow row = new UserImportRow();

@@ -643,6 +643,7 @@ public class ExportCenterDownLoadManage {
         }
     }
 
+    @DeLog(id = "#p0.id", ot = LogOT.EXPORT, st = LogST.DATASET)
     public void downloadDataset(DataSetExportRequest request, HttpServletResponse response) throws Exception {
         OutputStream outputStream = response.getOutputStream();
         try {
