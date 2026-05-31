@@ -39,6 +39,7 @@ public class CrestOrgManage {
                 """, (rs, rowNum) -> {
             OrgPageVO vo = new OrgPageVO();
             vo.setId(rs.getLong("id"));
+            vo.setPid(rs.getLong("pid"));
             vo.setName(rs.getString("name"));
             vo.setCreateTime(rs.getLong("create_time"));
             vo.setReadOnly(rs.getBoolean("readonly"));

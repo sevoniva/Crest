@@ -24,6 +24,7 @@ public class PlatformPermissionManage {
     public static final long ROOT_ORG_ID = 1L;
     public static final long SYSTEM_ADMIN_ROLE_ID = 1L;
     public static final long MEMBER_ROLE_ID = 2L;
+    public static final long AUDITOR_ROLE_ID = 3L;
 
     @Resource
     private JdbcTemplate jdbcTemplate;
@@ -103,12 +104,28 @@ public class PlatformPermissionManage {
 
     @Transactional
     public void replaceUserRoles(Long uid, List<Long> roleIds) {
-        Long oid = defaultOrgId(uid);
+        replaceUserRoles(uid, defaultOrgId(uid), roleIds);
+    }
+
+    @Transactional
+    public void replaceUserRoles(Long uid, Long oid, List<Long> roleIds) {
+        oid = oid == null ? defaultOrgId(uid) : oid;
         jdbcTemplate.update("DELETE FROM crest_user_role WHERE uid = ? AND oid = ?", uid, oid);
         List<Long> effectiveRoleIds = roleIds == null || roleIds.isEmpty() ? List.of(MEMBER_ROLE_ID) : roleIds;
         for (Long roleId : effectiveRoleIds) {
             bindUserToRole(uid, oid, roleId);
         }
+    }
+
+    @Transactional
+    public void replaceUserDefaultOrg(Long uid, Long oid) {
+        bindUserToOrg(uid, oid == null ? ROOT_ORG_ID : oid, true);
+    }
+
+    public String orgName(Long oid) {
+        List<String> names = jdbcTemplate.queryForList("SELECT name FROM crest_org WHERE id = ? LIMIT 1",
+                String.class, oid == null ? ROOT_ORG_ID : oid);
+        return names.isEmpty() ? null : names.get(0);
     }
 
     @Transactional

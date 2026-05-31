@@ -20,6 +20,11 @@ public class UserGridVO {
     private String name;
     @Schema(description = "角色")
     private List<UserGridRoleItem> roleItems;
+    @Schema(description = "组织ID")
+    @JsonSerialize(using= ToStringSerializer.class)
+    private Long oid;
+    @Schema(description = "组织名称")
+    private String orgName;
     @Schema(description = "邮箱")
     private String email;
     @Schema(description = "电话前缀")

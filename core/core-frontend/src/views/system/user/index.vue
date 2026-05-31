@@ -3,16 +3,22 @@ import { onMounted, reactive, ref } from 'vue'
 import request from '@/config/axios'
 import { ElMessage, ElMessageBox } from 'element-plus-secondary'
 import dayjs from 'dayjs'
+import PlatformOrgTree from '../common/PlatformOrgTree.vue'
 
 const loading = ref(false)
 const keyword = ref('')
 const tableData = ref<any[]>([])
+const selectedRows = ref<any[]>([])
 const pager = reactive({ currentPage: 1, pageSize: 15, total: 0 })
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const roleOptions = ref<any[]>([])
+const orgOptions = ref<any[]>([])
+const selectedOrgId = ref<any>(null)
+const selectedOrgName = ref('全部组织')
 const form = reactive<any>({
   id: null,
+  oid: null,
   account: '',
   name: '',
   email: '',
@@ -31,7 +37,7 @@ const loadTable = async () => {
   try {
     const res = await request.post({
       url: `/user/pager/${pager.currentPage}/${pager.pageSize}`,
-      data: { keyword: keyword.value, timeDesc: true }
+      data: { keyword: keyword.value, oid: selectedOrgId.value, timeDesc: true }
     })
     tableData.value = res.data?.records || []
     pager.total = Number(res.data?.total || 0)
@@ -41,13 +47,34 @@ const loadTable = async () => {
 }
 
 const loadRoles = async () => {
-  const res = await request.post({ url: '/role/byCurOrg', data: {} })
+  const res = selectedOrgId.value
+    ? await request.get({ url: `/role/queryWithOid/${selectedOrgId.value}` })
+    : await request.post({ url: '/role/byCurOrg', data: {} })
+  roleOptions.value = res.data || []
+}
+
+const loadOrgOptions = async () => {
+  const res = await request.post({ url: '/org/page/tree', data: {} })
+  orgOptions.value = res.data || []
+}
+
+const onOrgChange = async node => {
+  selectedOrgName.value = node?.name || '全部组织'
+  pager.currentPage = 1
+  await Promise.all([loadTable(), loadRoles()])
+}
+
+const onFormOrgChange = async () => {
+  const res = form.oid
+    ? await request.get({ url: `/role/queryWithOid/${form.oid}` })
+    : await request.post({ url: '/role/byCurOrg', data: {} })
   roleOptions.value = res.data || []
 }
 
 const resetForm = () => {
   Object.assign(form, {
     id: null,
+    oid: selectedOrgId.value,
     account: '',
     name: '',
     email: '',
@@ -60,6 +87,7 @@ const resetForm = () => {
 
 const openCreate = () => {
   resetForm()
+  onFormOrgChange()
   isEdit.value = false
   dialogVisible.value = true
 }
@@ -67,9 +95,11 @@ const openCreate = () => {
 const openEdit = async row => {
   const res = await request.get({ url: `/user/queryById/${row.id}` })
   Object.assign(form, res.data || row)
+  form.oid = res.data?.oid || row.oid || selectedOrgId.value
   form.roleIds = (res.data?.roleIds || row.roleItems?.map(role => String(role.id)) || ['2']).map(
     Number
   )
+  await onFormOrgChange()
   isEdit.value = true
   dialogVisible.value = true
 }
@@ -77,6 +107,10 @@ const openEdit = async row => {
 const save = async () => {
   if (!form.account?.trim() || !form.name?.trim()) {
     ElMessage.warning('账号和姓名不能为空')
+    return
+  }
+  if (!form.oid) {
+    ElMessage.warning('请选择所属组织')
     return
   }
   await request.post({ url: isEdit.value ? '/user/edit' : '/user/create', data: form })
@@ -112,91 +146,170 @@ const remove = async row => {
   await loadTable()
 }
 
+const batchRemove = async () => {
+  if (!selectedRows.value.length) {
+    ElMessage.warning('请选择用户')
+    return
+  }
+  await ElMessageBox.confirm(`确认删除已选择的 ${selectedRows.value.length} 个用户？`, '批量删除', {
+    confirmButtonText: '删除',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+  await request.post({ url: '/user/batchDel', data: selectedRows.value.map(row => row.id) })
+  ElMessage.success('用户已删除')
+  selectedRows.value = []
+  await loadTable()
+}
+
+const downloadTemplate = async () => {
+  const res: any = await request.post({ url: '/user/excelTemplate', responseType: 'blob' })
+  const blob = new Blob([res.data], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'user-import-template.xlsx'
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+const importUsers = async options => {
+  const data = new FormData()
+  data.append('file', options.file)
+  const res = await request.post({
+    url: '/user/batchImport',
+    headersType: 'multipart/form-data',
+    data
+  })
+  ElMessage.success(`导入完成：成功 ${res.data?.successCount || 0}，失败 ${res.data?.errorCount || 0}`)
+  await loadTable()
+}
+
 onMounted(async () => {
-  await Promise.all([loadTable(), loadRoles()])
+  await Promise.all([loadTable(), loadRoles(), loadOrgOptions()])
 })
 </script>
 
 <template>
   <div class="user-manage">
     <p class="router-title">用户管理</p>
-    <div class="table-wrap">
-      <div class="toolbar">
-        <el-input
-          v-model="keyword"
-          clearable
-          placeholder="搜索账号、姓名或邮箱"
-          @change="loadTable"
-        />
-        <el-button type="primary" @click="loadTable">查询</el-button>
-        <el-button type="primary" @click="openCreate">新建用户</el-button>
-      </div>
-        <el-table v-loading="loading" :data="tableData" max-height="calc(100vh - 300px)">
-        <el-table-column prop="account" label="账号" min-width="140" />
-        <el-table-column prop="name" label="姓名" min-width="140" />
-        <el-table-column prop="email" label="邮箱" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="phone" label="电话" min-width="140" />
-        <el-table-column label="认证来源" width="120">
-          <template #default="{ row }">
-            <el-tag :type="authTypeTag(row)">{{ authTypeLabel(row) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.enable ? 'success' : 'info'">{{
-              row.enable ? '启用' : '停用'
-            }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="角色" width="120">
-          <template #default="{ row }">
-            <el-tag
-              :type="row.roleItems?.some(role => String(role.id) === '1') ? 'warning' : 'info'"
-            >
-              {{ row.roleItems?.some(role => String(role.id) === '1') ? '管理员' : '普通用户' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="创建时间" width="180">
-          <template #default="{ row }">
-            {{ row.createTime ? dayjs(Number(row.createTime)).format('YYYY-MM-DD HH:mm:ss') : '-' }}
-          </template>
-        </el-table-column>
-        <el-table-column label="最近登录" width="180">
-          <template #default="{ row }">
-            {{
-              row.lastLoginTime ? dayjs(Number(row.lastLoginTime)).format('YYYY-MM-DD HH:mm:ss') : '-'
-            }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="260" fixed="right">
-          <template #default="{ row }">
-            <el-button text type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button text type="primary" @click="toggleEnable(row)">{{
-              row.enable ? '停用' : '启用'
-            }}</el-button>
-            <el-button v-if="!isSsoUser(row)" text type="primary" @click="resetPwd(row)"
-              >重置密码</el-button
-            >
-            <el-button v-if="String(row.id) !== '1'" text type="danger" @click="remove(row)"
-              >删除</el-button
-            >
-          </template>
-        </el-table-column>
-      </el-table>
-      <div class="pager">
-        <el-pagination
-          v-model:current-page="pager.currentPage"
-          v-model:page-size="pager.pageSize"
-          layout="total, sizes, prev, pager, next"
-          :total="pager.total"
-          @size-change="loadTable"
-          @current-change="loadTable"
-        />
-      </div>
+    <div class="manage-layout">
+      <PlatformOrgTree v-model="selectedOrgId" selectable-all @change="onOrgChange" />
+      <section class="table-wrap">
+        <div class="toolbar">
+          <div>
+            <div class="toolbar-title">{{ selectedOrgName }}</div>
+            <div class="toolbar-sub">按组织查看用户、角色和账号状态</div>
+          </div>
+          <div class="toolbar-actions">
+            <el-input
+              v-model="keyword"
+              clearable
+              placeholder="搜索账号、姓名或邮箱"
+              @change="loadTable"
+            />
+            <el-button type="primary" @click="loadTable">查询</el-button>
+            <el-button type="primary" @click="openCreate">新建用户</el-button>
+            <el-button :disabled="!selectedRows.length" @click="batchRemove">批量删除</el-button>
+            <el-button @click="downloadTemplate">下载模板</el-button>
+            <el-upload :show-file-list="false" :http-request="importUsers" accept=".xlsx,.xls,.csv">
+              <el-button>批量导入</el-button>
+            </el-upload>
+          </div>
+        </div>
+        <el-table
+          v-loading="loading"
+          :data="tableData"
+          max-height="calc(100vh - 342px)"
+          @selection-change="selectedRows = $event"
+        >
+          <el-table-column type="selection" width="48" />
+          <el-table-column prop="account" label="账号" min-width="140" />
+          <el-table-column prop="name" label="姓名" min-width="140" />
+          <el-table-column prop="orgName" label="所属组织" min-width="150" show-overflow-tooltip />
+          <el-table-column prop="email" label="邮箱" min-width="180" show-overflow-tooltip />
+          <el-table-column label="认证来源" width="120">
+            <template #default="{ row }">
+              <el-tag :type="authTypeTag(row)">{{ authTypeLabel(row) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.enable ? 'success' : 'info'">{{
+                row.enable ? '启用' : '停用'
+              }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="角色" min-width="190">
+            <template #default="{ row }">
+              <div class="role-tags">
+                <el-tag v-for="role in row.roleItems || []" :key="role.id" type="info">
+                  {{ role.name }}
+                </el-tag>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="创建时间" width="180">
+            <template #default="{ row }">
+              {{
+                row.createTime ? dayjs(Number(row.createTime)).format('YYYY-MM-DD HH:mm:ss') : '-'
+              }}
+            </template>
+          </el-table-column>
+          <el-table-column label="最近登录" width="180">
+            <template #default="{ row }">
+              {{
+                row.lastLoginTime
+                  ? dayjs(Number(row.lastLoginTime)).format('YYYY-MM-DD HH:mm:ss')
+                  : '-'
+              }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="260" fixed="right">
+            <template #default="{ row }">
+              <el-button text type="primary" @click="openEdit(row)">编辑</el-button>
+              <el-button text type="primary" @click="toggleEnable(row)">{{
+                row.enable ? '停用' : '启用'
+              }}</el-button>
+              <el-button v-if="!isSsoUser(row)" text type="primary" @click="resetPwd(row)"
+                >重置密码</el-button
+              >
+              <el-button v-if="String(row.id) !== '1'" text type="danger" @click="remove(row)"
+                >删除</el-button
+              >
+            </template>
+          </el-table-column>
+        </el-table>
+        <div class="pager">
+          <el-pagination
+            v-model:current-page="pager.currentPage"
+            v-model:page-size="pager.pageSize"
+            layout="total, sizes, prev, pager, next"
+            :total="pager.total"
+            @size-change="loadTable"
+            @current-change="loadTable"
+          />
+        </div>
+      </section>
     </div>
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑用户' : '新建用户'" width="520px">
+
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑用户' : '新建用户'" width="560px">
       <el-form label-position="top">
+        <el-form-item label="所属组织" required>
+          <el-tree-select
+            v-model="form.oid"
+            :data="orgOptions"
+            node-key="id"
+            check-strictly
+            filterable
+            default-expand-all
+            :props="{ children: 'children', label: 'name' }"
+            placeholder="请选择所属组织"
+            @change="onFormOrgChange"
+          />
+        </el-form-item>
         <el-form-item label="账号" required>
           <el-input
             v-model.trim="form.account"
@@ -250,29 +363,64 @@ onMounted(async () => {
 }
 .router-title {
   margin: 0 0 16px;
+  color: #0f172a;
   font-size: 18px;
   font-weight: 700;
-  color: #0f172a;
 }
-.toolbar {
-  display: flex;
-  gap: 12px;
-  padding: 16px;
-  background: #fff;
-  border-radius: 12px 12px 0 0;
-  .ed-input {
-    width: 280px;
-  }
+.manage-layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
 }
 .table-wrap {
-  height: auto;
-  min-height: 0;
-  margin-top: 12px;
+  min-width: 0;
+  overflow: hidden;
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  overflow: hidden;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 16px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+.toolbar-title {
+  min-width: 120px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  white-space: nowrap;
+}
+.toolbar-sub {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12px;
+}
+.toolbar-actions {
+  display: flex;
+  flex: 1 1 620px;
+  justify-content: flex-end;
+  min-width: min(100%, 620px);
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  .ed-input {
+    flex: 1 1 240px;
+    max-width: 320px;
+  }
+}
+.role-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 .pager {
   display: flex;

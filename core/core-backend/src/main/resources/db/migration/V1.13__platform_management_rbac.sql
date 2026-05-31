@@ -100,13 +100,14 @@ VALUES (1, 0, '默认组织', 'default', '/1/', 0, 0, 1, 1, 1779664240000, 17796
 INSERT IGNORE INTO `crest_role` (`id`, `oid`, `name`, `code`, `description`, `type_code`, `readonly`, `system_role`, `org_admin`, `create_time`, `update_time`)
 VALUES
   (1, 1, '系统管理员', 'system_admin', '拥有全部系统管理和资源管理权限', 1, 1, 1, 1, 1779664240000, 1779664240000),
-  (2, 1, '普通用户', 'member', '默认业务使用角色', 2, 1, 1, 0, 1779664240000, 1779664240000);
+  (2, 1, '普通用户', 'member', '默认业务使用角色', 2, 0, 1, 0, 1779664240000, 1779664240000),
+  (3, 1, '审计只读', 'auditor', '面向审计和巡检场景的只读角色', 3, 1, 1, 0, 1779664240000, 1779664240000);
 
 INSERT IGNORE INTO `core_menu` (`id`, `pid`, `type`, `name`, `component`, `menu_sort`, `icon`, `path`, `hidden`, `in_layout`, `auth`)
 VALUES
-  (73, 15, 2, 'org-management', 'system/org', 5, 'icon_org', '/org-management', 0, 1, 1),
-  (74, 15, 2, 'role-management', 'system/role', 6, 'icon_member_outlined', '/role-management', 0, 1, 1),
-  (75, 15, 2, 'permission-management', 'system/permission', 7, 'icon_authority', '/permission-management', 0, 1, 1);
+  (73, 15, 2, 'org-management', 'system/org', 5, 'org', '/org-management', 0, 1, 1),
+  (74, 15, 2, 'role-management', 'system/role', 6, 'peoples', '/role-management', 0, 1, 1),
+  (75, 15, 2, 'permission-management', 'system/permission', 7, 'auth', '/permission-management', 0, 1, 1);
 
 INSERT IGNORE INTO `crest_user_org` (`id`, `uid`, `oid`, `default_org`, `create_time`)
 SELECT id, id, 1, 1, COALESCE(create_time, 1779664240000) FROM `crest_user`;
@@ -121,6 +122,9 @@ SELECT id * 100 + 1, 1, id, 'manage', 1779664240000 FROM `core_menu` WHERE `auth
 
 INSERT IGNORE INTO `crest_role_menu_permission` (`id`, `rid`, `menu_id`, `permission`, `create_time`)
 SELECT id * 100 + 2, 2, id, 'read', 1779664240000 FROM `core_menu` WHERE `auth` = 1 AND `id` NOT IN (15, 16, 64, 67, 68, 69, 71, 72);
+
+INSERT IGNORE INTO `crest_role_menu_permission` (`id`, `rid`, `menu_id`, `permission`, `create_time`)
+SELECT id * 100 + 3, 3, id, 'read', 1779664240000 FROM `core_menu` WHERE `auth` = 1 AND `id` NOT IN (15, 16, 64, 67, 68, 69, 71, 72, 73, 74, 75);
 
 INSERT IGNORE INTO `crest_resource_index` (`id`, `resource_id`, `resource_type`, `oid`, `creator`, `name`, `create_time`, `update_time`)
 SELECT CAST(CONV(SUBSTR(MD5(CONCAT('datasource:', id)), 1, 15), 16, 10) AS UNSIGNED), CAST(id AS CHAR), 'datasource', 1, CAST(create_by AS UNSIGNED), name, create_time, update_time

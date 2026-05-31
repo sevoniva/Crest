@@ -260,6 +260,10 @@ public class CrestUserManage {
             }
             where.append(")");
         }
+        if (request != null && request.getOid() != null) {
+            where.append(" AND EXISTS (SELECT 1 FROM crest_user_org uo WHERE uo.uid = crest_user.id AND uo.oid = ?)");
+            args.add(request.getOid());
+        }
         Long total = jdbcTemplate.queryForObject("SELECT COUNT(1) FROM crest_user" + where, Long.class, args.toArray());
         String order = request != null && Boolean.FALSE.equals(request.getTimeDesc()) ? " ASC" : " DESC";
         args.add(Math.max((goPage - 1) * pageSize, 0));
@@ -321,6 +325,7 @@ public class CrestUserManage {
                 creator.setEmail(StringUtils.trimToNull(row.getEmail()));
                 creator.setPhone(StringUtils.trimToNull(row.getPhone()));
                 creator.setEnable(true);
+                creator.setOid(PlatformPermissionManage.ROOT_ORG_ID);
                 creator.setRoleIds(List.of(PlatformPermissionManage.MEMBER_ROLE_ID));
                 create(creator);
                 success++;
@@ -388,8 +393,9 @@ public class CrestUserManage {
                 creator.getPhonePrefix(), creator.getPhone(), PasswordEncoder.encode(password),
                 creator.getEnable() == null || creator.getEnable(), hasAdminRole(creator.getRoleIds()),
                 0, AUTH_TYPE_LOCAL, null, now, now);
-        platformPermissionManage.bindUserToOrg(id, PlatformPermissionManage.ROOT_ORG_ID, true);
-        platformPermissionManage.replaceUserRoles(id, creator.getRoleIds());
+        Long oid = creator.getOid() == null ? PlatformPermissionManage.ROOT_ORG_ID : creator.getOid();
+        platformPermissionManage.bindUserToOrg(id, oid, true);
+        platformPermissionManage.replaceUserRoles(id, oid, creator.getRoleIds());
         return id;
     }
 
@@ -423,7 +429,9 @@ public class CrestUserManage {
                 """, editor.getAccount().trim(), editor.getName().trim(), editor.getEmail(),
                 editor.getPhonePrefix(), editor.getPhone(), editor.getEnable() == null || editor.getEnable(),
                 editor.getId() == 1L || hasAdminRole(editor.getRoleIds()), System.currentTimeMillis(), editor.getId());
-        platformPermissionManage.replaceUserRoles(editor.getId(), editor.getRoleIds());
+        Long oid = editor.getOid() == null ? platformPermissionManage.defaultOrgId(editor.getId()) : editor.getOid();
+        platformPermissionManage.replaceUserDefaultOrg(editor.getId(), oid);
+        platformPermissionManage.replaceUserRoles(editor.getId(), oid, editor.getRoleIds());
     }
 
     @Transactional
@@ -514,6 +522,9 @@ public class CrestUserManage {
         vo.setLastLoginTime(user.getLastLoginTime());
         vo.setModel(AUTH_TYPE_SSO.equalsIgnoreCase(user.getAuthType()) ? "sso" : "local");
         vo.setRoleIds(platformPermissionManage.userRoleIdStrings(user.getId()));
+        Long oid = platformPermissionManage.defaultOrgId(user.getId());
+        vo.setOid(oid);
+        vo.setOrgName(platformPermissionManage.orgName(oid));
         return vo;
     }
 
@@ -532,6 +543,9 @@ public class CrestUserManage {
         vo.setLastLoginTime(user.getLastLoginTime());
         vo.setCreateTime(user.getCreateTime());
         vo.setRoleItems(platformPermissionManage.userRoleItems(user.getId()));
+        Long oid = platformPermissionManage.defaultOrgId(user.getId());
+        vo.setOid(oid);
+        vo.setOrgName(platformPermissionManage.orgName(oid));
         return vo;
     }
 

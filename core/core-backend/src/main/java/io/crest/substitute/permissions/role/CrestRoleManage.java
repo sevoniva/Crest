@@ -97,7 +97,7 @@ public class CrestRoleManage {
         jdbcTemplate.update("""
                 INSERT INTO crest_role(id, oid, name, code, description, type_code, readonly, system_role, org_admin, create_time, update_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, id, currentOid(), creator.getName().trim(), null, creator.getDesc(),
+                """, id, creator.getOid() == null ? currentOid() : creator.getOid(), creator.getName().trim(), null, creator.getDesc(),
                 creator.getTypeCode() == null ? 0 : creator.getTypeCode(), false, false, false, now, now);
         return id;
     }

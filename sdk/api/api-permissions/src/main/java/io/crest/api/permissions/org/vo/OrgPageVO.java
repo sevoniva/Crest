@@ -18,6 +18,9 @@ public class OrgPageVO implements Serializable {
     @Schema(description = "ID")
     @JsonSerialize(using= ToStringSerializer.class)
     private Long id;
+    @Schema(description = "上级ID")
+    @JsonSerialize(using= ToStringSerializer.class)
+    private Long pid;
     @Schema(description = "名称")
     private String name;
     @Schema(description = "创建时间")

@@ -27,6 +27,8 @@ public class UserCreator implements Serializable {
     private String phone;
     @Schema(description = "角色ID集合", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<Long> roleIds;
+    @Schema(description = "组织ID")
+    private Long oid;
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED)
     private Boolean enable;
     @Schema(hidden = true)
