@@ -296,59 +296,66 @@ onMounted(async () => {
           @selection-change="selectedRows = $event"
         >
           <el-table-column type="selection" width="48" />
-          <el-table-column prop="account" label="账号" min-width="140" />
-          <el-table-column prop="name" label="姓名" min-width="140" />
-          <el-table-column prop="orgName" label="所属组织" min-width="150" show-overflow-tooltip />
-          <el-table-column prop="email" label="邮箱" min-width="180" show-overflow-tooltip />
-          <el-table-column label="认证来源" width="120">
+          <el-table-column prop="account" label="账号" min-width="130" show-overflow-tooltip>
             <template #default="{ row }">
-              <el-tag :type="authTypeTag(row)">{{ authTypeLabel(row) }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="状态" width="100">
-            <template #default="{ row }">
-              <el-tag :type="row.enable ? 'success' : 'info'">{{
-                row.enable ? '启用' : '停用'
-              }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="角色" min-width="190">
-            <template #default="{ row }">
-              <div class="role-tags">
-                <el-tag v-for="role in row.roleItems || []" :key="role.id" type="info">
-                  {{ role.name }}
-                </el-tag>
+              <div class="account-cell">
+                <span class="account-name">{{ row.account }}</span>
+                <el-tag v-if="isSsoUser(row)" size="small" type="success" disable-transitions
+                  >SSO</el-tag
+                >
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="创建时间" width="180">
+          <el-table-column prop="name" label="姓名" min-width="110" show-overflow-tooltip />
+          <el-table-column prop="orgName" label="所属组织" min-width="120" show-overflow-tooltip />
+          <el-table-column prop="email" label="邮箱" min-width="160" show-overflow-tooltip />
+          <el-table-column label="角色" min-width="160">
             <template #default="{ row }">
-              {{
-                row.createTime ? dayjs(Number(row.createTime)).format('YYYY-MM-DD HH:mm:ss') : '-'
-              }}
+              <div class="role-tags">
+                <el-tag v-for="role in row.roleItems || []" :key="role.id" size="small" type="info">
+                  {{ role.name }}
+                </el-tag>
+                <span v-if="!(row.roleItems || []).length" class="muted">-</span>
+              </div>
             </template>
           </el-table-column>
-          <el-table-column label="最近登录" width="180">
+          <el-table-column label="状态" width="90">
             <template #default="{ row }">
-              {{
+              <span class="status-dot" :class="{ on: row.enable }"></span>
+              <span>{{ row.enable ? '启用' : '停用' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="最近登录" width="160">
+            <template #default="{ row }">
+              <span class="muted">{{
                 row.lastLoginTime
-                  ? dayjs(Number(row.lastLoginTime)).format('YYYY-MM-DD HH:mm:ss')
-                  : '-'
-              }}
+                  ? dayjs(Number(row.lastLoginTime)).format('YYYY-MM-DD HH:mm')
+                  : '从未登录'
+              }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="260" fixed="right">
+          <el-table-column label="操作" width="220" fixed="right">
             <template #default="{ row }">
               <el-button text type="primary" @click="openEdit(row)">编辑</el-button>
               <el-button text type="primary" @click="toggleEnable(row)">{{
                 row.enable ? '停用' : '启用'
               }}</el-button>
-              <el-button v-if="!isSsoUser(row)" text type="primary" @click="resetPwd(row)"
-                >重置密码</el-button
-              >
-              <el-button v-if="String(row.id) !== '1'" text type="danger" @click="remove(row)"
-                >删除</el-button
-              >
+              <el-dropdown trigger="click">
+                <el-button text type="primary" class="more-btn">更多</el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item v-if="!isSsoUser(row)" @click="resetPwd(row)"
+                      >重置密码</el-dropdown-item
+                    >
+                    <el-dropdown-item
+                      v-if="String(row.id) !== '1'"
+                      class="danger-item"
+                      @click="remove(row)"
+                      >删除</el-dropdown-item
+                    >
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </template>
           </el-table-column>
         </el-table>
@@ -463,6 +470,38 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+.account-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  .account-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: #cbd5e1;
+  border-radius: 50%;
+  &.on {
+    background: #22c55e;
+  }
+}
+.muted {
+  color: #94a3b8;
+}
+.more-btn {
+  padding-left: 4px;
+}
+:deep(.danger-item) {
+  color: #dc2626;
 }
 .pager {
   display: flex;

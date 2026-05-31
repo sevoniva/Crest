@@ -2,6 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import request from '@/config/axios'
 import { ElMessage } from 'element-plus-secondary'
+import { Icon } from '@/components/icon-custom'
+import iconRight from '@/assets/svg/icon_right_outlined.svg'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -197,7 +199,9 @@ onMounted(init)
                 role.readonly ? '只读角色' : role.root ? '系统角色' : '自定义角色'
               }}</small>
             </span>
-            <i :class="{ readonly: role.readonly }"></i>
+            <Icon class="role-arrow" name="icon_right_outlined"
+              ><iconRight class="svg-icon"
+            /></Icon>
           </button>
           <div v-if="!roles.length" class="role-empty">暂无角色</div>
         </el-scrollbar>
@@ -356,15 +360,13 @@ onMounted(init)
     color: #64748b;
     font-size: 12px;
   }
-  i {
+  .role-arrow {
     flex: 0 0 auto;
-    width: 6px;
-    height: 26px;
     margin-left: 8px;
-    background: #3b82f6;
-    border-radius: 999px;
-    &.readonly {
-      background: #94a3b8;
+    color: #cbd5e1;
+    .svg-icon {
+      width: 14px;
+      height: 14px;
     }
   }
   &:hover {
@@ -374,6 +376,9 @@ onMounted(init)
     color: #0f172a;
     background: #eff6ff;
     border-color: #3b82f6;
+    .role-arrow {
+      color: #3b82f6;
+    }
   }
 }
 .role-empty {

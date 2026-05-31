@@ -233,10 +233,12 @@ onMounted(loadTree)
 <style lang="less" scoped>
 .platform-org-tree {
   display: flex;
-  min-width: 260px;
+  flex: 0 0 280px;
+  width: 280px;
+  transition: flex-basis 0.2s, width 0.2s;
   &.collapsed {
-    min-width: 40px;
-    width: 40px;
+    flex: 0 0 44px;
+    width: 44px;
   }
 }
 .rail {
