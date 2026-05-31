@@ -151,10 +151,15 @@ public class GenericAuditLogAspect {
         if (value.contains("/role/")) return LogST.ROLE;
         if (value.contains("/org/")) return LogST.ORG;
         if (value.contains("/auth/")) return LogST.MENU;
+        if (value.contains("/datasourcedriver/")) return LogST.DRIVER;
         if (value.contains("/datasource/")) return LogST.DATASOURCE;
+        if (value.contains("/datasetsync/")) return LogST.SYNC_TASK;
         if (value.contains("/dataset/")) return LogST.DATASET;
         if (value.contains("/datavisualization/")) return value.contains("datav") ? LogST.SCREEN : LogST.PANEL;
         if (value.contains("/chart/")) return LogST.VIEW;
+        if (value.contains("/share/") || value.contains("/ticket/")) return LogST.LINK;
+        if (value.contains("/sysvariable/")) return LogST.DATA;
+        if (value.contains("/staticresource/")) return LogST.DATA;
         if (value.contains("/font/")) return LogST.DATA;
         if (value.contains("/exportcenter/")) return LogST.DATA;
         if (value.contains("/sso/") || value.contains("/sysparameter/")) return LogST.DATA;
@@ -218,6 +223,9 @@ public class GenericAuditLogAspect {
             case "PANEL" -> "仪表盘";
             case "SCREEN" -> "数据大屏";
             case "VIEW" -> "图表";
+            case "LINK" -> "分享链接";
+            case "DRIVER" -> "驱动";
+            case "SYNC_TASK" -> "同步任务";
             default -> "数据";
         };
     }

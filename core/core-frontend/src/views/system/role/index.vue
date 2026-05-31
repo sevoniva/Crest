@@ -159,7 +159,16 @@ onMounted(loadTable)
   }
 }
 .manage-table {
-  padding: 8px 8px 12px;
+  padding: 0 8px 12px;
+
+  :deep(.ed-table__header-wrapper) {
+    border-top: 0;
+  }
+
+  :deep(.ed-table__inner-wrapper::before),
+  :deep(.ed-table__inner-wrapper::after) {
+    display: none;
+  }
 }
 .role-card {
   .card-head {

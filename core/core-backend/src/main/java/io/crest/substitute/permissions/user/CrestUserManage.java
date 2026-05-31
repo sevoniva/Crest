@@ -225,6 +225,14 @@ public class CrestUserManage {
             return queryById(id);
         }
         Long userId = decision.getUserId();
+        CrestUser user = queryById(userId);
+        if (user == null) {
+            DEException.throwException("用户不存在");
+        }
+        if (!AUTH_TYPE_SSO.equalsIgnoreCase(user.getAuthType())) {
+            markLoginSuccess(userId);
+            return queryById(userId);
+        }
         jdbcTemplate.update("""
                 UPDATE crest_user
                 SET account = ?, name = ?, email = ?, auth_type = ?, external_id = ?, origin = ?, last_login_time = ?, update_time = ?

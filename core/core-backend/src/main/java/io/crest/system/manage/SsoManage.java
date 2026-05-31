@@ -42,6 +42,8 @@ import java.io.Serializable;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -180,7 +182,7 @@ public class SsoManage {
             if (StringUtils.isBlank(accessToken)) {
                 throw new IllegalStateException("令牌响应中缺少 access_token");
             }
-            Map<String, Object> claims = fetchUserInfo(config.getUserInfoEndpoint(), accessToken);
+            Map<String, Object> claims = identityClaims(config, token, accessToken);
             SsoIdentityProfile profile = profile(config, claims);
             CrestUser user = ssoLoginIdentityManage.resolve(profile, Boolean.TRUE.equals(config.getAutoCreateUser()), config.getProviderName());
             TokenVO tokenVO = generate(user);
@@ -328,6 +330,48 @@ public class SsoManage {
             throw new IllegalStateException("用户信息端点返回内容不是有效 JSON");
         }
         return result;
+    }
+
+    private Map<String, Object> identityClaims(SsoConfigVO config, Map<String, Object> token, String accessToken) {
+        Map<String, Object> claims = new HashMap<>();
+        mergeNonBlank(claims, jwtClaims(asText(token.get("id_token"))));
+        mergeNonBlank(claims, jwtClaims(accessToken));
+        try {
+            mergeNonBlank(claims, fetchUserInfo(config.getUserInfoEndpoint(), accessToken));
+        } catch (Exception e) {
+            if (claims.isEmpty()) {
+                throw new IllegalStateException(e.getMessage(), e);
+            }
+        }
+        return claims;
+    }
+
+    private Map<String, Object> jwtClaims(String token) {
+        if (StringUtils.isBlank(token)) {
+            return Map.of();
+        }
+        String[] parts = token.split("\\.");
+        if (parts.length < 2) {
+            return Map.of();
+        }
+        try {
+            String payload = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
+            Map<String, Object> result = JsonUtil.parseObject(payload, new TypeReference<>() {});
+            return result == null ? Map.of() : result;
+        } catch (Exception ignored) {
+            return Map.of();
+        }
+    }
+
+    private void mergeNonBlank(Map<String, Object> target, Map<String, Object> source) {
+        if (source == null || source.isEmpty()) {
+            return;
+        }
+        source.forEach((key, value) -> {
+            if (StringUtils.isNotBlank(key) && value != null && StringUtils.isNotBlank(value.toString())) {
+                target.put(key, value);
+            }
+        });
     }
 
     private SsoIdentityProfile profile(SsoConfigVO config, Map<String, Object> claims) {

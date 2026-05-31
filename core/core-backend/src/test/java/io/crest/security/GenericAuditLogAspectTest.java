@@ -114,6 +114,42 @@ class GenericAuditLogAspectTest {
     }
 
     @Test
+    @DisplayName("未标注 DeLog 的分享创建接口应按分享链接归类")
+    void shouldClassifyShareLinkApi() throws Throwable {
+        GenericAuditLogAspect aspect = new GenericAuditLogAspect();
+        injectAuditLogService(aspect);
+        bindRequest("POST", "/share/create");
+        when(signature.getMethod()).thenReturn(TestEndpoint.class.getDeclaredMethod("create"));
+        when(signature.getName()).thenReturn("create");
+        when(point.getSignature()).thenReturn(signature);
+        when(point.proceed()).thenReturn("ok");
+
+        aspect.around(point);
+
+        verify(auditLogService).log(eq(LogOT.CREATE), eq("LINK"), isNull(), contains("分享链接"),
+                eq("POST"), eq("/share/create"), isNull(), isNull(), isNull(), eq("127.0.0.1"),
+                anyLong(), eq(200), eq("success"));
+    }
+
+    @Test
+    @DisplayName("未标注 DeLog 的驱动上传接口应按驱动归类")
+    void shouldClassifyDatasourceDriverApi() throws Throwable {
+        GenericAuditLogAspect aspect = new GenericAuditLogAspect();
+        injectAuditLogService(aspect);
+        bindRequest("POST", "/datasourceDriver/upload");
+        when(signature.getMethod()).thenReturn(TestEndpoint.class.getDeclaredMethod("upload"));
+        when(signature.getName()).thenReturn("upload");
+        when(point.getSignature()).thenReturn(signature);
+        when(point.proceed()).thenReturn("ok");
+
+        aspect.around(point);
+
+        verify(auditLogService).log(eq(LogOT.UPLOADFILE), eq("DRIVER"), isNull(), contains("驱动"),
+                eq("POST"), eq("/datasourceDriver/upload"), isNull(), isNull(), isNull(), eq("127.0.0.1"),
+                anyLong(), eq(200), eq("success"));
+    }
+
+    @Test
     @DisplayName("已标注 DeLog 的接口不应再被兜底审计重复记录")
     void shouldSkipAnnotatedApi() throws Throwable {
         GenericAuditLogAspect aspect = new GenericAuditLogAspect();
@@ -159,6 +195,11 @@ class GenericAuditLogAspectTest {
 
         @GetMapping("/delete")
         public Object delete() {
+            return null;
+        }
+
+        @PostMapping("/upload")
+        public Object upload() {
             return null;
         }
 
