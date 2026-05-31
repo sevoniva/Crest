@@ -98,7 +98,7 @@ public class HtmlResourceFilter implements Filter, Ordered {
     private void applyNoCache(HttpServletResponse response) {
         applySecurityHeaders(response);
         if (httpCache == null || !httpCache) {
-            response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache");
+            response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate");
             response.setHeader("Cache", "no-cache");
             response.setHeader(HttpHeaders.PRAGMA, "no-cache");
             response.setHeader(HttpHeaders.EXPIRES, "0");
@@ -107,8 +107,8 @@ public class HtmlResourceFilter implements Filter, Ordered {
 
     private void applySecurityHeaders(HttpServletResponse response) {
         response.setHeader("X-Content-Type-Options", "nosniff");
-        response.setHeader("Referrer-Policy", "same-origin");
-        response.setHeader("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+        response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+        response.setHeader("Permissions-Policy", "geolocation=(), microphone=(), camera=(), payment=()");
     }
 
     @Override
