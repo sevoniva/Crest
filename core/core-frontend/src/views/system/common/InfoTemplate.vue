@@ -12,8 +12,13 @@
         <el-button type="primary" @click="edit">{{ t('commons.edit') }}</el-button>
       </div>
     </div>
-    <div class="info-template-content clearfix">
-      <div class="info-content-item" v-for="item in settingList" :key="item.pkey">
+    <div class="info-template-content">
+      <div
+        class="info-content-item"
+        :class="{ 'is-wide': isLongValue(item.pval) }"
+        v-for="item in settingList"
+        :key="item.pkey"
+      >
         <div class="info-item-label">
           <span>{{ t(item.pkey) }}</span>
           <el-tooltip
@@ -167,6 +172,8 @@ const getExecuteTime = val => {
   return options.filter(item => item.value === val)[0].label
 }
 
+const isLongValue = val => `${val ?? ''}`.length > 56
+
 const settingList = ref([] as SettingRecord[])
 
 const init = () => {
@@ -222,7 +229,7 @@ formatLabel()
   }
 }
 .info-template-container {
-  padding: 24px 24px 8px 24px;
+  padding: 22px 24px 20px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
@@ -242,12 +249,19 @@ formatLabel()
   }
   .info-template-content {
     width: 100%;
-    margin-top: 12px;
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 56px;
+    row-gap: 22px;
     .info-content-item {
-      width: 50%;
-      float: left;
-      margin-bottom: 16px;
+      width: auto;
+      min-width: 0;
+      margin-bottom: 0;
       min-height: 46px;
+      &.is-wide {
+        grid-column: 1 / -1;
+      }
       .info-item-label {
         height: 22px;
         line-height: 22px;
@@ -264,6 +278,7 @@ formatLabel()
       }
       .info-item-content {
         line-height: 22px;
+        min-width: 0;
         span {
           font-size: 14px;
           color: #0f172a;
@@ -287,12 +302,21 @@ formatLabel()
           }
         }
       }
+      &.is-wide .info-item-content > span {
+        display: block;
+        margin-top: 2px;
+        padding: 10px 12px;
+        max-width: 100%;
+        color: #334155;
+        line-height: 22px;
+        word-break: break-all;
+        white-space: normal;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        font-family: var(--crest-font-mono, 'JetBrains Mono', monospace);
+      }
     }
-  }
-  .clearfix::after {
-    content: '';
-    display: table;
-    clear: both;
   }
 }
 </style>

@@ -9,6 +9,7 @@ import io.crest.utils.CommonBeanFactory;
 import io.crest.utils.LogUtil;
 import io.crest.utils.ServletUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -57,6 +58,11 @@ public class GenericAuditLogAspect {
             responseMsg = e.getMessage();
             throw e;
         } finally {
+            HttpServletResponse response = ServletUtils.response();
+            if (response != null && response.getStatus() >= 400) {
+                responseCode = response.getStatus();
+                responseMsg = responseMsg == null || "success".equals(responseMsg) ? "failed" : responseMsg;
+            }
             auditLogService.log(
                     operationType, resourceType, null, description(operationType, resourceType, requestUrl),
                     requestMethod, requestUrl,
@@ -77,6 +83,9 @@ public class GenericAuditLogAspect {
         }
         if (hasDedicatedAudit(uri)) {
             return false;
+        }
+        if (isManagementReadEndpoint(uri)) {
+            return true;
         }
         if (!"GET".equals(method)) {
             return true;
@@ -116,20 +125,27 @@ public class GenericAuditLogAspect {
     private LogOT operationType(String method, String uri, String methodName) {
         String normalizedUri = uri == null ? "" : uri.toLowerCase(Locale.ROOT);
         String normalizedName = methodName == null ? "" : methodName.toLowerCase(Locale.ROOT);
-        if (normalizedUri.contains("download") || normalizedName.contains("download")) {
-            return LogOT.DOWNLOAD;
-        }
-        if (normalizedUri.contains("export") || normalizedName.contains("export")) {
-            return LogOT.EXPORT;
-        }
         if (normalizedUri.contains("/sso/login") || normalizedUri.contains("/sso/callback")
                 || normalizedUri.contains("/sso/token/")) {
             return LogOT.LOGIN;
         }
+        if (normalizedUri.contains("download") || normalizedName.contains("download")) {
+            return LogOT.DOWNLOAD;
+        }
+        if (containsAny(normalizedUri, "savebusiper", "savebusitargetper", "savemenuper", "savemenutargetper")
+                || containsAny(normalizedName, "savebusiper", "savebusitargetper", "savemenuper", "savemenutargetper")) {
+            return LogOT.AUTHORIZE;
+        }
+        if (isReadOperation(normalizedUri, normalizedName)) {
+            return LogOT.READ;
+        }
+        if (normalizedUri.contains("export") || normalizedName.contains("export")) {
+            return LogOT.EXPORT;
+        }
         if ("DELETE".equalsIgnoreCase(method) || containsAny(normalizedUri, "delete", "batchdel", "remove")) {
             return LogOT.DELETE;
         }
-        if (containsAny(normalizedUri, "authorize", "permission", "savebusiper", "savemenuper")
+        if (containsAny(normalizedUri, "authorize", "permission")
                 || containsAny(normalizedName, "permission", "authorize")) {
             return LogOT.AUTHORIZE;
         }
@@ -150,7 +166,8 @@ public class GenericAuditLogAspect {
         if (value.contains("/user/")) return LogST.USER;
         if (value.contains("/role/")) return LogST.ROLE;
         if (value.contains("/org/")) return LogST.ORG;
-        if (value.contains("/auth/")) return LogST.MENU;
+        if (value.contains("/auth/men")) return LogST.MENU;
+        if (value.contains("/auth/")) return LogST.DATA;
         if (value.contains("/datasourcedriver/")) return LogST.DRIVER;
         if (value.contains("/datasource/")) return LogST.DATASOURCE;
         if (value.contains("/datasetsync/")) return LogST.SYNC_TASK;
@@ -167,7 +184,7 @@ public class GenericAuditLogAspect {
     }
 
     private String description(LogOT operationType, String resourceType, String requestUrl) {
-        return actionDesc(operationType) + resourceDesc(resourceType) + "：" + requestUrl;
+        return AuditLogText.description(operationType, resourceType, requestUrl);
     }
 
     private Operator currentOperator() {
@@ -212,37 +229,22 @@ public class GenericAuditLogAspect {
         return false;
     }
 
-    private String resourceDesc(String resourceType) {
-        return switch (resourceType) {
-            case "USER" -> "用户";
-            case "ROLE" -> "角色";
-            case "ORG" -> "组织";
-            case "MENU" -> "权限";
-            case "DATASOURCE" -> "数据源";
-            case "DATASET" -> "数据集";
-            case "PANEL" -> "仪表盘";
-            case "SCREEN" -> "数据大屏";
-            case "VIEW" -> "图表";
-            case "LINK" -> "分享链接";
-            case "DRIVER" -> "驱动";
-            case "SYNC_TASK" -> "同步任务";
-            default -> "数据";
-        };
+    private boolean isManagementReadEndpoint(String uri) {
+        return containsAny(uri,
+                "/sysparameter/", "/engine/", "/exportcenter/exporttasks", "/exportcenter/exportlimit",
+                "/auth/busipermission", "/auth/busitargetpermission", "/auth/busiresource",
+                "/auth/menupermission", "/auth/menutargetpermission", "/auth/menuresource",
+                "/role/bycurorg", "/role/query", "/role/detail", "/role/querywithoid",
+                "/user/bycurorg", "/user/defaultpwd", "/org/mounted");
     }
 
-    private String actionDesc(LogOT operationType) {
-        return switch (operationType) {
-            case CREATE -> "新建";
-            case MODIFY -> "编辑";
-            case DELETE -> "删除";
-            case EXPORT -> "导出";
-            case DOWNLOAD -> "下载";
-            case AUTHORIZE -> "授权";
-            case UPLOADFILE -> "上传";
-            case LOGIN -> "登录";
-            case CLEAR -> "清理";
-            default -> operationType.name();
-        };
+    private boolean isReadOperation(String uri, String methodName) {
+        return containsAny(uri,
+                "/query", "/pager", "/tree", "/info", "/detail", "/status", "/option", "/selected",
+                "/bycurorg", "/querybyid", "/querywithoid", "/mounted", "/permission", "/resource",
+                "/exporttasks", "/exportlimit", "/validatepwd")
+                || containsAny(methodName, "query", "pager", "tree", "info", "detail", "status", "option",
+                "selected", "permission", "resource", "validate");
     }
 
     private record Operator(Long id, String name, String account) {

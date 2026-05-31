@@ -81,6 +81,24 @@ class GenericAuditLogAspectTest {
     }
 
     @Test
+    @DisplayName("导出中心列表查询应按查看记录，避免被 export 关键词误判为导出")
+    void shouldClassifyExportCenterTaskQueryAsRead() throws Throwable {
+        GenericAuditLogAspect aspect = new GenericAuditLogAspect();
+        injectAuditLogService(aspect);
+        bindRequest("POST", "/exportCenter/exportTasks/records");
+        when(signature.getMethod()).thenReturn(TestEndpoint.class.getDeclaredMethod("exportTasks"));
+        when(signature.getName()).thenReturn("exportTasks");
+        when(point.getSignature()).thenReturn(signature);
+        when(point.proceed()).thenReturn("ok");
+
+        aspect.around(point);
+
+        verify(auditLogService).log(eq(LogOT.READ), eq("DATA"), isNull(), contains("查看"),
+                eq("POST"), eq("/exportCenter/exportTasks/records"), isNull(), isNull(), isNull(), eq("127.0.0.1"),
+                anyLong(), eq(200), eq("success"));
+    }
+
+    @Test
     @DisplayName("普通只读 GET 接口不应被兜底审计放大噪声")
     void shouldSkipPlainReadApi() throws Throwable {
         GenericAuditLogAspect aspect = new GenericAuditLogAspect();
@@ -200,6 +218,11 @@ class GenericAuditLogAspectTest {
 
         @PostMapping("/upload")
         public Object upload() {
+            return null;
+        }
+
+        @PostMapping("/exportTasks")
+        public Object exportTasks() {
             return null;
         }
 

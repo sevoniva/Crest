@@ -84,7 +84,7 @@ public class ExportCenterServer implements ExportCenterApi {
     }
 
     @Override
-    @DeLog(id = "#p0", ot = LogOT.DOWNLOAD, st = LogST.DATA)
+    @DeLog(id = "#p0", ot = LogOT.READ, st = LogST.DATA)
     public String generateDownloadUri(String id) throws Exception {
         return exportCenterManage.generateDownloadUri(id);
     }

@@ -1,34 +1,35 @@
 <template>
-  <InfoTemplate
-    ref="infoTemplate"
-    setting-key="basic"
-    showValidate
-    style="padding-bottom: 0"
-    :setting-title="t('system.engine_settings')"
-    :setting-data="templateList"
-    @edit="edit"
-    @check="validateById"
-  />
-  <div class="de-expand_content" :style="{ marginBottom: showPriority ? '4px' : '24px' }">
-    <div class="de-expand-engine" @click="showPriority = !showPriority">
-      {{ t('datasource.priority') }}
-      <el-icon>
-        <Icon
-          ><component
-            class="svg-icon"
-            :is="showPriority ? icon_down_outlined : icon_down_outlined1"
-          ></component
-        ></Icon>
-      </el-icon>
+  <div class="engine-setting">
+    <InfoTemplate
+      ref="infoTemplate"
+      setting-key="basic"
+      showValidate
+      :setting-title="t('system.engine_settings')"
+      :setting-data="templateList"
+      @edit="edit"
+      @check="validateById"
+    />
+    <div class="de-expand_content">
+      <div class="de-expand-engine" @click="showPriority = !showPriority">
+        {{ t('datasource.priority') }}
+        <el-icon>
+          <Icon
+            ><component
+              class="svg-icon"
+              :is="showPriority ? icon_down_outlined : icon_down_outlined1"
+            ></component
+          ></Icon>
+        </el-icon>
+      </div>
     </div>
+    <InfoTemplate
+      v-if="showPriority"
+      ref="infoTemplateTime"
+      class="engine-advanced-card"
+      hide-head
+      :setting-data="templateListTime"
+    />
   </div>
-  <InfoTemplate
-    v-if="showPriority"
-    ref="infoTemplateTime"
-    style="padding-top: 0"
-    hide-head
-    :setting-data="templateListTime"
-  />
   <!--    数据填报      -->
 </template>
 
@@ -158,25 +159,42 @@ const validateById = async () => {
 }
 </script>
 <style lang="less" scoped>
+.engine-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 .de-expand_content {
-  height: 22px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
+  margin: -2px 0 -2px 0;
   .de-expand-engine {
     font-family: var(--de-custom_font, 'PingFang');
     font-size: 14px;
-    font-weight: 400;
+    font-weight: 600;
     line-height: 22px;
     color: var(--ed-color-primary);
     cursor: pointer;
-    margin-left: 24px;
-    height: 22px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
+    transition:
+      background-color 0.16s ease,
+      color 0.16s ease;
 
     .ed-icon {
       margin-left: 4px;
     }
+
+    &:hover {
+      background: #eff6ff;
+    }
   }
+}
+.engine-advanced-card {
+  margin-top: -4px;
 }
 </style>

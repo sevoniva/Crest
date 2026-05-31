@@ -57,15 +57,15 @@ public class AuditLogService {
             String sql = """
                 INSERT INTO core_audit_log
                 (operation_type, resource_type, resource_id, resource_name,
-                 request_method, request_url,
+                 operation_desc, request_method, request_url,
                  operator_id, operator_name, operator_account, operator_ip,
                  duration, response_code, response_msg, operation_time)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
                 """;
 
             jdbcTemplate.update(sql,
                     operationType.name(), resourceType, resourceId, resourceName,
-                    requestMethod, requestUrl,
+                    resourceName, requestMethod, requestUrl,
                     operatorId, operatorName, operatorAccount, operatorIp,
                     duration, responseCode, responseMsg);
 
@@ -84,13 +84,14 @@ public class AuditLogService {
             String sql = """
                 INSERT INTO core_audit_log
                 (operation_type, resource_type, resource_id, resource_name,
-                 operator_id, operator_name, operator_account, operator_ip,
+                 operation_desc, operator_id, operator_name, operator_account, operator_ip,
                  response_code, response_msg, operation_time)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
                 """;
 
             jdbcTemplate.update(sql,
                     "LOGIN", "USER", userId != null ? userId.toString() : null, truncate(maskSensitive(account), RESOURCE_NAME_MAX_LENGTH),
+                    success ? "本地账号登录成功" : "本地账号登录失败",
                     userId != null ? userId : 0L, truncate(account, OPERATOR_NAME_MAX_LENGTH),
                     truncate(account, OPERATOR_ACCOUNT_MAX_LENGTH), truncate(ip, OPERATOR_IP_MAX_LENGTH),
                     success ? 200 : 401, truncate(maskSensitive(msg), RESPONSE_MSG_MAX_LENGTH));
