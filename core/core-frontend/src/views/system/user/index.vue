@@ -28,6 +28,11 @@ const form = reactive<any>({
   authType: 'LOCAL'
 })
 
+const orgTreeRef = ref()
+const orgDialogVisible = ref(false)
+const orgIsEdit = ref(false)
+const orgForm = reactive<any>({ id: null, pid: 0, name: '', parentName: '根目录' })
+
 const isSsoUser = row => String(row?.authType || '').toUpperCase() === 'SSO'
 const authTypeLabel = row => (isSsoUser(row) ? '单点登录' : '本地账号')
 const authTypeTag = row => (isSsoUser(row) ? 'success' : 'info')
@@ -114,7 +119,7 @@ const save = async () => {
     return
   }
   await request.post({ url: isEdit.value ? '/user/edit' : '/user/create', data: form })
-  ElMessage.success(isEdit.value ? '用户已更新' : '用户已创建')
+  ElMessage.success('保存成功')
   dialogVisible.value = false
   await loadTable()
 }
@@ -142,7 +147,7 @@ const remove = async row => {
     type: 'warning'
   })
   await request.post({ url: `/user/delete/${row.id}` })
-  ElMessage.success('用户已删除')
+  ElMessage.success('删除成功')
   await loadTable()
 }
 
@@ -157,7 +162,7 @@ const batchRemove = async () => {
     type: 'warning'
   })
   await request.post({ url: '/user/batchDel', data: selectedRows.value.map(row => row.id) })
-  ElMessage.success('用户已删除')
+  ElMessage.success('删除成功')
   selectedRows.value = []
   await loadTable()
 }
@@ -183,8 +188,61 @@ const importUsers = async options => {
     headersType: 'multipart/form-data',
     data
   })
-  ElMessage.success(`导入完成：成功 ${res.data?.successCount || 0}，失败 ${res.data?.errorCount || 0}`)
+  ElMessage.success(
+    `导入完成：成功 ${res.data?.successCount || 0}，失败 ${res.data?.errorCount || 0}`
+  )
   await loadTable()
+}
+
+const openOrgCreate = (parent: any) => {
+  Object.assign(orgForm, {
+    id: null,
+    pid: parent?.id || 0,
+    name: '',
+    parentName: parent?.name || '根目录'
+  })
+  orgIsEdit.value = false
+  orgDialogVisible.value = true
+}
+
+const openOrgEdit = (node: any) => {
+  Object.assign(orgForm, {
+    id: node.id,
+    pid: node.pid || 0,
+    name: node.name,
+    parentName: node.name
+  })
+  orgIsEdit.value = true
+  orgDialogVisible.value = true
+}
+
+const saveOrg = async () => {
+  if (!orgForm.name?.trim()) {
+    ElMessage.warning('请输入组织名称')
+    return
+  }
+  await request.post({
+    url: orgIsEdit.value ? '/org/page/edit' : '/org/page/create',
+    data: { id: orgForm.id, pid: orgForm.pid, name: orgForm.name }
+  })
+  ElMessage.success('保存成功')
+  orgDialogVisible.value = false
+  await Promise.all([orgTreeRef.value?.loadTree?.(), loadOrgOptions()])
+}
+
+const removeOrg = async (node: any) => {
+  await ElMessageBox.confirm(`删除组织「${node.name}」后不可恢复，确认删除？`, '删除组织', {
+    confirmButtonText: '删除',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+  await request.post({ url: `/org/page/delete/${node.id}` })
+  ElMessage.success('删除成功')
+  if (String(node.id) === String(selectedOrgId.value)) {
+    selectedOrgId.value = null
+    selectedOrgName.value = '全部组织'
+  }
+  await Promise.all([orgTreeRef.value?.loadTree?.(), loadOrgOptions(), loadTable()])
 }
 
 onMounted(async () => {
@@ -193,17 +251,28 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="user-manage">
+  <div class="manage-page">
     <p class="router-title">用户管理</p>
     <div class="manage-layout">
-      <PlatformOrgTree v-model="selectedOrgId" selectable-all @change="onOrgChange" />
-      <section class="table-wrap">
-        <div class="toolbar">
-          <div>
-            <div class="toolbar-title">{{ selectedOrgName }}</div>
-            <div class="toolbar-sub">按组织查看用户、角色和账号状态</div>
+      <PlatformOrgTree
+        ref="orgTreeRef"
+        v-model="selectedOrgId"
+        title="组织架构"
+        selectable-all
+        manageable
+        collapsible
+        @change="onOrgChange"
+        @create="openOrgCreate"
+        @edit="openOrgEdit"
+        @delete="removeOrg"
+      />
+      <section class="content-card">
+        <div class="card-head">
+          <div class="head-main">
+            <div class="head-title">{{ selectedOrgName }}</div>
+            <div class="head-desc">查看并维护所选组织下的用户、角色与账号状态</div>
           </div>
-          <div class="toolbar-actions">
+          <div class="head-actions">
             <el-input
               v-model="keyword"
               clearable
@@ -221,8 +290,9 @@ onMounted(async () => {
         </div>
         <el-table
           v-loading="loading"
+          class="manage-table"
           :data="tableData"
-          max-height="calc(100vh - 342px)"
+          max-height="calc(100vh - 320px)"
           @selection-change="selectedRows = $event"
         >
           <el-table-column type="selection" width="48" />
@@ -354,68 +424,40 @@ onMounted(async () => {
         <el-button type="primary" @click="save">保存</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog
+      v-model="orgDialogVisible"
+      :title="orgIsEdit ? '重命名组织' : '新建组织'"
+      width="480px"
+    >
+      <el-form label-position="top">
+        <el-form-item v-if="!orgIsEdit" label="上级组织">
+          <el-input :model-value="orgForm.parentName" disabled />
+        </el-form-item>
+        <el-form-item label="组织名称" required>
+          <el-input v-model.trim="orgForm.name" maxlength="64" placeholder="请输入组织名称" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="orgDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveOrg">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <style lang="less" scoped>
-.user-manage {
-  min-height: 100%;
-}
-.router-title {
-  margin: 0 0 16px;
-  color: #0f172a;
-  font-size: 18px;
-  font-weight: 700;
-}
-.manage-layout {
-  display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
-  gap: 16px;
-  align-items: stretch;
-}
-.table-wrap {
-  min-width: 0;
-  overflow: hidden;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-}
-.toolbar {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  padding: 16px;
-  background: #fff;
-  border-bottom: 1px solid #e2e8f0;
-}
-.toolbar-title {
-  min-width: 120px;
-  color: #0f172a;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 24px;
-  white-space: nowrap;
-}
-.toolbar-sub {
-  margin-top: 4px;
-  color: #64748b;
-  font-size: 12px;
-}
-.toolbar-actions {
-  display: flex;
+@import '../common/manage.less';
+.head-actions {
   flex: 1 1 620px;
-  justify-content: flex-end;
   min-width: min(100%, 620px);
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
   .ed-input {
     flex: 1 1 240px;
     max-width: 320px;
   }
+}
+.manage-table {
+  padding: 8px 8px 0;
 }
 .role-tags {
   display: flex;
@@ -425,10 +467,6 @@ onMounted(async () => {
 .pager {
   display: flex;
   justify-content: flex-end;
-  padding: 12px 16px 16px;
-  background: #fff;
-}
-.full-width {
-  width: 100%;
+  padding: 12px 16px;
 }
 </style>
