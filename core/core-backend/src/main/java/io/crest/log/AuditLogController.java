@@ -26,6 +26,10 @@ import java.util.Map;
 @RequestMapping("/auditLog")
 public class AuditLogController {
 
+    private static final int DEFAULT_PAGE = 1;
+    private static final int DEFAULT_PAGE_SIZE = 15;
+    private static final int MAX_PAGE_SIZE = 200;
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -39,7 +43,9 @@ public class AuditLogController {
             @RequestBody(required = false) Map<String, Object> request) {
 
         requireSystemAdmin();
-        int offset = (goPage - 1) * pageSize;
+        int safePage = Math.max(goPage, DEFAULT_PAGE);
+        int safePageSize = pageSize <= 0 ? DEFAULT_PAGE_SIZE : Math.min(pageSize, MAX_PAGE_SIZE);
+        int offset = (safePage - 1) * safePageSize;
 
         // 构建查询条件
         StringBuilder where = new StringBuilder(" WHERE 1=1");
@@ -83,15 +89,15 @@ public class AuditLogController {
 
         // 查询数据
         String dataSql = "SELECT * FROM core_audit_log" + where + " ORDER BY operation_time DESC LIMIT ? OFFSET ?";
-        params.add(pageSize);
+        params.add(safePageSize);
         params.add(offset);
         List<Map<String, Object>> records = jdbcTemplate.queryForList(dataSql, params.toArray());
 
         Map<String, Object> result = new HashMap<>();
         result.put("total", total != null ? total : 0);
         result.put("records", records);
-        result.put("current", goPage);
-        result.put("size", pageSize);
+        result.put("current", safePage);
+        result.put("size", safePageSize);
 
         return result;
     }

@@ -46,6 +46,12 @@ class AllSecurityFixesTest {
         void loginInWhitelist() {
             assertTrue(WhitelistUtils.WHITE_PATH.contains("/login/localLogin"));
         }
+
+        @Test
+        @DisplayName("空用户 ID 不应被识别为系统管理员")
+        void nullUserIdShouldNotBeSystemAdmin() {
+            assertFalse(AuthUtils.isSysAdmin(null));
+        }
     }
 
     // ==========================================

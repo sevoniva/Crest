@@ -33,7 +33,7 @@ public class AuthUtils {
     }
 
     public static boolean isSysAdmin(Long userId) {
-        return userId.equals(SYS_ADMIN_UID);
+        return SYS_ADMIN_UID.equals(userId);
     }
 
 

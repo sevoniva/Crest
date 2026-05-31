@@ -88,7 +88,7 @@ public class DeLogAspect {
         try {
             result = point.proceed();
             return result;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             responseCode = 500;
             responseMsg = e.getMessage();
             throw e;

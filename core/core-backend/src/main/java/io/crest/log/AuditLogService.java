@@ -15,6 +15,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuditLogService {
 
+    private static final int RESOURCE_ID_MAX_LENGTH = 100;
+    private static final int RESOURCE_NAME_MAX_LENGTH = 200;
+    private static final int REQUEST_METHOD_MAX_LENGTH = 10;
+    private static final int REQUEST_URL_MAX_LENGTH = 500;
+    private static final int OPERATOR_NAME_MAX_LENGTH = 100;
+    private static final int OPERATOR_ACCOUNT_MAX_LENGTH = 100;
+    private static final int OPERATOR_IP_MAX_LENGTH = 50;
+    private static final int RESPONSE_MSG_MAX_LENGTH = 500;
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -31,6 +40,14 @@ public class AuditLogService {
             if (resourceName != null) {
                 resourceName = maskSensitive(resourceName);
             }
+            resourceId = truncate(resourceId, RESOURCE_ID_MAX_LENGTH);
+            resourceName = truncate(resourceName, RESOURCE_NAME_MAX_LENGTH);
+            requestMethod = truncate(requestMethod, REQUEST_METHOD_MAX_LENGTH);
+            requestUrl = truncate(requestUrl, REQUEST_URL_MAX_LENGTH);
+            operatorName = truncate(operatorName, OPERATOR_NAME_MAX_LENGTH);
+            operatorAccount = truncate(operatorAccount, OPERATOR_ACCOUNT_MAX_LENGTH);
+            operatorIp = truncate(operatorIp, OPERATOR_IP_MAX_LENGTH);
+            responseMsg = truncate(maskSensitive(responseMsg), RESPONSE_MSG_MAX_LENGTH);
 
             // 处理operatorId为null的情况
             if (operatorId == null) {
@@ -73,9 +90,10 @@ public class AuditLogService {
                 """;
 
             jdbcTemplate.update(sql,
-                    "LOGIN", "USER", userId != null ? userId.toString() : null, account,
-                    userId != null ? userId : 0L, account, account, ip,
-                    success ? 200 : 401, msg);
+                    "LOGIN", "USER", userId != null ? userId.toString() : null, truncate(maskSensitive(account), RESOURCE_NAME_MAX_LENGTH),
+                    userId != null ? userId : 0L, truncate(account, OPERATOR_NAME_MAX_LENGTH),
+                    truncate(account, OPERATOR_ACCOUNT_MAX_LENGTH), truncate(ip, OPERATOR_IP_MAX_LENGTH),
+                    success ? 200 : 401, truncate(maskSensitive(msg), RESPONSE_MSG_MAX_LENGTH));
 
         } catch (Exception e) {
             LogUtil.error("登录日志记录失败: " + e.getMessage());
@@ -93,5 +111,12 @@ public class AuditLogService {
         // Token脱敏
         data = data.replaceAll("(?i)token[\"']?\\s*[:=]\\s*[\"']?[^\"',\\s}]{20,}", "token\":\"***\"");
         return data;
+    }
+
+    private String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
     }
 }
